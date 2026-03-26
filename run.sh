@@ -20,6 +20,7 @@ STAMP="$SCRIPT_DIR/scripts/.installed"
 # section further down.
 
 OPT_REINSTALL=0
+OPT_PORT=8080
 
 usage() {
     echo "Usage: $(basename "$0") [OPTIONS]"
