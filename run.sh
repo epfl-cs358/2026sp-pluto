@@ -8,6 +8,7 @@
 # Options:
 #   --reinstall   Delete the install stamp and re-run the full installation
 #   --help        Show this help message
+#   --port <PORT> Choose the port to use for running the application
 # =============================================================================
 
 set -euo pipefail
