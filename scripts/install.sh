@@ -19,9 +19,22 @@ VENV="$PROJECT_ROOT/.venv"
 REQUIREMENTS="$PROJECT_ROOT/requirements.txt"
 
 # Stamp check:
+if command -v sha256sum &>/dev/null; then
+    CURRENT_HASH=$(sha256sum "$REQUIREMENTS" | awk '{print $1}')
+elif command -v shasum &>/dev/null; then
+    CURRENT_HASH=$(shasum -a 256 "$REQUIREMENTS" | awk '{print $1}')
+else
+    echo "[install] WARNING: No SHA-256 tool found; stamp check skipped."
+    CURRENT_HASH=""
+fi
+
 if [[ -f "$STAMP" ]]; then
-    echo "[install] Already installed (stamp found). Skipping."
-    exit 0
+    STORED_HASH=$(cat "$STAMP")
+    if [[ -n "$CURRENT_HASH" && "$CURRENT_HASH" == "$STORED_HASH" ]]; then
+        echo "[install] Already installed (requirements unchanged). Skipping."
+        exit 0
+    fi
+    echo "[install] requirements.txt has changed. Reinstalling..."
 fi
 
 echo "[install] Starting installation..."
@@ -74,6 +87,6 @@ echo "[install] Installing requirements from: $REQUIREMENTS"
 "$VENV/bin/pip" install -r "$REQUIREMENTS"
 
 # Stamp:
-touch "$STAMP"
+echo "$CURRENT_HASH" > "$STAMP"
 echo ""
 echo "[install] Installation complete."

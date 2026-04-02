@@ -22,7 +22,7 @@ set "STAMP=%PROJECT_ROOT%\scripts\.installed"
 :: the corresponding logic lives in the "Apply parsed options" section.
 
 set "OPT_REINSTALL=0"
-set "OPT_PORT=8080"
+set "OPT_PORT=8090"
 
 :parse_args
 if "%~1"=="" goto end_args
