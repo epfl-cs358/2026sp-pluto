@@ -1,8 +1,3 @@
-""" Reference: adapted from RobotDog implementation by Richard Bloemenkamp
-https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
-
-The robot body/link structure and part of the initial joint setup are based on the reference."""
-
 from __future__ import annotations
 
 import logging
@@ -13,7 +8,6 @@ import time
 
 
 logger = logging.getLogger(__name__)
-
 
 def _sim_process_main(cmd_q: mp.Queue) -> None:
     import pybullet as p
@@ -29,6 +23,10 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     y = 0.0
     yaw = 0.0
     z = 0.5
+
+    # The robot body/link structure and part of the initial joint setup was adapted from:
+    # RobotDog implementation by Richard Bloemenkamp
+    # https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
 
     sh_body = p.createCollisionShape(
         p.GEOM_BOX, halfExtents=[0.45, 0.08, 0.02], physicsClientId=client
