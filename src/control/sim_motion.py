@@ -19,14 +19,14 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     plane = p.createCollisionShape(p.GEOM_PLANE, physicsClientId=client)
     p.createMultiBody(0, plane, physicsClientId=client)
 
-    # The robot body/link structure and part of the initial joint setup was adapted from:
-    # RobotDog implementation by Richard Bloemenkamp
-    # https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
-
     x = 0.0
     y = 0.0
     yaw = 0.0
     z = 0.5
+
+    # The robot body/link structure and part of the initial joint setup was adapted from:
+    # RobotDog implementation by Richard Bloemenkamp
+    # https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
 
     sh_body = p.createCollisionShape(
         p.GEOM_BOX, halfExtents=[0.45, 0.08, 0.02], physicsClientId=client
