@@ -8,6 +8,7 @@
 :: Options:
 ::   --reinstall   Delete the install stamp and re-run the full installation
 ::   --help        Show this help message
+::   --port <PORT> Choose the port to use for running the application
 :: =============================================================================
 
 setlocal enabledelayedexpansion
@@ -21,6 +22,7 @@ set "STAMP=%PROJECT_ROOT%\scripts\.installed"
 :: the corresponding logic lives in the "Apply parsed options" section.
 
 set "OPT_REINSTALL=0"
+set "OPT_PORT=8080"
 
 :parse_args
 if "%~1"=="" goto end_args
