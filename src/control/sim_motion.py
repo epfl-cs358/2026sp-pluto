@@ -1,3 +1,8 @@
+""" Reference: adapted from RobotDog implementation by Richard Bloemenkamp
+https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
+
+The robot body/link structure and part of the initial joint setup are based on the reference."""
+
 from __future__ import annotations
 
 import logging
@@ -25,11 +30,6 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     yaw = 0.0
     z = 0.5
 
-    # Reference: adapted from RobotDog implementation (@Richard Bloemenkamp)
-    # https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
-    # Includes robot structure definition, kinematics, multi-body construction, and initial joint control/friction settings.
-
-    # Dog robot body and links.
     sh_body = p.createCollisionShape(
         p.GEOM_BOX, halfExtents=[0.45, 0.08, 0.02], physicsClientId=client
     )
@@ -45,44 +45,22 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     sh_knee = p.createCollisionShape(
         p.GEOM_BOX, halfExtents=[0.02, 0.02, 0.02], physicsClientId=client
     )
-    sh_foot = p.createCollisionShape(p.GEOM_SPHERE, radius=0.04, physicsClientId=client)
+    sh_foot = p.createCollisionShape(
+        p.GEOM_SPHERE, radius=0.04, physicsClientId=client
+    )
 
     link_masses = [
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
-        0.1,
+        0.1, 0.1, 0.1, 0.1,
+        0.1, 0.1, 0.1, 0.1,
+        0.1, 0.1, 0.1, 0.1,
+        0.1, 0.1, 0.1, 0.1,
         20,
     ]
     link_collision_shape_indices = [
-        sh_roll,
-        sh_hip,
-        sh_knee,
-        sh_foot,
-        sh_roll,
-        sh_hip,
-        sh_knee,
-        sh_foot,
-        sh_roll,
-        sh_hip,
-        sh_knee,
-        sh_foot,
-        sh_roll,
-        sh_hip,
-        sh_knee,
-        sh_foot,
+        sh_roll, sh_hip, sh_knee, sh_foot,
+        sh_roll, sh_hip, sh_knee, sh_foot,
+        sh_roll, sh_hip, sh_knee, sh_foot,
+        sh_roll, sh_hip, sh_knee, sh_foot,
         sh_extraweight,
     ]
     nlnk = len(link_masses)
@@ -119,60 +97,24 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     link_inertial_frame_positions = [[0, 0, 0]] * nlnk
     link_inertial_frame_orientations = [[0, 0, 0, 1]] * nlnk
     indices = [
-        0,
-        1,
-        2,
-        3,
-        0,
-        5,
-        6,
-        7,
-        0,
-        9,
-        10,
-        11,
-        0,
-        13,
-        14,
-        15,
+        0, 1, 2, 3,
+        0, 5, 6, 7,
+        0, 9, 10, 11,
+        0, 13, 14, 15,
         0,
     ]
     joint_types = [
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_PRISMATIC,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_PRISMATIC,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_PRISMATIC,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_REVOLUTE,
-        p.JOINT_PRISMATIC,
+        p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
+        p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
+        p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
+        p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
         p.JOINT_PRISMATIC,
     ]
     axis = [
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 1, 0],
-        [0, 0, 1],
+        [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
+        [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
+        [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
+        [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
         [0, 0, 1],
     ]
 
@@ -195,7 +137,6 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         physicsClientId=client,
     )
 
-    # Keep prismatic links and foot contact parameters close to the original setup.
     p.setJointMotorControl2(
         robot_id,
         16,
@@ -205,6 +146,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         maxVelocity=3,
         physicsClientId=client,
     )
+
     for joint in (3, 7, 11, 15):
         p.setJointMotorControl2(
             robot_id,
@@ -217,98 +159,73 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         )
         p.changeDynamics(robot_id, joint, lateralFriction=2, physicsClientId=client)
 
-    max_linear_speed = 1.0
-    max_turn_rate = math.radians(180)
+    current_motion = "idle"
+    current_speed = 1.0
+
+    max_linear_speed = 3.0
+    max_turn_rate = math.radians(120)
 
     while p.isConnected(client):
         try:
-            cmd = cmd_q.get_nowait()
-            kind = cmd[0]
-            if kind == "shutdown":
-                break
+            while True:
+                cmd = cmd_q.get_nowait()
+                kind = cmd[0]
 
-            if kind in {"forward", "backward"}:
-                duration, speed = cmd[1], cmd[2]
-                direction = 1.0 if kind == "forward" else -1.0
-                speed = max(0.0, min(float(speed), 1.0))
-                vx = max_linear_speed * speed * direction
-                end_t = time.time() + max(0.0, float(duration))
-                last_t = time.time()
-                while time.time() < end_t and p.isConnected(client):
-                    now = time.time()
-                    dt = now - last_t
-                    last_t = now
-                    x += math.cos(yaw) * vx * dt
-                    y += math.sin(yaw) * vx * dt
-                    quat = p.getQuaternionFromEuler([0, 0, yaw])
-                    p.resetBasePositionAndOrientation(
-                        robot_id, [x, y, z], quat, physicsClientId=client
-                    )
-                    p.stepSimulation(physicsClientId=client)
-                    p.resetDebugVisualizerCamera(
-                        cameraDistance=1.6,
-                        cameraYaw=math.degrees(yaw) - 90,
-                        cameraPitch=-35,
-                        cameraTargetPosition=[x, y, 0.25],
-                        physicsClientId=client,
-                    )
-                    time.sleep(1 / 240)
+                if kind == "shutdown":
+                    if p.isConnected(client):
+                        p.disconnect(physicsClientId=client)
+                    return
 
-            if kind == "turn":
-                angle, speed = float(cmd[1]), float(cmd[2])
-                if angle > 180:
-                    angle -= 360
-                elif angle < -180:
-                    angle += 360
+                if kind == "set_motion":
+                    current_motion = str(cmd[1])
+                    current_speed = max(0.0, min(float(cmd[2]), 1.0))
 
-                speed = max(0.0, min(speed, 1.0))
-                if speed > 0 and angle != 0:
-                    target = math.radians(angle)
-                    rate = max_turn_rate * speed
-                    duration = abs(target) / rate
-                    end_t = time.time() + duration
-                    sign = 1.0 if target > 0 else -1.0
-                    last_t = time.time()
-                    while time.time() < end_t and p.isConnected(client):
-                        now = time.time()
-                        dt = now - last_t
-                        last_t = now
-                        yaw += sign * rate * dt
-                        quat = p.getQuaternionFromEuler([0, 0, yaw])
-                        p.resetBasePositionAndOrientation(
-                            robot_id, [x, y, z], quat, physicsClientId=client
-                        )
-                        p.stepSimulation(physicsClientId=client)
-                        p.resetDebugVisualizerCamera(
-                            cameraDistance=1.6,
-                            cameraYaw=math.degrees(yaw) - 90,
-                            cameraPitch=-35,
-                            cameraTargetPosition=[x, y, 0.25],
-                            physicsClientId=client,
-                        )
-                        time.sleep(1 / 240)
+                elif kind == "stop_motion":
+                    current_motion = "idle"
+                    current_speed = 0.0
 
         except queue.Empty:
-            quat = p.getQuaternionFromEuler([0, 0, yaw])
-            p.resetBasePositionAndOrientation(
-                robot_id, [x, y, z], quat, physicsClientId=client
-            )
-            p.stepSimulation(physicsClientId=client)
-            p.resetDebugVisualizerCamera(
-                cameraDistance=1.6,
-                cameraYaw=math.degrees(yaw) - 90,
-                cameraPitch=-35,
-                cameraTargetPosition=[x, y, 0.25],
-                physicsClientId=client,
-            )
-            time.sleep(1 / 240)
+            pass
+
+        dt = 1.0 / 240.0
+
+        if current_motion == "forward":
+            x += math.cos(yaw) * max_linear_speed * current_speed * dt
+            y += math.sin(yaw) * max_linear_speed * current_speed * dt
+
+        elif current_motion == "backward":
+            x -= math.cos(yaw) * max_linear_speed * current_speed * dt
+            y -= math.sin(yaw) * max_linear_speed * current_speed * dt
+
+        elif current_motion == "turn_left":
+            yaw += max_turn_rate * current_speed * dt
+
+        elif current_motion == "turn_right":
+            yaw -= max_turn_rate * current_speed * dt
+
+        quat = p.getQuaternionFromEuler([0, 0, yaw])
+        p.resetBasePositionAndOrientation(
+            robot_id, [x, y, z], quat, physicsClientId=client
+        )
+
+        p.stepSimulation(physicsClientId=client)
+
+        p.resetDebugVisualizerCamera(
+            cameraDistance=1.6,
+            cameraYaw=math.degrees(yaw) - 90,
+            cameraPitch=-35,
+            cameraTargetPosition=[x, y, 0.25],
+            physicsClientId=client,
+        )
+
+        time.sleep(dt)
 
     if p.isConnected(client):
         p.disconnect(physicsClientId=client)
 
 
 class PyBulletMotionController:
-    """Imitates forward/turn motor commands in a PyBullet window."""
+    """Simulates directional robot motion in a PyBullet window."""
 
     def __init__(self) -> None:
         self._process: mp.Process | None = None
@@ -323,24 +240,21 @@ class PyBulletMotionController:
             return
 
         self._cmd_q = mp.Queue()
-        self._process = mp.Process(target=_sim_process_main, args=(self._cmd_q,), daemon=True)
+        self._process = mp.Process(
+            target=_sim_process_main,
+            args=(self._cmd_q,),
+            daemon=True,
+        )
         self._process.start()
         logger.info("PyBullet simulation started")
 
-    def forward(self, duration: float = 1.0, speed: float = 1.0) -> None:
-        logger.info("Walking forward for %.2f second(s) at speed %.2f", duration, speed)
-        self._send(("forward", float(duration), float(speed)))
-
-    def backward(self, duration: float = 1.0, speed: float = 1.0) -> None:
-        logger.info("Walking backward for %.2f second(s) at speed %.2f", duration, speed)
-        self._send(("backward", float(duration), float(speed)))
-
-    def turn(self, angle: float, speed: float = 1.0) -> None:
-        logger.info("Turning by %.1f degrees at speed %.2f", angle, speed)
-        self._send(("turn", float(angle), float(speed)))
+    def set_motion(self, motion: str, speed: float = 1.0) -> None:
+        logger.info("Set motion: %s at speed %.2f", motion, speed)
+        self._send(("set_motion", motion, float(speed)))
 
     def stop(self) -> None:
         logger.info("Stop requested")
+        self._send(("stop_motion",))
 
     def shutdown(self) -> None:
         proc = self._process
