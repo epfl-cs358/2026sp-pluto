@@ -23,9 +23,19 @@ set "REQUIREMENTS=%PROJECT_ROOT%\requirements.txt"
 set "DOWNLOAD_URL=https://www.python.org/downloads/"
 
 :: Stamp check:
+:: Stamp check:
+set "CURRENT_HASH="
+for /f "skip=1 tokens=* delims=" %%H in ('certutil -hashfile "%REQUIREMENTS%" SHA256 2^>nul') do (
+    if not defined CURRENT_HASH set "CURRENT_HASH=%%H"
+)
+
 if exist "%STAMP%" (
-    echo [install] Already installed ^(stamp found^). Skipping heavy operations.
-    exit /b 0
+    set /p STORED_HASH=<"%STAMP%"
+    if "!CURRENT_HASH!"=="!STORED_HASH!" (
+        echo [install] Already installed ^(requirements unchanged^). Skipping heavy operations.
+        exit /b 0
+    )
+    echo [install] requirements.txt has changed. Reinstalling...
 )
 
 echo [install] Starting installation...
@@ -104,7 +114,7 @@ if errorlevel 1 (
 )
 
 :: Stamp:
-type nul > "%STAMP%"
+echo !CURRENT_HASH!> "%STAMP%"
 echo.
 echo [install] Installation complete.
 exit /b 0
