@@ -8,7 +8,7 @@ For Windows, in the root project directory, type:
 
 For MacOS and Linux, in the root project directory, type:
 ```cmd
-./run.sh
+bash run.sh
 ```
 
 These scripts will automatically install all the dependencies needed and run the web app.
