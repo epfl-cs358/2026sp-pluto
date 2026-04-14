@@ -273,15 +273,19 @@ class PyBulletMotionController:
             raise RuntimeError("Simulation is not running. Click Open PyBullet first.")
         self._cmd_q.put(cmd)
 
-from servo import Servo
-from leg import Leg
+if __name__ == "__main__":
+    from servo import Servo
+    from leg import Leg
 
-hip = Servo("hip")
-upper = Servo("upper")
-lower = Servo("lower")
+    # Create 3 servos (one leg)
+    hip = Servo("hip")
+    upper = Servo("upper")
+    lower = Servo("lower")
 
-leg = Leg(hip, upper, lower)
+    # Create leg
+    leg = Leg(hip, upper, lower)
 
-leg.set_angles(30, 45, 60)
+    # Test movement
+    leg.set_angles(30, 45, 60)
 
-print("Leg angles:", leg.get_angles())
+    print("Leg angles:", leg.get_angles())
