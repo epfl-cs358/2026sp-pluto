@@ -21,7 +21,7 @@ class Servo:
         self.max_angle = max_angle
         self.angle = 90  # default position
 
-    def set_angle(self, angle):
+    def set_angle(self, angle: float) -> None:
         """
         Set servo angle.
 
@@ -53,6 +53,6 @@ class Servo:
                 force=500,
             )
 
-    def get_angle(self):
+    def get_angle(self) -> float:
         """Return current servo angle."""
         return self.angle
