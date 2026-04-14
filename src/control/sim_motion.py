@@ -272,3 +272,17 @@ class PyBulletMotionController:
         if not self._is_running() or self._cmd_q is None:
             raise RuntimeError("Simulation is not running. Click Open PyBullet first.")
         self._cmd_q.put(cmd)
+
+if __name__ == "__main__":
+    from servo import Servo
+
+    servo = Servo("test_servo")
+
+    servo.set_angle(30)
+    servo.set_angle(120)
+
+    print("Final angle:", servo.get_angle())
+
+# Simple test of Servo abstraction
+# Doesn't yet control PyBullet joints
+# It verifies angle limits and interface before integration
