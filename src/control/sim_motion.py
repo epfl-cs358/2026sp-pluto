@@ -1,13 +1,19 @@
-from __future__ import annotations
-
 import logging
 import math
 import multiprocessing as mp
 import queue
 import time
 
+from gait import Walk, Trot, Gallop
 
 logger = logging.getLogger(__name__)
+
+LEG_JOINTS = {
+    "fl": {"hip": 1, "knee": 2},
+    "fr": {"hip": 5, "knee": 6},
+    "bl": {"hip": 9, "knee": 10},
+    "br": {"hip": 13, "knee": 14},
+}
 
 def _sim_process_main(cmd_q: mp.Queue) -> None:
     import pybullet as p
@@ -157,10 +163,19 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         )
         p.changeDynamics(robot_id, joint, lateralFriction=2, physicsClientId=client)
 
+    gait = Trot(period=0.6)
+
+    sim_time = 0.0
+
+    # Place joints in the standing pose immediately
+    for joints in LEG_JOINTS.values():
+        p.resetJointState(robot_id, joints["hip"], gait.stand_hip, physicsClientId=client)
+        p.resetJointState(robot_id, joints["knee"], gait.stand_knee, physicsClientId=client)
+
     current_motion = "idle"
     current_speed = 1.0
 
-    max_linear_speed = 3.0
+    max_linear_speed = 2.0
     max_turn_rate = math.radians(120)
 
     while p.isConnected(client):
@@ -205,6 +220,36 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         p.resetBasePositionAndOrientation(
             robot_id, [x, y, z], quat, physicsClientId=client
         )
+
+        # Animate leg joints
+        if current_motion in ("forward", "backward", "turn_left", "turn_right"):
+            forward_scale = -1.0 if current_motion == "backward" else 1.0
+            for leg, joints in LEG_JOINTS.items():
+                hip_angle, knee_angle = gait.get_leg_angles(sim_time, leg, forward_scale)
+                p.setJointMotorControl2(
+                    robot_id, joints["hip"], p.POSITION_CONTROL,
+                    targetPosition=hip_angle, force=50, maxVelocity=6,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["knee"], p.POSITION_CONTROL,
+                    targetPosition=knee_angle, force=50, maxVelocity=6,
+                    physicsClientId=client,
+                )
+        else:
+            for joints in LEG_JOINTS.values():
+                p.setJointMotorControl2(
+                    robot_id, joints["hip"], p.POSITION_CONTROL,
+                    targetPosition=gait.stand_hip, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["knee"], p.POSITION_CONTROL,
+                    targetPosition=gait.stand_knee, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
+
+        sim_time += dt
 
         p.stepSimulation(physicsClientId=client)
 
