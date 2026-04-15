@@ -276,16 +276,43 @@ class PyBulletMotionController:
 if __name__ == "__main__":
     from servo import Servo
     from leg import Leg
+    from robot import Robot
 
-    # Create 3 servos (one leg)
-    hip = Servo("hip")
-    upper = Servo("upper")
-    lower = Servo("lower")
+    # crete the servos for each leg
 
-    # Create leg
-    leg = Leg(hip, upper, lower)
+    # front left leg
+    fl_hip = Servo("fl_hip")
+    fl_upper = Servo("fl_upper")
+    fl_lower = Servo("fl_lower")
 
-    # Test movement
-    leg.set_angles(30, 45, 60)
+    # front right leg
+    fr_hip = Servo("fr_hip")
+    fr_upper = Servo("fr_upper")
+    fr_lower = Servo("fr_lower")
 
-    print("Leg angles:", leg.get_angles())
+    # back left leg
+    bl_hip = Servo("bl_hip")
+    bl_upper = Servo("bl_upper")
+    bl_lower = Servo("bl_lower")
+
+    # back rigtn leg
+    br_hip = Servo("br_hip")
+    br_upper = Servo("br_upper")
+    br_lower = Servo("br_lower")
+
+    #create the the legs with 3 servos each
+
+    front_left = Leg(fl_hip, fl_upper, fl_lower)
+    front_right = Leg(fr_hip, fr_upper, fr_lower)
+    back_left = Leg(bl_hip, bl_upper, bl_lower)
+    back_right = Leg(br_hip, br_upper, br_lower)
+
+    # createion of the robot 
+
+    robot = Robot(front_left, front_right, back_left, back_right)
+
+    # Put robot in standing position
+    robot.stand()
+
+    # Print all angles
+    robot.print_state()
