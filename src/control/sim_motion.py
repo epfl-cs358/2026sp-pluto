@@ -208,14 +208,6 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
 
         p.stepSimulation(physicsClientId=client)
 
-        p.resetDebugVisualizerCamera(
-            cameraDistance=1.6,
-            cameraYaw=math.degrees(yaw) - 90,
-            cameraPitch=-35,
-            cameraTargetPosition=[x, y, 0.25],
-            physicsClientId=client,
-        )
-
         time.sleep(dt)
 
     if p.isConnected(client):
