@@ -14,6 +14,7 @@ LEG_JOINTS = {
     "bl": {"hip": 9, "knee": 10},
     "br": {"hip": 13, "knee": 14},
 }
+# TODO: roll moves as well
 
 def _sim_process_main(cmd_q: mp.Queue) -> None:
     import pybullet as p
