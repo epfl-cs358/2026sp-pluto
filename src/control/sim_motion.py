@@ -6,6 +6,23 @@ import multiprocessing as mp
 import queue
 import time
 
+JOINT_MAP = {
+    # Front Left
+    "fl_hip": 1,
+    "fl_upper": 2,
+
+    # Front Right
+    "fr_hip": 5,
+    "fr_upper": 6,
+
+    # Back Left
+    "bl_hip": 9,
+    "bl_upper": 10,
+
+    # Back Right
+    "br_hip": 13,
+    "br_upper": 14,
+}
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +151,45 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         linkJointAxis=axis,
         physicsClientId=client,
     )
+
+    from servo import Servo
+    sim_client = {"robot_id": robot_id}
+
+    servos = {
+        "fl_hip": Servo("fl_hip", JOINT_MAP["fl_hip"], sim_client),
+        "fl_upper": Servo("fl_upper", JOINT_MAP["fl_upper"], sim_client),
+
+        "fr_hip": Servo("fr_hip", JOINT_MAP["fr_hip"], sim_client),
+        "fr_upper": Servo("fr_upper", JOINT_MAP["fr_upper"], sim_client),
+
+        "bl_hip": Servo("bl_hip", JOINT_MAP["bl_hip"], sim_client),
+        "bl_upper": Servo("bl_upper", JOINT_MAP["bl_upper"], sim_client),
+
+        "br_hip": Servo("br_hip", JOINT_MAP["br_hip"], sim_client),
+        "br_upper": Servo("br_upper", JOINT_MAP["br_upper"], sim_client),
+    }
+
+    servos["fl_hip"].set_angle(90)
+    servos["fl_upper"].set_angle(90)
+    servos["fr_hip"].set_angle(90)
+    servos["fr_upper"].set_angle(90)
+    servos["bl_hip"].set_angle(90)
+    servos["bl_upper"].set_angle(90)
+    servos["br_hip"].set_angle(90)
+    servos["br_upper"].set_angle(90)
+
+    # #test to move one joint
+    # p.setJointMotorControl2(
+    # bodyUniqueId=robot_id,
+    # jointIndex=0,
+    # controlMode=p.POSITION_CONTROL,
+    # targetPosition=0.5,
+    # force=500,
+    # )   
+
+    for i in range(p.getNumJoints(robot_id)):
+        info = p.getJointInfo(robot_id, i)
+        print(f"Joint {i}: {info[1].decode('utf-8')}")
 
     p.setJointMotorControl2(
         robot_id,
