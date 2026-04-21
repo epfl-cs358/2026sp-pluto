@@ -104,7 +104,7 @@ def index():
             gait_btn = ui.dropdown_button("walk", auto_close=True).props("flat").classes("btn")
             with gait_btn:
                 for gait in ["walk", "trot", "gallop"]:
-                    ui.item(gait, on_click=lambda g=gait: gait_btn.set_text(g))
+                    ui.item(gait, on_click=lambda _, g=gait: (gait_btn.set_text(g), SIM.set_gait(g)))
 
         with ui.column().classes("items-center gap-1"):
             forward_btn = ui.button("↑").props("flat").classes("pad-btn")
