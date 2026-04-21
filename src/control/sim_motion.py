@@ -164,7 +164,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         )
         p.changeDynamics(robot_id, joint, lateralFriction=2, physicsClientId=client)
 
-    gait = Trot(period=0.6)
+    gait = Gallop(period=0.6)
 
     sim_time = 0.0
 
@@ -176,7 +176,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     current_motion = "idle"
     current_speed = 1.0
 
-    max_linear_speed = 2.0
+    max_linear_speed = 5.0
     max_turn_rate = math.radians(120)
 
     while p.isConnected(client):
@@ -197,6 +197,15 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                 elif kind == "stop_motion":
                     current_motion = "idle"
                     current_speed = 0.0
+
+                elif kind == "set_gait":
+                    name = str(cmd[1])
+                    if name == "walk":
+                        gait = Walk(period=0.6)
+                    elif name == "trot":
+                        gait = Trot(period=0.6)
+                    elif name == "gallop":
+                        gait = Gallop(period=0.6)
 
         except queue.Empty:
             pass
@@ -283,6 +292,10 @@ class PyBulletMotionController:
         )
         self._process.start()
         logger.info("PyBullet simulation started")
+
+    def set_gait(self, gait_name: str) -> None:
+        logger.info("Set gait: %s", gait_name)
+        self._send(("set_gait", gait_name))
 
     def set_motion(self, motion: str, speed: float = 1.0) -> None:
         logger.info("Set motion: %s at speed %.2f", motion, speed)
