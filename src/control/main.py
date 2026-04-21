@@ -36,7 +36,7 @@ def index():
                 ui.label("Simulation Mode").classes("text-xl font-bold q-mt-md")
 
             with ui.card().classes("items-center p-6 cursor-pointer").on(
-                "click", lambda: ui.navigate.to("/robot")
+                "click", lambda: ui.navigate.to("/controller")
             ):
                 ui.icon("gamepad", size="4rem").classes("text-green-500")
                 ui.label("Controller").classes("text-xl font-bold q-mt-md")
