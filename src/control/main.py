@@ -74,34 +74,53 @@ def bind_press_events(button: ui.button, motion: str, speed: float = 1.0) -> Non
 
 @ui.page("/")
 def index():
-    with ui.column().classes("items-center q-gutter-md").style("padding: 24px;"):
-        ui.label("Pluto Controller").style("font-size: 1.4rem; font-weight: 600;")
-        ui.separator().classes("w-full")
+    ui.add_head_html('''
+        <style type="text/tailwindcss">
+            @layer components {
+                .btn {
+                    @apply bg-white hover:bg-gray-50 active:bg-gray-100
+                           text-gray-800 font-medium py-2 px-4
+                           border border-gray-300 rounded-lg shadow-sm
+                           transition-colors duration-100 select-none cursor-pointer;
+                }
+                .pad-btn {
+                    @apply bg-white hover:bg-gray-50 active:bg-gray-100
+                           text-gray-700 font-semibold
+                           border border-gray-300 rounded-lg shadow-sm
+                           transition-colors duration-100 select-none cursor-pointer
+                           w-20 h-14 flex items-center justify-center;
+                }
+            }
+        </style>
+    ''')
 
-        with ui.row().classes("q-gutter-sm"):
-            ui.button("Open PyBullet", on_click=start_sim)
-            ui.button("Close PyBullet", on_click=lambda: stop_sim())
+    with ui.column().classes("items-center justify-center gap-12 min-h-screen bg-gray-50 px-4"):
+        ui.label("pluto").classes("text-2xl font-bold text-gray-900 tracking-tight")
 
-        ui.separator().classes("w-full")
+        with ui.row().classes("gap-2 items-center"):
+            ui.button("open", on_click=start_sim).props("flat").classes("btn")
+            ui.button("close", on_click=lambda: stop_sim()).props("flat").classes("btn")
 
-        ui.label("Hold a button to keep moving").style("font-size: 1rem;")
+            gait_btn = ui.dropdown_button("walk", auto_close=True).props("flat").classes("btn")
+            with gait_btn:
+                for gait in ["walk", "trot", "gallop"]:
+                    ui.item(gait, on_click=lambda g=gait: gait_btn.set_text(g))
 
-        forward_btn = ui.button("Forward").props("size=lg color=primary")
-        bind_press_events(forward_btn, "forward", 1.0)
+        with ui.column().classes("items-center gap-1"):
+            forward_btn = ui.button("↑").props("flat").classes("pad-btn")
+            bind_press_events(forward_btn, "forward", 1.0)
 
-        with ui.row().classes("q-gutter-sm"):
-            left_btn = ui.button("Left").props("size=lg color=secondary")
-            bind_press_events(left_btn, "turn_left", 1.0)
+            with ui.row().classes("gap-1"):
+                left_btn = ui.button("←").props("flat").classes("pad-btn")
+                bind_press_events(left_btn, "turn_left", 1.0)
 
-            stop_btn = ui.button("Stop", on_click=release_motion).props(
-                "size=lg color=negative"
-            )
+                stop_btn = ui.button("■", on_click=release_motion).props("flat").classes("pad-btn")
 
-            right_btn = ui.button("Right").props("size=lg color=secondary")
-            bind_press_events(right_btn, "turn_right", 1.0)
+                right_btn = ui.button("→").props("flat").classes("pad-btn")
+                bind_press_events(right_btn, "turn_right", 1.0)
 
-        backward_btn = ui.button("Backward").props("size=lg color=primary")
-        bind_press_events(backward_btn, "backward", 1.0)
+            backward_btn = ui.button("↓").props("flat").classes("pad-btn")
+            bind_press_events(backward_btn, "backward", 1.0)
 
 
 if __name__ in {"__main__", "__mp_main__"}:
