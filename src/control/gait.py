@@ -8,8 +8,8 @@ class BaseGait:
     # foot_z = 0.5 - 0.3*cos(hip) - 0.3*cos(hip + knee) = 0
     stand_knee = 0.85
     
-    stride = 0.8
-    lift = 0.5 # extra knee bending at mid-swing to lift a foot
+    stride = 1.4
+    lift = 0.8 # extra knee bending at mid-swing to lift a foot
 
     def __init__(self, period):
         self.period = period

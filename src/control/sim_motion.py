@@ -1,6 +1,7 @@
 import logging
 import math
 import multiprocessing as mp
+import os
 import queue
 import time
 
@@ -22,6 +23,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     client = p.connect(p.GUI)
     p.setGravity(0, 0, -9.81, physicsClientId=client)
     p.setRealTimeSimulation(0, physicsClientId=client)
+    p.configureDebugVisualizer(p.COV_ENABLE_WIREFRAME, 0, physicsClientId=client)
 
     plane = p.createCollisionShape(p.GEOM_PLANE, physicsClientId=client)
     p.createMultiBody(0, plane, physicsClientId=client)
@@ -29,55 +31,75 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     x = 0.0
     y = 0.0
     yaw = 0.0
-    z = 0.5
+    z = 2.5
 
     # The robot body/link structure and part of the initial joint setup was adapted from:
     # RobotDog implementation by Richard Bloemenkamp
     # https://github.com/richardbloemenkamp/Robotdog/blob/master/robotdog.py
 
-    sh_body = p.createCollisionShape(
-        p.GEOM_BOX, halfExtents=[0.45, 0.08, 0.02], physicsClientId=client
-    )
-    sh_extraweight = p.createCollisionShape(
-        p.GEOM_BOX, halfExtents=[0.45, 0.08, 0.025], physicsClientId=client
-    )
-    sh_roll = p.createCollisionShape(
-        p.GEOM_BOX, halfExtents=[0.02, 0.02, 0.02], physicsClientId=client
-    )
-    sh_hip = p.createCollisionShape(
-        p.GEOM_BOX, halfExtents=[0.02, 0.02, 0.02], physicsClientId=client
-    )
-    sh_knee = p.createCollisionShape(
-        p.GEOM_BOX, halfExtents=[0.02, 0.02, 0.02], physicsClientId=client
-    )
-    sh_foot = p.createCollisionShape(
-        p.GEOM_SPHERE, radius=0.04, physicsClientId=client
-    )
+    _mesh_body = os.path.join(os.path.dirname(__file__), "..", "mesh", "body.stl")
+    _mesh_coxa = os.path.join(os.path.dirname(__file__), "..", "mesh", "coxa.stl")
+    _mesh_femur = os.path.join(os.path.dirname(__file__), "..", "mesh", "Femur.stl")
+    _mesh_tibia = os.path.join(os.path.dirname(__file__), "..", "mesh", "tibia.stl")
 
+    sh_body = p.createCollisionShape(
+        p.GEOM_BOX, halfExtents=[0.88, 0.70, 0.17], physicsClientId=client
+    )
+    vs_body = p.createVisualShape(
+        p.GEOM_MESH,
+        fileName=_mesh_body,
+        meshScale=[0.01, 0.01, 0.01],
+        visualFramePosition=[-0.83, -1.77, -0.17],
+        rgbaColor=[0.5, 1.0, 0.1, 1.0],
+        physicsClientId=client,
+    )
+    vs_coxa = p.createVisualShape(
+        p.GEOM_MESH,
+        fileName=_mesh_coxa,
+        meshScale=[0.01, 0.01, 0.01],
+        visualFramePosition=[-0.26, 0.000, -0.34],
+        rgbaColor=[0.9, 0.15, 0.15, 1.0],
+        physicsClientId=client,
+    )
+    vs_femur = p.createVisualShape(
+        p.GEOM_MESH,
+        fileName=_mesh_femur,
+        meshScale=[0.01, 0.01, 0.01],
+        visualFramePosition=[-0.532, 0.487, -0.10],
+        visualFrameOrientation=[0.7071, 0, 0, 0.7071],
+        rgbaColor=[0.9, 0.15, 0.15, 1.0],
+        physicsClientId=client,
+    )
+    vs_tibia = p.createVisualShape(
+        p.GEOM_MESH,
+        fileName=_mesh_tibia,
+        meshScale=[0.01, 0.01, 0.01],
+        visualFramePosition=[-0.505, 1.000, -0.721],
+        rgbaColor=[0.9, 0.15, 0.15, 1.0],
+        physicsClientId=client,
+    )
     link_masses = [
         0.1, 0.1, 0.1, 0.1,
         0.1, 0.1, 0.1, 0.1,
         0.1, 0.1, 0.1, 0.1,
         0.1, 0.1, 0.1, 0.1,
-        20,
     ]
-    link_collision_shape_indices = [
-        sh_roll, sh_hip, sh_knee, sh_foot,
-        sh_roll, sh_hip, sh_knee, sh_foot,
-        sh_roll, sh_hip, sh_knee, sh_foot,
-        sh_roll, sh_hip, sh_knee, sh_foot,
-        sh_extraweight,
-    ]
+    link_collision_shape_indices = [-1] * 16
     nlnk = len(link_masses)
-    link_visual_shape_indices = [-1] * nlnk
+    link_visual_shape_indices = [
+        vs_coxa, vs_femur, vs_tibia, -1,
+        vs_coxa, vs_femur, vs_tibia, -1,
+        vs_coxa, vs_femur, vs_tibia, -1,
+        vs_coxa, vs_femur, vs_tibia, -1,
+    ]
 
-    xhipf = 0.4
-    xhipb = -0.4
-    yhipl = 0.1
-    xoffh = 0.05
-    yoffh = 0.05
-    hu = 0.3
-    hl = 0.3
+    xhipf = 0.75
+    xhipb = -0.75
+    yhipl = 0.65
+    xoffh = 0.04
+    yoffh = 0.39
+    hu = 1.20
+    hl = 1.36
 
     link_positions = [
         [xhipf, yhipl, 0],
@@ -96,7 +118,6 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         [xoffh, -yoffh, 0],
         [0, 0, -hu],
         [0, 0, -hl],
-        [0, 0, +0.029],
     ]
     link_orientations = [[0, 0, 0, 1]] * nlnk
     link_inertial_frame_positions = [[0, 0, 0]] * nlnk
@@ -106,27 +127,24 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         0, 5, 6, 7,
         0, 9, 10, 11,
         0, 13, 14, 15,
-        0,
     ]
     joint_types = [
         p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
         p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
         p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
         p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_REVOLUTE, p.JOINT_PRISMATIC,
-        p.JOINT_PRISMATIC,
     ]
     axis = [
         [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
         [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
         [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
         [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1],
-        [0, 0, 1],
     ]
 
     robot_id = p.createMultiBody(
         1,
         sh_body,
-        -1,
+        vs_body,
         [x, y, z],
         [0, 0, 0, 1],
         linkMasses=link_masses,
@@ -142,29 +160,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         physicsClientId=client,
     )
 
-    p.setJointMotorControl2(
-        robot_id,
-        16,
-        p.POSITION_CONTROL,
-        targetPosition=0.01,
-        force=1000,
-        maxVelocity=3,
-        physicsClientId=client,
-    )
-
-    for joint in (3, 7, 11, 15):
-        p.setJointMotorControl2(
-            robot_id,
-            joint,
-            p.POSITION_CONTROL,
-            targetPosition=0.0,
-            force=1000,
-            maxVelocity=3,
-            physicsClientId=client,
-        )
-        p.changeDynamics(robot_id, joint, lateralFriction=2, physicsClientId=client)
-
-    gait = Gallop(period=0.6)
+    gait = Gallop(period=0.3)
 
     sim_time = 0.0
 
@@ -176,8 +172,8 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     current_motion = "idle"
     current_speed = 1.0
 
-    max_linear_speed = 5.0
-    max_turn_rate = math.radians(120)
+    max_linear_speed = 3.0
+    max_turn_rate = math.radians(60)
 
     while p.isConnected(client):
         try:
@@ -201,11 +197,11 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                 elif kind == "set_gait":
                     name = str(cmd[1])
                     if name == "walk":
-                        gait = Walk(period=0.6)
+                        gait = Walk(period=0.5)
                     elif name == "trot":
-                        gait = Trot(period=0.6)
+                        gait = Trot(period=0.35)
                     elif name == "gallop":
-                        gait = Gallop(period=0.6)
+                        gait = Gallop(period=0.3)
 
         except queue.Empty:
             pass
@@ -238,12 +234,12 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                 hip_angle, knee_angle = gait.get_leg_angles(sim_time, leg, forward_scale)
                 p.setJointMotorControl2(
                     robot_id, joints["hip"], p.POSITION_CONTROL,
-                    targetPosition=hip_angle, force=50, maxVelocity=6,
+                    targetPosition=hip_angle, force=50, maxVelocity=15,
                     physicsClientId=client,
                 )
                 p.setJointMotorControl2(
                     robot_id, joints["knee"], p.POSITION_CONTROL,
-                    targetPosition=knee_angle, force=50, maxVelocity=6,
+                    targetPosition=knee_angle, force=50, maxVelocity=15,
                     physicsClientId=client,
                 )
         else:
