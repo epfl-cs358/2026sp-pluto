@@ -169,6 +169,13 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
 
     gait = Gallop(period=0.6)
 
+    sim_time = 0.0
+
+    # Place joints in the standing pose immediately
+    for joints in LEG_JOINTS.values():
+        p.resetJointState(robot_id, joints["hip"], gait.stand_hip, physicsClientId=client)
+        p.resetJointState(robot_id, joints["knee"], gait.stand_knee, physicsClientId=client)
+
     current_motion = "idle"
     current_speed = 1.0
 
@@ -177,11 +184,11 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
 
     # Set legs to desired positions
     def set_legs(xvals, yvals, zvals, vel=[1,1,1,1]):
-        angles = IK.robot_IK(xvals, yvals, zvals, yoffh, hu, hl, [xhipf, xhipb, yhipl])
+        angles = IK.robot_IK(xvals, yvals, zvals, yoffh, hu, hl, [xhipf, yhipl])
 
         for leg in range(4):
             for joint in range(3):
-                p.setJointMotorControl2(robot_id, joint + (4*leg), p.POSITION_CONTROL, targetPosition=angles[leg][joint], force=1000, maxVelocity=(1 if (joint % 4 == 0) else vel[leg]) )
+                p.setJointMotorControl2(robot_id, joint + (4*leg), p.POSITION_CONTROL, targetPosition=angles[leg][joint], force=1000, maxVelocity=vel[leg])
 
     # Rotation matrix for yaw between robot-frame and world-frame
     def RotYaw(yaw):
@@ -190,29 +197,29 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                         [0, 0, 1]])
         return rho
     
-    # Place joints in the standing pose immediately
-    set_legs([xhipf,xhipf,xhipb,xhipb],[yhipl+0.1,-yhipl-0.1,yhipl+0.1,-yhipl-0.1],[-0.5,-0.5,-0.5,-0.5])
-
     # Initial robot parameters
     yawri=1.3
-    xrO=np.array([1,1,0.5])
+    xrOi=np.array([1,1,0.5])
     legsRi=np.array([[xhipf,xhipf,xhipb,xhipb],
                 [yhipl+0.1,-yhipl-0.1,yhipl+0.1,-yhipl-0.1],
                 [-0.5,-0.5,-0.5,-0.5]])
+    #Set body to the robot pos
+    xbOi=xrOi
     #Init body position and orientation
     quat=p.getQuaternionFromEuler([0,0,yawri])
-    p.resetBasePositionAndOrientation(robot_id,xrO,quat)
+    p.resetBasePositionAndOrientation(robot_id,xbOi,quat)
     #Init leg abs pos
     Ryawri=RotYaw(yawri)
-    legsO=(np.dot(Ryawri,legsRi).T + xrO).T   #Apply rotation plus translation
+    legsO=(np.dot(Ryawri,legsRi).T + xbOi).T   #Apply rotation plus translation
 
     #Set the non-initial variables and matrix
-    yaw=yawri
+    yawr=yawri
+    xrO=xrOi
     xbO=xrO
     Ryawr=RotYaw(yawri)
 
     #Recalculate leg rel pos in robot frame and set the legs
-    dlegsO=(legsO.T - xbO).T
+    dlegsO=(legsO.T-xbO).T
     dlegsR=np.dot(Ryawr.T,dlegsO)
     set_legs(dlegsR[0],dlegsR[1],dlegsR[2],[1,1,1,1])
 
@@ -220,11 +227,12 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     #Calculate a new robot yaw direction also from the feet positions
     xfO=(legsO[:,0]+legsO[:,1])/2.0
     xbO=(legsO[:,2]+legsO[:,3])/2.0
+    xrOn=(xfO+xbO)/2.0 + np.array([0,0,0.5])
     xfmbO=xfO-xbO
+    yawrn=np.arctan2(xfmbO[1],xfmbO[0])
 
     #Walking speed (cannot be lower than 400)
     walkLoopSpd=400
-    vvec = [12]*4
 
     #Current leg to change position
     l=0
@@ -233,12 +241,14 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     #Set the body position to the robot position
     xoff=0
     yoff=0
+    #Init to walking fwd
+    dr=0
+    drp=0
     #Leg sequence
     lseq=[2,0,3,1]
     lseqp=[2,0,3,1]
 
-    t0 = time.time()
-    tv = 0.0
+    anim_timer = 0.0
 
     while p.isConnected(client):
         try:
@@ -254,15 +264,6 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                 if kind == "set_motion":
                     current_motion = str(cmd[1])
                     current_speed = max(0.0, min(float(cmd[2]), 1.0))
-                    
-                    match current_motion:
-                        case "turn_right":
-                            lseqp = [1,0,2,3]
-                        case "turn_left":
-                            lseqp = [0,1,3,2]
-                        case _:
-                            lseqp = [2,0,3,1]
-
 
                 elif kind == "stop_motion":
                     current_motion = "idle"
@@ -277,84 +278,59 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                     elif name == "gallop":
                         gait = Gallop(period=0.6)
 
-        #except queue.Empty:
-        #pass
+        except queue.Empty:
+            pass
 
         dt = 1.0 / 240.0
-        tv = int(((time.time() - t0) * walkLoopSpd) % 800)
 
-        if tv < 20:
-            lseq = lseqp
+        if current_motion == "forward":
+            x += math.cos(yaw) * max_linear_speed * current_speed * dt
+            y += math.sin(yaw) * max_linear_speed * current_speed * dt
 
-        l = int(tv / 200)
-        k = lseq[l]
+        elif current_motion == "backward":
+            x -= math.cos(yaw) * max_linear_speed * current_speed * dt
+            y -= math.sin(yaw) * max_linear_speed * current_speed * dt
 
-        if int(tv % 200) < 10:
-            xoff=0
-            yoff=0
-        elif int(tv%200)<80:
-            xoff+=0.002*(-1+2*int(k/2))
-            yoff+=0.002*(-1+2*(k%2))     
+        elif current_motion == "turn_left":
+            yaw += max_turn_rate * current_speed * dt
 
-        elif int(tv%200)>160:
-            xoff-=0.004*(-1+2*int(k/2))
-            yoff-=0.004*(-1+2*(k%2)) 
+        elif current_motion == "turn_right":
+            yaw -= max_turn_rate * current_speed * dt
 
-        dlegsO = (legsO.T - xrO).T
-        dlegsR = np.dot(Ryawr.T,dlegsO)
-        
-        if int(tv%200)>80:
-            dlegsO=(legsO.T-xrcO).T
-            yawlO=np.arctan2(dlegsO[1,k],dlegsO[0,k])
-            rlO=np.sqrt(dlegsO[0,k]**2+dlegsO[1,k]**2)
-            
-            if current_motion == "forward":
-                legsO[0,k]=rlO*np.cos(yawlO)+xrcO[0]+0.01*np.cos(yaw)
-                legsO[1,k]=rlO*np.sin(yawlO)+xrcO[1]+0.01*np.sin(yaw)
+        quat = p.getQuaternionFromEuler([0, 0, yaw])
+        p.resetBasePositionAndOrientation(
+            robot_id, [x, y, z], quat, physicsClientId=client
+        )
 
-            elif current_motion == "backward":
-                yawlO -= 0.015 
-                legsO[0,k] = rlO*np.cos(yawlO)+xrcO[0]
-                legsO[1,k] = rlO*np.sin(yawlO)+xrcO[1]
-
-            elif current_motion == "turn_right":
-                legsO[0,k] = rlO * np.cos(yawlO) + xrcO[0] - 0.01 * np.cos(yaw)
-                legsO[1,k] = rlO * np.sin(yawlO) + xrcO[1] - 0.01 * np.sin(yaw)
-
-            elif current_motion == "turn_left":
-                yawlO+=0.015 
-                legsO[0,k]=rlO*np.cos(yawlO)+xrcO[0]
-                legsO[1,k]=rlO*np.sin(yawlO)+xrcO[1]
-            
-            if int(tv%200)<150:
-                #Move leg k upwards 
-                legsO[2,k]+=.006
-            else:
-                #Move leg k downwards 
-                legsO[2,k]-=.006
-        else:
-            #Move/keep all legs down to the ground
-            legsO[2,0]=0.0
-            legsO[2,1]=0.0
-            legsO[2,2]=0.0
-            legsO[2,3]=0.0
-            
-        
-        #Calculate vectors and matrix for the next loop
-        xfrO=(legsO[:,0]+legsO[:,1])/2.0
-        xbkO=(legsO[:,2]+legsO[:,3])/2.0
-        xrO=(xfrO+xbkO)/2.0 
-        xrO[2]=0.5
-        xfmbO=xfrO-xbkO
-        yaw=np.arctan2(xfmbO[1],xfmbO[0])
-        Ryawr=RotYaw(yaw)
-
+        # Animate leg joints
         if current_motion in ("forward", "backward", "turn_left", "turn_right"):
-            tv = (tv + 1) % 800
-            set_legs(dlegsR[0]-xoff-0.03,dlegsR[1]-yoff,dlegsR[2],vvec)
+            forward_scale = -1.0 if current_motion == "backward" else 1.0
+            for leg, joints in LEG_JOINTS.items():
+                hip_angle, knee_angle = gait.get_leg_angles(sim_time, leg, forward_scale)
+                p.setJointMotorControl2(
+                    robot_id, joints["hip"], p.POSITION_CONTROL,
+                    targetPosition=hip_angle, force=50, maxVelocity=6,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["knee"], p.POSITION_CONTROL,
+                    targetPosition=knee_angle, force=50, maxVelocity=6,
+                    physicsClientId=client,
+                )
         else:
-            tv = 0.0
+            for joints in LEG_JOINTS.values():
+                p.setJointMotorControl2(
+                    robot_id, joints["hip"], p.POSITION_CONTROL,
+                    targetPosition=gait.stand_hip, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["knee"], p.POSITION_CONTROL,
+                    targetPosition=gait.stand_knee, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
 
+        sim_time += dt
 
         p.stepSimulation(physicsClientId=client)
 
