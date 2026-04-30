@@ -4,8 +4,8 @@
 
 // ---- pin mapping ----
 #define I2S_SCK_PIN 26
-#define I2S_WS_PIN  25
-#define I2S_SD_PIN  33
+#define I2S_WS_PIN 25
+#define I2S_SD_PIN 33
 
 // ---- microphone settings ----
 #define I2S_PORT I2S_NUM_0
@@ -23,8 +23,8 @@ void setup() {
   i2s_config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX);
   i2s_config.sample_rate = SAMPLE_RATE;
   i2s_config.bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT;
-  i2s_config.channel_format = I2S_CHANNEL_FMT_ONLY_LEFT;
-  i2s_config.communication_format = I2S_COMM_FORMAT_I2S;
+  i2s_config.channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT;
+  i2s_config.communication_format = I2S_COMM_FORMAT_STAND_I2S;
   i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;
   i2s_config.dma_buf_count = 8;
   i2s_config.dma_buf_len = 256;
@@ -84,7 +84,8 @@ void loop() {
   double mean = 0;
 
   for (int i = 0; i < samplesRead; i++) {
-    mean += samples[i];
+    double value = samples[i] >> 8;
+    mean += value;
   }
 
   mean /= samplesRead;
@@ -93,12 +94,20 @@ void loop() {
   double sum = 0;
 
   for (int i = 0; i < samplesRead; i++) {
-    double value = samples[i] - mean;
+    double value = (samples[i] >> 8) - mean;
     sum += value * value;
   }
 
   double rms = sqrt(sum / samplesRead);
-  int volume = rms / 100000;
+  int volume = (rms - 7000) / 1000;
+
+  if (volume < 0) {
+    volume = 0;
+  }
+
+  if (volume > 10) {
+    volume = 10;
+  }
 
   // ---- print result ----
   Serial.print("Volume: ");
