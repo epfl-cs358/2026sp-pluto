@@ -4,8 +4,6 @@ import multiprocessing as mp
 import os
 import queue
 import time
-import pybullet as p
-import ik_solver as IK
 
 from gait import Walk, Trot, Gallop
 
@@ -21,7 +19,6 @@ LEG_JOINTS = {
 
 def _sim_process_main(cmd_q: mp.Queue) -> None:
     import pybullet as p
-    import numpy as np
 
     client = p.connect(p.GUI)
     p.setGravity(0, 0, -9.81, physicsClientId=client)
@@ -192,15 +189,6 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                 if kind == "set_motion":
                     current_motion = str(cmd[1])
                     current_speed = max(0.0, min(float(cmd[2]), 1.0))
-                    
-                    match current_motion:
-                        case "turn_right":
-                            lseqp = [1,0,2,3]
-                        case "turn_left":
-                            lseqp = [0,1,3,2]
-                        case _:
-                            lseqp = [2,0,3,1]
-
 
                 elif kind == "stop_motion":
                     current_motion = "idle"
@@ -219,74 +207,27 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
             pass
 
         dt = 1.0 / 240.0
-        tv = int(((time.time() - t0) * walkLoopSpd) % 800)
 
-        if tv < 20:
-            lseq = lseqp
+        if current_motion == "forward":
+            x += math.cos(yaw) * max_linear_speed * current_speed * dt
+            y += math.sin(yaw) * max_linear_speed * current_speed * dt
 
-        l = int(tv / 200)
-        k = lseq[l]
+        elif current_motion == "backward":
+            x -= math.cos(yaw) * max_linear_speed * current_speed * dt
+            y -= math.sin(yaw) * max_linear_speed * current_speed * dt
 
-        if int(tv % 200) < 10:
-            xoff=0
-            yoff=0
-        elif int(tv%200)<80:
-            xoff+=0.002*(-1+2*int(k/2))
-            yoff+=0.002*(-1+2*(k%2))     
+        elif current_motion == "turn_left":
+            yaw += max_turn_rate * current_speed * dt
 
-        elif int(tv%200)>160:
-            xoff-=0.004*(-1+2*int(k/2))
-            yoff-=0.004*(-1+2*(k%2)) 
+        elif current_motion == "turn_right":
+            yaw -= max_turn_rate * current_speed * dt
 
-        dlegsO = (legsO.T - xrO).T
-        dlegsR = np.dot(Ryawr.T,dlegsO)
-        
-        if int(tv%200)>80:
-            dlegsO=(legsO.T-xrcO).T
-            yawlO=np.arctan2(dlegsO[1,k],dlegsO[0,k])
-            rlO=np.sqrt(dlegsO[0,k]**2+dlegsO[1,k]**2)
-            
-            if current_motion == "forward":
-                legsO[0,k]=rlO*np.cos(yawlO)+xrcO[0]+0.01*np.cos(yaw)
-                legsO[1,k]=rlO*np.sin(yawlO)+xrcO[1]+0.01*np.sin(yaw)
+        quat = p.getQuaternionFromEuler([0, 0, yaw])
+        p.resetBasePositionAndOrientation(
+            robot_id, [x, y, z], quat, physicsClientId=client
+        )
 
-            elif current_motion == "backward":
-                yawlO -= 0.015 
-                legsO[0,k] = rlO*np.cos(yawlO)+xrcO[0]
-                legsO[1,k] = rlO*np.sin(yawlO)+xrcO[1]
-
-            elif current_motion == "turn_right":
-                legsO[0,k] = rlO * np.cos(yawlO) + xrcO[0] - 0.01 * np.cos(yaw)
-                legsO[1,k] = rlO * np.sin(yawlO) + xrcO[1] - 0.01 * np.sin(yaw)
-
-            elif current_motion == "turn_left":
-                yawlO+=0.015 
-                legsO[0,k]=rlO*np.cos(yawlO)+xrcO[0]
-                legsO[1,k]=rlO*np.sin(yawlO)+xrcO[1]
-            
-            if int(tv%200)<150:
-                #Move leg k upwards 
-                legsO[2,k]+=.006
-            else:
-                #Move leg k downwards 
-                legsO[2,k]-=.006
-        else:
-            #Move/keep all legs down to the ground
-            legsO[2,0]=0.0
-            legsO[2,1]=0.0
-            legsO[2,2]=0.0
-            legsO[2,3]=0.0
-            
-        
-        #Calculate vectors and matrix for the next loop
-        xfrO=(legsO[:,0]+legsO[:,1])/2.0
-        xbkO=(legsO[:,2]+legsO[:,3])/2.0
-        xrO=(xfrO+xbkO)/2.0 
-        xrO[2]=0.5
-        xfmbO=xfrO-xbkO
-        yaw=np.arctan2(xfmbO[1],xfmbO[0])
-        Ryawr=RotYaw(yaw)
-
+        # Animate leg joints
         if current_motion in ("forward", "backward", "turn_left", "turn_right"):
             forward_scale = -1.0 if current_motion == "backward" else 1.0
             for leg, joints in LEG_JOINTS.items():
@@ -302,8 +243,19 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
                     physicsClientId=client,
                 )
         else:
-            tv = 0.0
+            for joints in LEG_JOINTS.values():
+                p.setJointMotorControl2(
+                    robot_id, joints["hip"], p.POSITION_CONTROL,
+                    targetPosition=gait.stand_hip, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["knee"], p.POSITION_CONTROL,
+                    targetPosition=gait.stand_knee, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
 
+        sim_time += dt
 
         p.stepSimulation(physicsClientId=client)
 
