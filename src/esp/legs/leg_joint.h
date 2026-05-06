@@ -91,5 +91,61 @@ namespace pluto
     int16_t _current;
     /// @brief The channel
     uint8_t _channel;
-  };  
+  };
+
+  /// @brief Type-erased view for any instantiation of LegJoint.
+  /// Provides a uniform interface for disparate LegJoint template types
+  /// without requiring a common base class or virtual methods in the source.
+  class LegJointView
+  {
+  public:
+    /// @brief Templated constructor that captures the specific LegJoint type.
+    /// @tparam JointT The specific LegJoint template instantiation.
+    /// @param joint Reference to the joint instance (must outlive this view).
+    template<typename JointT>
+    explicit LegJointView(JointT& joint) noexcept
+        : _ptr(&joint)
+        , _vtable(&vtable_for<JointT>)
+    {
+    }
+
+    /// @brief Directly writes a raw PWM pulse width to the servo.
+    /// @param pulse The 12-bit pulse width value, constrained by MIN and MAX.
+    void write_raw(uint16_t pulse) noexcept { _vtable->write_raw(_ptr, pulse); }
+    /// @brief Sets the joint position using a logical angle in millidegrees.
+    /// @param millidegrees The target angle in millidegrees, mapped to the PWM range.
+    void write_angle(int32_t md) noexcept { _vtable->write_angle(_ptr, md); }
+    /// @brief Sets the joint to its starting position
+    void write_starting() noexcept { _vtable->write_starting(_ptr); }
+
+    /// @brief Gets the last written raw PWM pulse width.
+    /// @return The 12-bit PWM value.
+    uint16_t current_raw() const noexcept { return _vtable->current_raw(_ptr); }
+    /// @brief Calculates the current logical angle based on the last written pulse.
+    /// @return The current angle in millidegrees.
+    int32_t current_angle() const noexcept { return _vtable->current_angle(_ptr); }
+
+  private:
+    struct VTable
+    {
+      void (*write_raw)(void*, uint16_t);
+      void (*write_angle)(void*, int32_t);
+      void (*write_starting)(void*);
+      uint16_t (*current_raw)(const void*);
+      int32_t (*current_angle)(const void*);
+    };
+
+    template<typename T>
+    static constexpr VTable vtable_for = {
+        [](void* p, uint16_t v) { static_cast<T*>(p)->write_raw(v); },
+        [](void* p, int32_t v) { static_cast<T*>(p)->write_angle(v); },
+        [](void* p) { static_cast<T*>(p)->write_starting(); },
+        [](const void* p) { return static_cast<const T*>(p)->current_raw(); },
+        [](const void* p) { return static_cast<const T*>(p)->current_angle(); }};
+
+    /// @brief Pointer to the type-erased leg joint
+    void* _ptr;
+    /// @brief Pointer to the vtable
+    const VTable* _vtable;
+  };
 } // namespace pluto
