@@ -38,7 +38,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
 
     _mesh_body = os.path.join(os.path.dirname(__file__), "..", "mesh", "body.stl")
     _mesh_coxa = os.path.join(os.path.dirname(__file__), "..", "mesh", "coxa.stl")
-    _mesh_femur = os.path.join(os.path.dirname(__file__), "..", "mesh", "Femur.stl")
+    _mesh_femur = os.path.join(os.path.dirname(__file__), "..", "mesh", "femur.stl")
     _mesh_tibia = os.path.join(os.path.dirname(__file__), "..", "mesh", "tibia.stl")
 
     sh_body = p.createCollisionShape(
