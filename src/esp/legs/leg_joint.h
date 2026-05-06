@@ -32,8 +32,8 @@ namespace pluto
     /// @brief Constructs a LegJoint and initializes the servo to the starting pulse.
     /// @param driver Pointer to the Adafruit_PWMServoDriver instance.
     /// @param channel The PCA9685 channel index (0-15).
-    LegJoint(Adafruit_PWMServoDriver* driver, uint8_t channel)
-        : _pwm(driver)
+    LegJoint(Adafruit_PWMServoDriver& driver, uint8_t channel)
+        : _pwm(&driver)
         , _current(STARTING)
         , _channel(channel)
     {
