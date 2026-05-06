@@ -18,10 +18,10 @@ namespace pluto
   static constexpr LegData LEG_DATA_TOP  = {250, 500, 315, 0, 1};
   static constexpr LegData LEG_DATA_COXA = LEG_DATA_TOP;
 
-  static constexpr LegData LEG_DATA_MIDDLE = {100, 150, 240, 0, 1};
+  static constexpr LegData LEG_DATA_MIDDLE = {100, 240, 150, 0, 1};
   static constexpr LegData LEG_DATA_FEMUR  = LEG_DATA_MIDDLE;
 
-  static constexpr LegData LEG_DATA_BOTTOM = {340, 400, 465, 0, 1};
+  static constexpr LegData LEG_DATA_BOTTOM = {340, 465, 400, 0, 1};
   static constexpr LegData LEG_DATA_TIBIA  = LEG_DATA_BOTTOM;
 } // namespace pluto
 
