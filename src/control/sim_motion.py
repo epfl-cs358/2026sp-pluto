@@ -10,12 +10,11 @@ from gait import Walk, Trot, Gallop
 logger = logging.getLogger(__name__)
 
 LEG_JOINTS = {
-    "fl": {"hip": 1, "knee": 2},
-    "fr": {"hip": 5, "knee": 6},
-    "bl": {"hip": 9, "knee": 10},
-    "br": {"hip": 13, "knee": 14},
+    "fl": {"coxa": 0, "femur": 1, "tibia": 2},
+    "fr": {"coxa": 4, "femur": 5, "tibia": 6},
+    "bl": {"coxa": 8, "femur": 9, "tibia": 10},
+    "br": {"coxa": 12, "femur": 13, "tibia": 14},
 }
-# TODO: roll moves as well
 
 def _sim_process_main(cmd_q: mp.Queue) -> None:
     import pybullet as p
@@ -50,7 +49,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         fileName=_mesh_body,
         meshScale=[0.01, 0.01, 0.01],
         visualFramePosition=[-0.83, -1.77, -0.17],
-        rgbaColor=[0.5, 1.0, 0.1, 1.0],
+        rgbaColor=[0.5, 1.0, 0.1, 1.0], # gray
         physicsClientId=client,
     )
     vs_coxa = p.createVisualShape(
@@ -58,7 +57,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         fileName=_mesh_coxa,
         meshScale=[0.01, 0.01, 0.01],
         visualFramePosition=[-0.26, 0.000, -0.34],
-        rgbaColor=[0.9, 0.15, 0.15, 1.0],
+        rgbaColor=[0.9, 0.15, 0.15, 1.0], # blue
         physicsClientId=client,
     )
     vs_femur = p.createVisualShape(
@@ -75,7 +74,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         fileName=_mesh_tibia,
         meshScale=[0.01, 0.01, 0.01],
         visualFramePosition=[-0.505, 1.000, -0.721],
-        rgbaColor=[0.9, 0.15, 0.15, 1.0],
+        rgbaColor=[0.9, 0.15, 0.15, 1.0], # orange
         physicsClientId=client,
     )
     link_masses = [
@@ -165,9 +164,11 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     sim_time = 0.0
 
     # Place joints in the standing pose immediately
-    for joints in LEG_JOINTS.values():
-        p.resetJointState(robot_id, joints["hip"], gait.stand_hip, physicsClientId=client)
-        p.resetJointState(robot_id, joints["knee"], gait.stand_knee, physicsClientId=client)
+    for leg, joints in LEG_JOINTS.items():
+        coxa_a, femur_a, tibia_a = gait.stand_angles(right_side=leg in ("fr", "br"))
+        p.resetJointState(robot_id, joints["coxa"],  coxa_a,  physicsClientId=client)
+        p.resetJointState(robot_id, joints["femur"], femur_a, physicsClientId=client)
+        p.resetJointState(robot_id, joints["tibia"], tibia_a, physicsClientId=client)
 
     current_motion = "idle"
     current_speed = 1.0
@@ -231,27 +232,38 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
         if current_motion in ("forward", "backward", "turn_left", "turn_right"):
             forward_scale = -1.0 if current_motion == "backward" else 1.0
             for leg, joints in LEG_JOINTS.items():
-                hip_angle, knee_angle = gait.get_leg_angles(sim_time, leg, forward_scale)
+                coxa_a, femur_a, tibia_a = gait.get_leg_angles(sim_time, leg, forward_scale)
                 p.setJointMotorControl2(
-                    robot_id, joints["hip"], p.POSITION_CONTROL,
-                    targetPosition=hip_angle, force=50, maxVelocity=15,
+                    robot_id, joints["coxa"], p.POSITION_CONTROL,
+                    targetPosition=coxa_a, force=50, maxVelocity=15,
                     physicsClientId=client,
                 )
                 p.setJointMotorControl2(
-                    robot_id, joints["knee"], p.POSITION_CONTROL,
-                    targetPosition=knee_angle, force=50, maxVelocity=15,
+                    robot_id, joints["femur"], p.POSITION_CONTROL,
+                    targetPosition=femur_a, force=50, maxVelocity=15,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["tibia"], p.POSITION_CONTROL,
+                    targetPosition=tibia_a, force=50, maxVelocity=15,
                     physicsClientId=client,
                 )
         else:
-            for joints in LEG_JOINTS.values():
+            for leg, joints in LEG_JOINTS.items():
+                coxa_a, femur_a, tibia_a = gait.stand_angles(right_side=leg in ("fr", "br"))
                 p.setJointMotorControl2(
-                    robot_id, joints["hip"], p.POSITION_CONTROL,
-                    targetPosition=gait.stand_hip, force=50, maxVelocity=3,
+                    robot_id, joints["coxa"], p.POSITION_CONTROL,
+                    targetPosition=coxa_a, force=50, maxVelocity=3,
                     physicsClientId=client,
                 )
                 p.setJointMotorControl2(
-                    robot_id, joints["knee"], p.POSITION_CONTROL,
-                    targetPosition=gait.stand_knee, force=50, maxVelocity=3,
+                    robot_id, joints["femur"], p.POSITION_CONTROL,
+                    targetPosition=femur_a, force=50, maxVelocity=3,
+                    physicsClientId=client,
+                )
+                p.setJointMotorControl2(
+                    robot_id, joints["tibia"], p.POSITION_CONTROL,
+                    targetPosition=tibia_a, force=50, maxVelocity=3,
                     physicsClientId=client,
                 )
 

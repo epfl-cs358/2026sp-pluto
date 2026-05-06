@@ -1,4 +1,20 @@
 import math
+from ik_solver import IK as _solve_ik
+
+COXA  = 0.39
+FEMUR = 1.20 # upper leg
+TIBIA = 1.36 # lower leg
+
+FOOT_Z_STAND = -2.3
+
+
+def _ik(x, y, z, right_side=False):
+    coxa_sign = -1.0 if right_side else 1.0
+    return _solve_ik(x, y, z, coxa_sign * COXA, FEMUR, TIBIA)
+
+
+_RIGHT_LEGS = {"fr", "br"}
+
 
 class BaseGait:
     swing_ratio = 0.35
@@ -12,8 +28,19 @@ class BaseGait:
     lift = 0.5 # extra knee bending at mid-swing to lift a foot
 
     def __init__(self, period):
-        self.period = period
+        self.period  = period
         self.offsets = {}
+
+    def _foot_from_phase(self, phase, forward_scale=1.0):
+        if phase < self.swing_ratio:
+            t = phase / self.swing_ratio
+            x = (-self.stride + 2.0 * self.stride * t) * forward_scale
+            z = FOOT_Z_STAND + self.lift * math.sin(math.pi * t)
+        else:
+            t = (phase - self.swing_ratio) / (1.0 - self.swing_ratio)
+            x = (self.stride - 2.0 * self.stride * t) * forward_scale
+            z = FOOT_Z_STAND
+        return x, 0.0, z
 
     def get_phase(self, time):
         return (time % self.period) / self.period
@@ -22,22 +49,14 @@ class BaseGait:
         return (self.get_phase(time) + self.offsets[leg]) % 1.0
 
     def get_leg_angles(self, time, leg, forward_scale=1.0):
-        # forward_scale = hip movement
         phase = self.leg_phase(time, leg)
-        hip_offset, knee = self._angles_from_phase(phase)
-        return self.stand_hip + hip_offset * forward_scale, knee
+        x, y, z = self._foot_from_phase(phase, forward_scale)
+        return _ik(x, y, z, right_side=leg in _RIGHT_LEGS)
 
-    def _angles_from_phase(self, phase):
-        if phase < self.swing_ratio:
-            t = phase / self.swing_ratio
-            hip = -self.stride + 2.0 * self.stride * t
-            knee = self.stand_knee + self.lift * math.sin(math.pi * t)
-        else:
-            t = (phase - self.swing_ratio) / (1.0 - self.swing_ratio)
-            hip = self.stride - 2.0 * self.stride * t
-            knee = self.stand_knee # TODO: should be changed as well (probably after implementing IK)
-        return hip, knee
-    
+    def stand_angles(self, right_side=False):
+        return _ik(0.0, 0.0, FOOT_Z_STAND, right_side=right_side)
+
+
 class Walk(BaseGait):
     def __init__(self, period):
         super().__init__(period)
@@ -48,6 +67,7 @@ class Walk(BaseGait):
             "br": 0.75,
         }
 
+
 class Trot(BaseGait):
     def __init__(self, period):
         super().__init__(period)
@@ -57,6 +77,7 @@ class Trot(BaseGait):
             "bl": 0.5,
             "br": 0.0,
         }
+
 
 class Gallop(BaseGait):
     def __init__(self, period):
