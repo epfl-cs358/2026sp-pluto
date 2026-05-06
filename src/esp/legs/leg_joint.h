@@ -37,7 +37,6 @@ namespace pluto
         , _current(STARTING)
         , _channel(channel)
     {
-      _pwm->setPWM(_channel, 0, _current);
     }
 
     /// @brief Directly writes a raw PWM pulse width to the servo.
