@@ -1,4 +1,4 @@
-COXA  = 0.39
+COXA  = 0.40
 FEMUR = 1.20
 TIBIA = 1.36
 

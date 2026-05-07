@@ -76,6 +76,7 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
 
     sh_body = p.createCollisionShape(
         p.GEOM_BOX, halfExtents=[0.88, 0.70, 0.17], physicsClientId=client
+    )
 
     foot_col = p.createCollisionShape(
         p.GEOM_SPHERE,
@@ -177,23 +178,23 @@ def _sim_process_main(cmd_q: mp.Queue) -> None:
     ]
 
     link_positions = [
-        [xhipf,  yhipl, 0],
-        [xoffh,  yoffh, 0],
+        [xhipb, yhipl, 0],
+        [COXA, 0, 0],
         [0, 0, -hu],
         [0, 0, -hl],
 
         [xhipf, -yhipl, 0],
-        [xoffh, -yoffh, 0],
+        [COXA, 0, 0],
         [0, 0, -hu],
         [0, 0, -hl],
 
-        [xhipb,  yhipl, 0],
-        [xoffh,  yoffh, 0],
+        [xhipb, yhipl, 0], ###
+        [-COXA, 0, 0],
         [0, 0, -hu],
         [0, 0, -hl],
 
         [xhipb, -yhipl, 0],
-        [xoffh, -yoffh, 0],
+        [-COXA, 0, 0],
         [0, 0, -hu],
         [0, 0, -hl],
     ]
