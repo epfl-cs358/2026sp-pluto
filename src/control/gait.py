@@ -1,11 +1,6 @@
 import math
 from ik_solver import IK as _solve_ik
-
-COXA  = 0.39
-FEMUR = 1.20 # upper leg
-TIBIA = 1.36 # lower leg
-
-FOOT_Z_STAND = -2.3
+from robot_config import COXA, FEMUR, TIBIA, FOOT_Z_STAND
 
 
 def _ik(x, y, z, right_side=False):
@@ -18,13 +13,7 @@ _RIGHT_LEGS = {"fr", "br"}
 
 class BaseGait:
     swing_ratio = 0.35
-    stand_hip = 0.0
-
-    # From body z = 0.5, hu, hl = 0.3
-    # foot_z = 0.5 - 0.3*cos(hip) - 0.3*cos(hip + knee) = 0
-    stand_knee = 0.85
-    
-    stride = 0.8
+    stride = 0.6
     lift = 0.5 # extra knee bending at mid-swing to lift a foot
 
     def __init__(self, period):

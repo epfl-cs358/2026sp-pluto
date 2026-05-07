@@ -1,0 +1,6 @@
+COXA  = 0.39
+FEMUR = 1.20
+TIBIA = 1.36
+
+STAND_COMPRESSION = 0.26 # how much shorter when standing
+FOOT_Z_STAND = -(FEMUR + TIBIA - STAND_COMPRESSION)
