@@ -6,17 +6,21 @@
 
 #include <server/server.h>
 #include <legs/leg.h>
-
-static constexpr size_t LEG_JOINTS_COUNT = 3;
+#include <array>
 
 /// @brief The pluto WiFi server
 // auto PLUTO_SERVER = pluto::PlutoServer{4242};
 /// @brief The PWM driver
 Adafruit_PWMServoDriver PWM = Adafruit_PWMServoDriver();
-/// @brief The leg
-auto LEG = pluto::Leg{PWM, pluto::LegSide::TOP_LEFT};
+/// @brief The legs
+std::array<pluto::Leg, 4> LEGS = {
+    pluto::Leg{PWM, pluto::LegSide::TOP_LEFT},
+    pluto::Leg{PWM, pluto::LegSide::TOP_RIGHT},
+    pluto::Leg{PWM, pluto::LegSide::BOTTOM_LEFT},
+    pluto::Leg{PWM, pluto::LegSide::BOTTOM_RIGHT}};
 
 auto CURRENT_JOINT = pluto::LegJointType{};
+auto CURRENT_SIDE  = pluto::LegSide{};
 
 void setup()
 {
@@ -37,30 +41,34 @@ void loop()
 {
   if (Serial.available() > 0)
   {
-    uint16_t raw      = LEG[CURRENT_JOINT].current_raw();
+    uint16_t raw      = LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].current_raw();
     bool should_print = false;
     char cmd          = Serial.read();
 
     switch (cmd)
     {
     case '+':
-      LEG[CURRENT_JOINT].write_raw(raw + 5);
+      LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].write_raw(raw + 5);
       should_print = true;
       break;
     case '-':
-      LEG[CURRENT_JOINT].write_raw(raw - 5);
+      LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].write_raw(raw - 5);
+      should_print = true;
+      break;
+    case 'l':
+      CURRENT_SIDE = pluto::next_leg_side(CURRENT_SIDE);
       should_print = true;
       break;
     case 'n':
-      CURRENT_JOINT = pluto::next_joint_type(CURRENT_JOINT);
+      CURRENT_JOINT = pluto::next_leg_joint_type(CURRENT_JOINT);
       should_print  = true;
       break;
     case 'r':
-      LEG[CURRENT_JOINT].write_starting();
+      LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].write_starting();
       should_print = true;
       break;
     case 'R':
-      LEG.write_starting();
+      LEGS[(uint8_t)CURRENT_SIDE].write_starting();
       Serial.println("Reset all joints");
       break;
     case 'p':
@@ -73,10 +81,12 @@ void loop()
 
     if (should_print)
     {
-      Serial.print("Joint: ");
-      Serial.print(pluto::str_joint_type(CURRENT_JOINT));
+      Serial.print("Leg: ");
+      Serial.print(pluto::str_leg_side(CURRENT_SIDE));
+      Serial.print(" | Joint: ");
+      Serial.print(pluto::str_leg_joint_type(CURRENT_JOINT));
       Serial.print(" | Pulse: ");
-      Serial.println(LEG[CURRENT_JOINT].current_raw());
+      Serial.println(LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].current_raw());
     }
   }
 
