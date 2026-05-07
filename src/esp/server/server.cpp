@@ -31,15 +31,28 @@ namespace pluto
   void PlutoServer::serverTask(void* pvParameters)
   {
     PlutoServer* server = static_cast<PlutoServer*>(pvParameters);
+    bool is_listening   = false;
 
     while (true)
     {
       if (server->_wifiMulti.run() == WL_CONNECTED)
       {
-        server->_udp.begin(server->_port);
+        if (!is_listening)
+        {
+          server->_udp.begin(server->_port);
+          is_listening = true;
+        }
         server->handleIncomingPackets();
       }
-      vTaskDelay(pdMS_TO_TICKS(1));
+      else
+      {
+        if (is_listening)
+        {
+          server->_udp.stop();
+          is_listening = false;
+        }
+      }
+      vTaskDelay(pdMS_TO_TICKS(5));
     }
   }
 
