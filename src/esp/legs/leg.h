@@ -30,7 +30,7 @@ namespace pluto
   /// After BOTTOM, this returns TOP.
   /// @param joint The current joint type
   /// @return The next joint type
-  constexpr LegJointType next_joint_type(LegJointType joint) noexcept
+  constexpr LegJointType next_leg_joint_type(LegJointType joint) noexcept
   {
     return (LegJointType)(((uint8_t)joint + 1)
                           % (uint8_t)LegJointType::_count_LegJointType);
@@ -39,7 +39,7 @@ namespace pluto
   /// @brief Converts a LegJointType to a string.
   /// @param joint The joint type
   /// @return String
-  constexpr const char* str_joint_type(LegJointType joint) noexcept
+  constexpr const char* str_leg_joint_type(LegJointType joint) noexcept
   {
     switch (joint)
     {
@@ -63,7 +63,33 @@ namespace pluto
     BOTTOM_LEFT = 2,
     /// @brief Rear-facing right leg.
     BOTTOM_RIGHT = 3,
+
+    /// @brief Count of enums. Do not use!
+    _count_LegSide,
   };
+
+  /// @brief Returns the next leg side.
+  /// @param joint The current leg side
+  /// @return The next leg side
+  constexpr LegSide next_leg_side(LegSide side) noexcept
+  {
+    return (LegSide)(((uint8_t)side + 1) % (uint8_t)LegSide::_count_LegSide);
+  }
+
+  constexpr const char* str_leg_side(LegSide side) noexcept
+  {
+    switch (side)
+    {
+    case LegSide::TOP_LEFT:
+      return "TOP_LEFT";
+    case LegSide::TOP_RIGHT:
+      return "TOP_RIGHT";
+    case LegSide::BOTTOM_LEFT:
+      return "BOTTOM_LEFT";
+    case LegSide::BOTTOM_RIGHT:
+      return "BOTTOM_RIGHT";
+    }
+  }
 
   class Leg
   {
