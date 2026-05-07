@@ -21,7 +21,7 @@ def IK(x, y, z, coxa, femur, tibia):
     # Angle for the coxa 
     C = np.sqrt(y**2 + z**2)
     D = np.sqrt(C**2 - coxa**2)
-    coxa_angle = -np.arctan(y/z) + np.arctan(-coxa / D)
+    coxa_angle = np.arctan2(y, -z) + np.arctan2(-coxa, D)
     
     # Angle for the tibia 
     G = np.sqrt(D**2 + x**2)
@@ -29,7 +29,7 @@ def IK(x, y, z, coxa, femur, tibia):
     tibia_angle = -np.arccos(clamp(n / tibia))
 
     # Angle for the femur
-    femur_angle = -np.arctan(x / D) + np.arccos(clamp((femur + n) / G))
+    femur_angle = -np.arctan2(x, D) + np.arccos(clamp((femur + n) / G))
     
     return [coxa_angle, femur_angle, tibia_angle]
 
