@@ -67,6 +67,7 @@ namespace pluto
     /// @brief Count of enums. Do not use!
     _count_LegSide,
   };
+  static constexpr size_t CHANNEL_STEPS_PER_SIDE = 4;
 
   /// @brief Returns the next leg side.
   /// @param joint The current leg side
@@ -99,9 +100,9 @@ namespace pluto
 
   public:
     Leg(Adafruit_PWMServoDriver& pwm, LegSide side) noexcept
-        : top(pwm, (uint8_t)side * 3 + 0)
-        , middle(pwm, (uint8_t)side * 3 + 1)
-        , bottom(pwm, (uint8_t)side * 3 + 2)
+        : top(pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 0)
+        , middle(pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 1)
+        , bottom(pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 2)
     {
     }
     Leg(Leg&&) noexcept                 = default;
