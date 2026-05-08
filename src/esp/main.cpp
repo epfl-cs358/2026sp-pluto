@@ -7,6 +7,9 @@
 #include <server/server.h>
 #include <legs/leg.h>
 
+#include <sensors/ultrasonic.h>
+#include <sensors/microphone.h>
+
 static constexpr size_t LEG_JOINTS_COUNT = 3;
 
 /// @brief The pluto WiFi server
