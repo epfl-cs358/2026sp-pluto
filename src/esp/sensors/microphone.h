@@ -46,8 +46,9 @@ namespace pluto
         // downsample to 16-bit and multiply by 4 ( >> 16 * 4 = >> 14)
         for (int i = 0; i < samples_read; i++)
         {
-          in_place_samples[i] = (int16_t)(sample_buffer[i] >> 14);
-          sum_of_squares += (sample * sample);
+          int16_t sample      = (int16_t)(sample_buffer[i] >> 14);
+          in_place_samples[i] = sample;
+          sum_of_squares += sample * sample;
         }
 
         state.current_energy = sum_of_squares / samples_read;
