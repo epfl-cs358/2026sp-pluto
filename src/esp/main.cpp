@@ -21,6 +21,11 @@ auto LEG = pluto::Leg{PWM, pluto::LegSide::TOP_LEFT};
 
 auto CURRENT_JOINT = pluto::LegJointType{};
 
+/// @brief Ultrasonic sensor
+pluto::SensorUltraSonic<5, 18> SENSOR_ULTRASONIC;
+/// @brief Microphone sensor
+pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
+
 void setup()
 {
   Serial.begin(115200);
@@ -34,6 +39,8 @@ void setup()
   PWM.begin();
   PWM.setOscillatorFrequency(27000000);
   PWM.setPWMFreq(50);
+  SENSOR_ULTRASONIC.begin();
+  SENSOR_MICROPHONE.begin();
 }
 
 void loop()
