@@ -7,6 +7,9 @@
 #include <server/server.h>
 #include <legs/leg.h>
 
+#include <sensors/ultrasonic.h>
+#include <sensors/microphone.h>
+
 static constexpr size_t LEG_JOINTS_COUNT = 3;
 
 /// @brief The pluto WiFi server
@@ -17,6 +20,11 @@ Adafruit_PWMServoDriver PWM = Adafruit_PWMServoDriver();
 auto LEG = pluto::Leg{PWM, pluto::LegSide::TOP_LEFT};
 
 auto CURRENT_JOINT = pluto::LegJointType{};
+
+/// @brief Ultrasonic sensor
+pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
+/// @brief Microphone sensor
+pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
 
 void setup()
 {
@@ -32,10 +40,20 @@ void setup()
   PWM.begin();
   PWM.setOscillatorFrequency(27000000);
   PWM.setPWMFreq(50);
+  SENSOR_ULTRASONIC.begin();
+  SENSOR_MICROPHONE.begin();
 }
 
 void loop()
 {
+  SENSOR_ULTRASONIC.read_begin();
+  Serial.print("Current Energy: ");
+  Serial.println(SENSOR_MICROPHONE.current_energy());
+  delay(10);
+  Serial.print("Current Distance: ");
+  Serial.println(SENSOR_ULTRASONIC.read_end());
+  delay(490);
+
   if (Serial.available() > 0)
   {
     uint16_t raw      = LEG[CURRENT_JOINT].current_raw();
