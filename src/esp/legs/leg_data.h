@@ -9,8 +9,8 @@ namespace pluto
     uint16_t raw_min;
     uint16_t raw_max;
     uint16_t raw_start;
-    uint32_t angle_min_md;
-    uint32_t angle_max_md;
+    int32_t angle_min_md;
+    int32_t angle_max_md;
   };
 
   // TODO: compute angles
