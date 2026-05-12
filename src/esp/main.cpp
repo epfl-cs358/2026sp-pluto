@@ -8,6 +8,11 @@
 #include <legs/leg.h>
 #include <array>
 
+#include <sensors/ultrasonic.h>
+#include <sensors/microphone.h>
+
+static constexpr size_t LEG_JOINTS_COUNT = 3;
+
 /// @brief The pluto WiFi server
 // auto PLUTO_SERVER = pluto::PlutoServer{4242};
 /// @brief The PWM driver
@@ -22,6 +27,11 @@ std::array<pluto::Leg, 4> LEGS = {
 auto CURRENT_JOINT = pluto::LegJointType{};
 auto CURRENT_SIDE  = pluto::LegSide{};
 
+/// @brief Ultrasonic sensor
+pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
+/// @brief Microphone sensor
+pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
+
 void setup()
 {
   Serial.begin(115200);
@@ -35,10 +45,20 @@ void setup()
   PWM.begin();
   PWM.setOscillatorFrequency(27000000);
   PWM.setPWMFreq(50);
+  SENSOR_ULTRASONIC.begin();
+  SENSOR_MICROPHONE.begin();
 }
 
 void loop()
 {
+  SENSOR_ULTRASONIC.read_begin();
+  Serial.print("Current Energy: ");
+  Serial.println(SENSOR_MICROPHONE.current_energy());
+  delay(10);
+  Serial.print("Current Distance: ");
+  Serial.println(SENSOR_ULTRASONIC.read_end());
+  delay(490);
+
   if (Serial.available() > 0)
   {
     uint16_t raw      = LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].current_raw();
