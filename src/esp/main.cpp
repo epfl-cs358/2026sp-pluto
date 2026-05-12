@@ -22,7 +22,7 @@ auto LEG = pluto::Leg{PWM, pluto::LegSide::TOP_LEFT};
 auto CURRENT_JOINT = pluto::LegJointType{};
 
 /// @brief Ultrasonic sensor
-pluto::SensorUltraSonic<5, 18> SENSOR_ULTRASONIC;
+pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
 /// @brief Microphone sensor
 pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
 
@@ -45,6 +45,14 @@ void setup()
 
 void loop()
 {
+  SENSOR_ULTRASONIC.read_begin();
+  Serial.print("Current Energy: ");
+  Serial.println(SENSOR_MICROPHONE.current_energy());
+  delay(10);
+  Serial.print("Current Distance: ");
+  Serial.println(SENSOR_ULTRASONIC.read_end());
+  delay(490);
+
   if (Serial.available() > 0)
   {
     uint16_t raw      = LEG[CURRENT_JOINT].current_raw();
