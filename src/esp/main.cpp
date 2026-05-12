@@ -6,6 +6,7 @@
 
 #include <server/server.h>
 #include <legs/leg.h>
+#include <motion/gait.h>
 #include <array>
 
 #include <sensors/ultrasonic.h>
@@ -26,6 +27,7 @@ std::array<pluto::Leg, 4> LEGS = {
 
 auto CURRENT_JOINT = pluto::LegJointType{};
 auto CURRENT_SIDE  = pluto::LegSide{};
+pluto::motion::GaitController GAIT;
 
 /// @brief Ultrasonic sensor
 pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
@@ -47,17 +49,43 @@ void setup()
   PWM.setPWMFreq(50);
   SENSOR_ULTRASONIC.begin();
   SENSOR_MICROPHONE.begin();
+
+  GAIT.stand(LEGS);
+  Serial.println("Pluto motion ready");
+  Serial.println("Commands: f forward, b backward, s stop, 1 walk, 2 trot, 3 gallop, +/- trim selected joint");
 }
 
 void loop()
 {
-  SENSOR_ULTRASONIC.read_begin();
-  Serial.print("Current Energy: ");
-  Serial.println(SENSOR_MICROPHONE.current_energy());
-  delay(10);
-  Serial.print("Current Distance: ");
-  Serial.println(SENSOR_ULTRASONIC.read_end());
-  delay(490);
+  static uint32_t last_motion_ms = 0;
+  static uint32_t last_sensor_ms = 0;
+  static bool ultrasonic_pending = false;
+  static uint32_t ultrasonic_begin_ms = 0;
+
+  const uint32_t now = millis();
+
+  if (now - last_motion_ms >= 20)
+  {
+    GAIT.update(LEGS, now);
+    last_motion_ms = now;
+  }
+
+  if (!ultrasonic_pending && now - last_sensor_ms >= 500)
+  {
+    SENSOR_ULTRASONIC.read_begin();
+    ultrasonic_pending  = true;
+    ultrasonic_begin_ms = now;
+  }
+
+  if (ultrasonic_pending && now - ultrasonic_begin_ms >= 10)
+  {
+    Serial.print("Current Energy: ");
+    Serial.println(SENSOR_MICROPHONE.current_energy());
+    Serial.print("Current Distance: ");
+    Serial.println(SENSOR_ULTRASONIC.read_end());
+    ultrasonic_pending = false;
+    last_sensor_ms     = now;
+  }
 
   if (Serial.available() > 0)
   {
@@ -67,6 +95,43 @@ void loop()
 
     switch (cmd)
     {
+    case 'f':
+      GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
+      Serial.println("Motion: forward");
+      break;
+    case 'b':
+      GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
+      Serial.println("Motion: backward");
+      break;
+    case 's':
+      GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
+      GAIT.stand(LEGS);
+      Serial.println("Motion: stop/stand");
+      break;
+    case '1':
+      GAIT.set_gait(pluto::motion::GaitKind::WALK);
+      Serial.println("Gait: walk");
+      break;
+    case '2':
+      GAIT.set_gait(pluto::motion::GaitKind::TROT);
+      Serial.println("Gait: trot");
+      break;
+    case '3':
+      GAIT.set_gait(pluto::motion::GaitKind::GALLOP);
+      Serial.println("Gait: gallop");
+      break;
+    case '0':
+      GAIT.set_speed(0.0F);
+      Serial.println("Speed: 0%");
+      break;
+    case '5':
+      GAIT.set_speed(0.5F);
+      Serial.println("Speed: 50%");
+      break;
+    case '9':
+      GAIT.set_speed(1.0F);
+      Serial.println("Speed: 100%");
+      break;
     case '+':
       LEGS[(uint8_t)CURRENT_SIDE][CURRENT_JOINT].write_raw(raw + 5);
       should_print = true;
