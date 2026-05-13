@@ -13,9 +13,7 @@ namespace pluto
     _msgQueue = xQueueCreate(QUEUE_SIZE, sizeof(Message));
 
     xTaskCreatePinnedToCore(
-        PlutoServer::serverTask, "NetTask", 8192, this, 1, nullptr,
-        0 // Core 0
-    );
+        PlutoServer::serverTask, "NetTask", 8192, this, 1, nullptr, 0);
   }
 
   void PlutoServer::addAP(const char* ssid, const char* pass)
@@ -42,6 +40,14 @@ namespace pluto
           server->_udp.begin(server->_port);
           is_listening = true;
         }
+
+        if (server->_hasSession
+            && (millis() - server->_lastPacketTime > SESSION_TIMEOUT_MS))
+        {
+          server->_hasSession   = false;
+          server->_sessionToken = 0;
+        }
+
         server->handleIncomingPackets();
       }
       else
@@ -49,7 +55,8 @@ namespace pluto
         if (is_listening)
         {
           server->_udp.stop();
-          is_listening = false;
+          is_listening        = false;
+          server->_hasSession = false; // reset session on network loss
         }
       }
       vTaskDelay(pdMS_TO_TICKS(5));
@@ -62,38 +69,44 @@ namespace pluto
     if (packetSize < 17)
       return;
 
-    UDPPacket packet;
+    UDPPacket packet = {};
     int read = _udp.read(reinterpret_cast<uint8_t*>(&packet), sizeof(UDPPacket));
 
     if (!validate_packet(packet, read))
       return;
 
-    if (!_hasSession)
+    // allow session reset even if _hasSession is true
+    if (packet.session_token == SESSION_REQUEST_TOKEN)
     {
-      if (packet.session_token == SESSION_REQUEST_TOKEN)
-      {
-        _sessionToken = esp_random();
-        _hasSession   = true;
-        _lastSequence = packet.sequence_number;
-        sendAcknowledge(packet.sequence_number);
-      }
+      _sessionToken   = esp_random();
+      _hasSession     = true;
+      _lastSequence   = packet.sequence_number;
+      _lastPacketTime = millis();
+      sendAcknowledge(packet.sequence_number);
       return;
     }
 
-    if (packet.session_token != _sessionToken
-        || packet.sequence_number <= _lastSequence)
+    int32_t diff =
+        static_cast<int32_t>(packet.sequence_number - _lastSequence.load());
+    if (!_hasSession || packet.session_token != _sessionToken || diff <= 0)
       return;
 
-    _lastSequence = packet.sequence_number;
+    _lastSequence   = packet.sequence_number;
+    _lastPacketTime = millis();
+
     for (uint8_t i = 0; i < packet.message_count; ++i)
-      xQueueSend(_msgQueue, &packet.messages[i], 0);
+    {
+      // handle queue overflow
+      if (xQueueSend(_msgQueue, &packet.messages[i], 0) != pdTRUE)
+        break;
+    }
 
     sendAcknowledge(packet.sequence_number);
   }
 
   void PlutoServer::sendAcknowledge(uint32_t sequence)
   {
-    UDPPacket ackPacket;
+    UDPPacket ackPacket = {};
     init_packet(ackPacket, _sessionToken, sequence, millis());
 
     Message ackMsg = create_acknowledge(sequence);
