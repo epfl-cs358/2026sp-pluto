@@ -100,9 +100,18 @@ namespace pluto
 
   public:
     Leg(Adafruit_PWMServoDriver& pwm, LegSide side) noexcept
-        : top(pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 0)
-        , middle(pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 1)
-        , bottom(pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 2)
+        : top(
+              pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 0,
+              LEG_CALIBRATIONS[(uint8_t)side].top.angle_min_md,
+              LEG_CALIBRATIONS[(uint8_t)side].top.angle_max_md)
+        , middle(
+              pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 1,
+              LEG_CALIBRATIONS[(uint8_t)side].middle.angle_min_md,
+              LEG_CALIBRATIONS[(uint8_t)side].middle.angle_max_md)
+        , bottom(
+              pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 2,
+              LEG_CALIBRATIONS[(uint8_t)side].bottom.angle_min_md,
+              LEG_CALIBRATIONS[(uint8_t)side].bottom.angle_max_md)
     {
     }
     Leg(Leg&&) noexcept                 = default;
