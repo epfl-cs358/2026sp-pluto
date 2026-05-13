@@ -23,8 +23,8 @@ std::array<pluto::Leg, 4> LEGS = {
     pluto::Leg{PWM, pluto::LegSide::BOTTOM_LEFT},
     pluto::Leg{PWM, pluto::LegSide::BOTTOM_RIGHT}};
 
-auto CURRENT_JOINT = pluto::LegJointType{};
-auto CURRENT_SIDE  = pluto::LegSide{};
+pluto::LegJointType CURRENT_JOINT = pluto::LegJointType::COXA;
+pluto::LegSide CURRENT_SIDE = pluto::LegSide::TOP_LEFT;
 pluto::motion::GaitController GAIT;
 
 /// @brief Ultrasonic sensor

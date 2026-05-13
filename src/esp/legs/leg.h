@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstdint>
+#include <array>
+
 #include <legs/leg_joint.h>
 #include <legs/leg_data.h>
-#include <cstdint>
 
 namespace pluto
 {
@@ -49,25 +51,10 @@ namespace pluto
       return "FEMUR (MIDDLE)";
     case LegJointType::BOTTOM:
       return "TIBIA (BOTTOM)";
+    default:
+      return "UNKNOWN JOINT";
     }
   }
-
-  /// @brief Identifiers for the physical position of each leg on the chassis.
-  enum class LegSide : uint8_t
-  {
-    /// @brief Forward-facing left leg.
-    TOP_LEFT = 0,
-    /// @brief Forward-facing right leg.
-    TOP_RIGHT = 1,
-    /// @brief Rear-facing left leg.
-    BOTTOM_LEFT = 2,
-    /// @brief Rear-facing right leg.
-    BOTTOM_RIGHT = 3,
-
-    /// @brief Count of enums. Do not use!
-    _count_LegSide,
-  };
-  static constexpr size_t CHANNEL_STEPS_PER_SIDE = 4;
 
   /// @brief Returns the next leg side.
   /// @param joint The current leg side
@@ -89,29 +76,34 @@ namespace pluto
       return "BOTTOM_LEFT";
     case LegSide::BOTTOM_RIGHT:
       return "BOTTOM_RIGHT";
+    default:
+      return "UNKNOWN LEG SIDE";
     }
   }
 
   class Leg
   {
-    LegJoint<PLUTO_EXPAND_LEG_DATA(LEG_DATA_TOP)> top;
-    LegJoint<PLUTO_EXPAND_LEG_DATA(LEG_DATA_MIDDLE)> middle;
-    LegJoint<PLUTO_EXPAND_LEG_DATA(LEG_DATA_BOTTOM)> bottom;
-
   public:
+    static constexpr uint8_t CHANNEL_STEPS_PER_SIDE = 4;
+
     Leg(Adafruit_PWMServoDriver& pwm, LegSide side) noexcept
-        : top(
-              pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 0,
-              LEG_CALIBRATIONS[(uint8_t)side].top.angle_min_md,
-              LEG_CALIBRATIONS[(uint8_t)side].top.angle_max_md)
-        , middle(
-              pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 1,
-              LEG_CALIBRATIONS[(uint8_t)side].middle.angle_min_md,
-              LEG_CALIBRATIONS[(uint8_t)side].middle.angle_max_md)
-        , bottom(
-              pwm, (uint8_t)side * CHANNEL_STEPS_PER_SIDE + 2,
-              LEG_CALIBRATIONS[(uint8_t)side].bottom.angle_min_md,
-              LEG_CALIBRATIONS[(uint8_t)side].bottom.angle_max_md)
+        : _side(side)
+        , _joints{
+            LegJoint(
+              pwm, 
+              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 0,
+              LEG_CONFIGS[static_cast<uint8_t>(side)].coxa),
+
+            LegJoint(
+              pwm,
+              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 1,
+              LEG_CONFIGS[static_cast<uint8_t>(side)].femur),
+            
+            LegJoint(
+              pwm,
+              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 2,
+              LEG_CONFIGS[static_cast<uint8_t>(side)].tibia)
+        }
     {
     }
     Leg(Leg&&) noexcept                 = default;
@@ -121,38 +113,27 @@ namespace pluto
 
     /// @brief Indexes into the joints
     /// @param type The LegJointType
-    /// @return View over a LegJoint
-    LegJointView operator[](LegJointType type) noexcept
+    /// @return LegJoint reference
+    LegJoint& operator[](LegJointType type) noexcept
     {
-      switch (type)
-      {
-      case LegJointType::COXA:
-        return LegJointView(top);
-      case LegJointType::FEMUR:
-        return LegJointView(middle);
-      case LegJointType::TIBIA:
-        return LegJointView(bottom);
-      }
+      return _joint[static_cast<uint8_t>(type)];
     }
 
-    /// @brief For each joint, call a function.
-    /// The functor should usually be a templated lambda.
-    /// @tparam T The lambda
-    /// @param functor The functor
-    template<typename T>
-    void for_each_joint(T&& functor) noexcept
+    /// @brief Indexes into the joints (const version)
+    /// @param type The LegJointType
+    /// @return LegJoint const reference
+    const LegJoint& operator[](LegJointType type) const noexcept
     {
-      functor(top);
-      functor(middle);
-      functor(bottom);
+      return _joints[static_cast<size_t>(type)];
     }
 
     /// @brief Moves all joints in the leg to their starting positions.
     void write_starting() noexcept
     {
-      top.write_starting();
-      middle.write_starting();
-      bottom.write_starting();
+      for (auto& joint : _joints) 
+      {
+        joint.write_starting();
+      }
     }
 
     /// @brief Sets all three joint angles simultaneously.
@@ -161,9 +142,9 @@ namespace pluto
     /// @param tibia_md The tibia angle in millidegrees
     void write_angles(int32_t coxa_md, int32_t femur_md, int32_t tibia_md) noexcept
     {
-      top.write_angle(coxa_md);
-      middle.write_angle(femur_md);
-      bottom.write_angle(tibia_md);
+      _joint[0].write_angle(coxa_md);
+      _joint[1].write_angle(femur_md);
+      _joint[2].write_angle(tibia_md);
     }
     /// @brief Sets all three joint raw values simultaneously
     /// @param coxa_raw The coxa raw PWM
@@ -171,9 +152,34 @@ namespace pluto
     /// @param tibia_raw The tibia raw PWM
     void write_raws(int16_t coxa_raw, int16_t femur_raw, int16_t tibia_raw) noexcept
     {
-      top.write_raw(coxa_raw);
-      middle.write_raw(femur_raw);
-      bottom.write_raw(tibia_raw);
+      _joint[0].write_raw(coxa_raw);
+      _joint[1].write_raw(femur_raw);
+      _joint[2].write_raw(tibia_raw);
     }
+
+    /// @brief Function template to apply an operation to each joint in the leg.
+    /// @tparam Func The type of the function or lambda to apply to each joint. It should take a LegJoint& as a parameter.
+    /// @param fn The function or lambda to apply to each joint.
+    template<typename Func>
+    void for_each_joint(Func&& fn) noexcept 
+    {
+      for (auto& joint : _joints) 
+      {
+        fn(joint);
+      }
+    }
+
+    /// @brief Returns the side of the leg.
+    /// @return The leg side.
+    LegSide side() const noexcept 
+    {
+      return _side;
+    }
+
+    private:
+      /// @brief The side of the leg on the chassis.
+      LegSide _side;
+      /// @brief The three joints of the leg: coxa, femur, tibia.
+      std::array<LegJoint, JOINT_COUNT> _joints;
   };
 } // namespace pluto
