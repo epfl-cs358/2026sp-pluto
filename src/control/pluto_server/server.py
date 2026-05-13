@@ -1,8 +1,9 @@
+from collections import deque
 import socket
 import time
 import threading
 
-import message
+from . import message
 
 
 class PlutoController:
@@ -17,7 +18,23 @@ class PlutoController:
 
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
-        self.received_messages = []
+        self.received_messages = deque(maxlen=100)
+
+    def send_heartbeat(self):
+        """Sends an INFO_REQUEST_IS_ALIVE message to prevent session timeout."""
+        msg = message.Message(
+            family=message.MessageFamilyKind.KIND_INFO,
+            kind=message.MessageInfoKind.INFO_REQUEST_IS_ALIVE,
+            event_clock_or_duration=0,
+        )
+        self.send_messages([msg])
+
+    def get_latest_messages(self):
+        """Returns and clears all received messages."""
+        with self._lock:
+            msgs = list(self.received_messages)
+            self.received_messages.clear()
+            return msgs
 
     def connect(self) -> bool:
         """Performs the handshake to acquire a session token."""
@@ -25,7 +42,7 @@ class PlutoController:
         handshake_packet = message.UDPPacket(
             session_token=0,
             sequence_number=self.sequence_number,
-            timestamp=int(time.time() * 1000),
+            timestamp=int(time.time() * 1000) & 0xFFFFFFFF,
         )
 
         try:
@@ -53,7 +70,7 @@ class PlutoController:
             packet = message.UDPPacket(
                 session_token=self.session_token,
                 sequence_number=self.sequence_number,
-                timestamp=int(time.time() * 1000),
+                timestamp=int(time.time() * 1000) & 0xFFFFFFFF,
                 messages=messages,
             )
             self.sock.sendto(packet.pack(), self.target_addr)
