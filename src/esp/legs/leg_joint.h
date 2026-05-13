@@ -13,16 +13,11 @@ namespace pluto
   /// @tparam MIN The minimum raw pulse of that joint
   /// @tparam MAX The maximum raw pulse of that joint
   /// @tparam STARTING The starting raw pulse of that joint
-  /// @tparam ANGLE_MIN_MD The logical minimum angle of the joint in millidegrees.
-  /// @tparam ANGLE_MAX_MD The logical maximum angle of the joint in millidegrees.
-  template<
-      size_t MIN, size_t MAX, size_t STARTING, int32_t ANGLE_MIN_MD,
-      int32_t ANGLE_MAX_MD>
+  template<size_t MIN, size_t MAX, size_t STARTING>
   class LegJoint
   {
     static_assert(MIN < MAX, "MIN must be smaller than MAX");
     static_assert(STARTING >= MIN && STARTING <= MAX, "STARTING pulse out of range");
-    static_assert(ANGLE_MIN_MD != ANGLE_MAX_MD, "Angle range cannot be zero");
 
   public:
     LegJoint(LegJoint&&) noexcept                 = default;
@@ -32,10 +27,14 @@ namespace pluto
     /// @brief Constructs a LegJoint and initializes the servo to the starting pulse.
     /// @param driver Pointer to the Adafruit_PWMServoDriver instance.
     /// @param channel The PCA9685 channel index (0-15).
-    LegJoint(Adafruit_PWMServoDriver& driver, uint8_t channel)
+    LegJoint(
+        Adafruit_PWMServoDriver& driver, uint8_t channel, int32_t angle_min_md,
+        int32_t angle_max_md)
         : _pwm(&driver)
         , _current(STARTING)
         , _channel(channel)
+        , _angle_min_md(angle_min_md)
+        , _angle_max_md(angle_max_md)
     {
     }
 
@@ -50,12 +49,14 @@ namespace pluto
     /// @param millidegrees The target angle in millidegrees, mapped to the PWM range.
     void write_angle(int32_t millidegrees) noexcept
     {
-      millidegrees = constrain(millidegrees, ANGLE_MIN_MD, ANGLE_MAX_MD);
+      millidegrees = constrain(millidegrees, _angle_min_md, _angle_max_md);
 
       // Linear mapping: P = MIN + (A - Amin) * (Pmax - Pmin) / (Amax - Amin)
       uint16_t pulse = MIN
-                       + (uint32_t)(millidegrees - ANGLE_MIN_MD) * (MAX - MIN)
-                             / (ANGLE_MAX_MD - ANGLE_MIN_MD);
+                       + static_cast<uint16_t>(
+                             static_cast<int64_t>(millidegrees - _angle_min_md)
+                             * static_cast<int64_t>(MAX - MIN)
+                             / static_cast<int64_t>(_angle_max_md - _angle_min_md));
       write_raw(pulse);
     }
     /// @brief Sets the joint to its starting position
@@ -71,16 +72,14 @@ namespace pluto
     /// @return The current angle in millidegrees.
     int32_t current_angle() const noexcept
     {
-      return ANGLE_MIN_MD
-             + (int32_t)(_current - MIN) * (ANGLE_MAX_MD - ANGLE_MIN_MD)
+      return _angle_min_md
+             + (int32_t)(_current - MIN) * (_angle_max_md - _angle_min_md)
                    / (MAX - MIN);
     }
 
     static constexpr size_t RAW_MIN   = MIN;
     static constexpr size_t RAW_MAX   = MAX;
     static constexpr size_t RAW_START = STARTING;
-    static constexpr size_t ANGLE_MIN = ANGLE_MIN_MD;
-    static constexpr size_t ANGLE_MAX = ANGLE_MAX_MD;
 
   private:
     /// @brief Pointer to the servo driver.
@@ -90,6 +89,8 @@ namespace pluto
     int16_t _current;
     /// @brief The channel
     uint8_t _channel;
+    int32_t _angle_min_md;
+    int32_t _angle_max_md;
   };
 
   /// @brief Type-erased view for any instantiation of LegJoint.

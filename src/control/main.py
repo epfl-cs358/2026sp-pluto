@@ -28,6 +28,7 @@ def parse_args() -> argparse.Namespace:
 @ui.page("/")
 def index():
     navigation_bar()
+
     with ui.column().classes("items-center justify-center w-full q-mt-xl"):
         ui.label("Pluto Control Hub").style("font-size: 2.5rem; font-weight: bold;")
         ui.label("Select an operating mode below to continue.").classes("text-lg q-mb-lg")
