@@ -24,14 +24,33 @@ namespace pluto
     JointCalibration bottom;
   };
 
-  static constexpr JointRawData LEG_DATA_TOP  = {250, 500, 315};
-  static constexpr JointRawData LEG_DATA_COXA = LEG_DATA_TOP;
+  // + opens the leg
+  static constexpr JointRawData LEG_DATA_TOP_RIGHT_BOTTOM = {155, 315, 300};
+  // + opens the leg
+  static constexpr JointRawData LEG_DATA_TOP_RIGHT_MIDDLE = {275, 365, 300};
+  // + closes the leg
+  static constexpr JointRawData LEG_DATA_TOP_RIGHT_TOP = {235, 375, 315};
 
-  static constexpr JointRawData LEG_DATA_MIDDLE = {100, 240, 150};
-  static constexpr JointRawData LEG_DATA_FEMUR  = LEG_DATA_MIDDLE;
+  // + closes the leg
+  static constexpr JointRawData LEG_DATA_TOP_LEFT_BOTTOM = {285, 445, 300};
+  // + closes the leg
+  static constexpr JointRawData LEG_DATA_TOP_LEFT_MIDDLE = {275, 365, 300};
+  // + opens the leg
+  static constexpr JointRawData LEG_DATA_TOP_LEFT_TOP = {240, 380, 300};
 
-  static constexpr JointRawData LEG_DATA_BOTTOM = {340, 465, 400};
-  static constexpr JointRawData LEG_DATA_TIBIA  = LEG_DATA_BOTTOM;
+  // + closes the leg
+  static constexpr JointRawData LEG_DATA_BOTTOM_LEFT_BOTTOM = {270, 440, 300};
+  // + opens the leg
+  static constexpr JointRawData LEG_DATA_BOTTOM_LEFT_MIDDLE = {200, 355, 300};
+  // + closes the leg
+  static constexpr JointRawData LEG_DATA_BOTTOM_LEFT_TOP = {240, 380, 300};
+
+  // + opens the leg
+  static constexpr JointRawData LEG_DATA_BOTTOM_RIGHT_BOTTOM = {160, 340, 300};
+  // + closes the leg
+  static constexpr JointRawData LEG_DATA_BOTTOM_RIGHT_MIDDLE = {245, 400, 300};
+  // + opens the leg
+  static constexpr JointRawData LEG_DATA_BOTTOM_RIGHT_TOP = {240, 380, 300};
 
   static constexpr JointCalibration CAL_TOP = {-36000, 58000};
 
