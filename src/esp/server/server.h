@@ -6,8 +6,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
+#include <atomic>
 
-#include <comm/message.h> // pluto's messages
+#include <comm/message.h>
 
 namespace pluto
 {
@@ -30,11 +31,13 @@ namespace pluto
     WiFiUDP _udp;
     QueueHandle_t _msgQueue;
 
-    uint32_t _sessionToken = 0;
-    uint32_t _lastSequence = 0;
-    bool _hasSession       = false;
+    std::atomic<uint32_t> _sessionToken{0};
+    std::atomic<uint32_t> _lastSequence{0};
+    std::atomic<uint32_t> _lastPacketTime{0};
+    std::atomic<bool> _hasSession{false};
 
     static constexpr size_t QUEUE_SIZE              = 256;
     static constexpr uint32_t SESSION_REQUEST_TOKEN = 0x0;
+    static constexpr uint32_t SESSION_TIMEOUT_MS    = 10000;
   };
 } // namespace pluto
