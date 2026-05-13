@@ -12,8 +12,6 @@
 #include <sensors/ultrasonic.h>
 #include <sensors/microphone.h>
 
-static constexpr size_t LEG_JOINTS_COUNT = 3;
-
 /// @brief The pluto WiFi server
 auto PLUTO_SERVER = pluto::PlutoServer{4242};
 /// @brief The PWM driver
