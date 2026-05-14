@@ -131,11 +131,11 @@ void loop()
     {
     case 'f':
       GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
-      Serial.println("Motion: forward");
+      Serial.println("Motion: forward/turning right");
       break;
     case 'b':
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
-      Serial.println("Motion: backward");
+      Serial.println("Motion: backward/turning left");
       break;
     case 's':
       GAIT.set_motion(pluto::motion::MotionCommand::IDLE);

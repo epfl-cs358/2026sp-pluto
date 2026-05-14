@@ -9,16 +9,21 @@ namespace pluto::motion
 {
   enum class GaitKind : uint8_t
   {
-    WALK,
+    WALK = 0,
     TROT,
     GALLOP,
+    TURN, // Move forward on this gait to turn right, backward to turn left
   };
 
   enum class MotionCommand : uint8_t
   {
-    IDLE,
-    FORWARD,
-    BACKWARD,
+    IDLE = 0,
+
+    FORWARD = 1,
+    RIGHT = FORWARD,
+
+    BACKWARD = 2,
+    LEFT = BACKWARD,
   };
 
   class GaitController
@@ -40,7 +45,7 @@ namespace pluto::motion
     float offset_for(LegSide side) const noexcept;
     void write_leg(std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept;
 
-    GaitKind _gait         = GaitKind::TROT;
+    GaitKind _gait        = GaitKind::TROT;
     MotionCommand _motion = MotionCommand::IDLE;
     float _speed          = 0.65F;
   };

@@ -8,9 +8,10 @@ namespace pluto::motion
 {
   namespace
   {
-    constexpr float COXA_LENGTH  = 0.40F;
-    constexpr float FEMUR_LENGTH = 1.20F;
-    constexpr float TIBIA_LENGTH = 1.36F;
+    // TODO: Change these constants to reflect the actual measurements of the robot.
+    constexpr float COXA_LENGTH  = 0.40F; // 6.3 centimeters
+    constexpr float FEMUR_LENGTH = 1.20F; // 10 centimeters
+    constexpr float TIBIA_LENGTH = 1.36F; // 9 centimeters
 
     constexpr float STAND_COMPRESSION = 0.26F;
     constexpr float FOOT_Z_STAND      = -(FEMUR_LENGTH + TIBIA_LENGTH - STAND_COMPRESSION);
@@ -22,6 +23,11 @@ namespace pluto::motion
     constexpr bool is_right_side(LegSide side) noexcept
     {
       return side == LegSide::TOP_RIGHT || side == LegSide::BOTTOM_RIGHT;
+    }
+
+    constexpr bool is_front_side(LegSide side) noexcept
+    {
+      return side == LegSide::TOP_LEFT || side == LegSide::TOP_RIGHT;
     }
 
     float normalized_phase(float time_s, float period_s, float offset) noexcept
@@ -65,12 +71,17 @@ namespace pluto::motion
 
   void GaitController::stand(std::array<Leg, 4>& legs) const noexcept
   {
-    for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
+    for (auto& leg : legs)
     {
-      const auto side   = static_cast<LegSide>(i);
-      const auto angles = solve_leg({0.0F, 0.0F, FOOT_Z_STAND}, side);
-      legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
+      leg.write_starting();
     }
+
+    //for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
+    //{
+    //  const auto side   = static_cast<LegSide>(i);
+    //  const auto angles = solve_leg({0.0F, 0.0F, FOOT_Z_STAND}, side);
+    //  legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
+    //}
   }
 
   void GaitController::update(std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept
