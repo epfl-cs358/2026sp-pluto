@@ -116,7 +116,7 @@ namespace pluto
     /// @return LegJoint reference
     LegJoint& operator[](LegJointType type) noexcept
     {
-      return _joint[static_cast<uint8_t>(type)];
+      return _joints[static_cast<uint8_t>(type)];
     }
 
     /// @brief Indexes into the joints (const version)
@@ -142,9 +142,9 @@ namespace pluto
     /// @param tibia_md The tibia angle in millidegrees
     void write_angles(int32_t coxa_md, int32_t femur_md, int32_t tibia_md) noexcept
     {
-      _joint[0].write_angle(coxa_md);
-      _joint[1].write_angle(femur_md);
-      _joint[2].write_angle(tibia_md);
+      _joints[0].write_angle(coxa_md);
+      _joints[1].write_angle(femur_md);
+      _joints[2].write_angle(tibia_md);
     }
     /// @brief Sets all three joint raw values simultaneously
     /// @param coxa_raw The coxa raw PWM
@@ -152,9 +152,9 @@ namespace pluto
     /// @param tibia_raw The tibia raw PWM
     void write_raws(int16_t coxa_raw, int16_t femur_raw, int16_t tibia_raw) noexcept
     {
-      _joint[0].write_raw(coxa_raw);
-      _joint[1].write_raw(femur_raw);
-      _joint[2].write_raw(tibia_raw);
+      _joints[0].write_raw(coxa_raw);
+      _joints[1].write_raw(femur_raw);
+      _joints[2].write_raw(tibia_raw);
     }
 
     /// @brief Function template to apply an operation to each joint in the leg.
