@@ -1,19 +1,34 @@
+#define PLUTO_ENABLE_WIFI
+#define PLUTO_ENABLE_ULTRASONIC
+#define PLUTO_ENABLE_MICROPHONE
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#include <server/server.h>
 #include <legs/leg.h>
 #include <motion/gait.h>
 #include <array>
 
-#include <sensors/ultrasonic.h>
-#include <sensors/microphone.h>
+#ifdef PLUTO_ENABLE_WIFI
+  #include <server/server.h>
+#endif // PLUTO_ENABLE_WIFI
 
+#ifdef PLUTO_ENABLE_ULTRASONIC
+  #include <sensors/ultrasonic.h>
+#endif // PLUTO_ENABLE_ULTRASONIC
+
+#ifdef PLUTO_ENABLE_MICROPHONE
+  #include <sensors/microphone.h>
+#endif // PLUTO_ENABLE_MICROPHONE
+
+#ifdef PLUTO_ENABLE_WIFI
 /// @brief The pluto WiFi server
 auto PLUTO_SERVER = pluto::PlutoServer{4242};
+#endif
+
 /// @brief The PWM driver
 Adafruit_PWMServoDriver PWM = Adafruit_PWMServoDriver();
 /// @brief The legs
@@ -24,41 +39,54 @@ std::array<pluto::Leg, 4> LEGS = {
     pluto::Leg{PWM, pluto::LegSide::BOTTOM_RIGHT}};
 
 pluto::LegJointType CURRENT_JOINT = pluto::LegJointType::COXA;
-pluto::LegSide CURRENT_SIDE = pluto::LegSide::TOP_LEFT;
+pluto::LegSide CURRENT_SIDE       = pluto::LegSide::TOP_LEFT;
 pluto::motion::GaitController GAIT;
 
+#ifdef PLUTO_ENABLE_ULTRASONIC
 /// @brief Ultrasonic sensor
 pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
+#endif
+
+#ifdef PLUTO_ENABLE_MICROPHONE
 /// @brief Microphone sensor
 pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
+#endif
 
 void setup()
 {
   Serial.begin(115200);
 
+#ifdef PLUTO_ENABLE_WIFI
   PLUTO_SERVER.addAP("Don't Try Plz...", "jules000");
   // TODO: add DELL wifi
   // PLUTO_SERVER.addAP("", "");
-
-  // Initialize the background task on Core 0
   PLUTO_SERVER.begin();
+#endif
 
   PWM.begin();
   PWM.setOscillatorFrequency(27000000);
   PWM.setPWMFreq(50);
+
+#ifdef PLUTO_ENABLE_ULTRASONIC
   SENSOR_ULTRASONIC.begin();
+#endif
+
+#ifdef PLUTO_ENABLE_MICROPHONE
   SENSOR_MICROPHONE.begin();
+#endif
 
   GAIT.stand(LEGS);
   Serial.println("Pluto motion ready");
-  Serial.println("Commands: f forward, b backward, s stop, 1 walk, 2 trot, 3 gallop, +/- trim selected joint");
+  Serial.println(
+      "Commands: f forward, b backward, s stop, 1 walk, 2 trot, 3 gallop, +/- trim "
+      "selected joint");
 }
 
 void loop()
 {
-  static uint32_t last_motion_ms = 0;
-  static uint32_t last_sensor_ms = 0;
-  static bool ultrasonic_pending = false;
+  static uint32_t last_motion_ms      = 0;
+  static uint32_t last_sensor_ms      = 0;
+  static bool ultrasonic_pending      = false;
   static uint32_t ultrasonic_begin_ms = 0;
 
   const uint32_t now = millis();
@@ -69,21 +97,28 @@ void loop()
     last_motion_ms = now;
   }
 
+#ifdef PLUTO_ENABLE_ULTRASONIC
   if (!ultrasonic_pending && now - last_sensor_ms >= 500)
   {
     SENSOR_ULTRASONIC.read_begin();
     ultrasonic_pending  = true;
     ultrasonic_begin_ms = now;
   }
+#endif
 
   if (ultrasonic_pending && now - ultrasonic_begin_ms >= 10)
   {
+#ifdef PLUTO_ENABLE_MICROPHONE
     Serial.print("Current Energy: ");
     Serial.println(SENSOR_MICROPHONE.current_energy());
+#endif
+
+#ifdef PLUTO_ENABLE_ULTRASONIC
     Serial.print("Current Distance: ");
     Serial.println(SENSOR_ULTRASONIC.read_end());
     ultrasonic_pending = false;
     last_sensor_ms     = now;
+#endif
   }
 
   if (Serial.available() > 0)
@@ -174,6 +209,7 @@ void loop()
     }
   }
 
+#ifdef PLUTO_ENABLE_WIFI
   Message msg;
   while (PLUTO_SERVER.getNextMessage(msg))
   {
@@ -195,4 +231,5 @@ void loop()
       break;
     }
   }
+#endif
 }
