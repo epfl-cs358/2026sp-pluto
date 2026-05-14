@@ -103,13 +103,17 @@ namespace pluto::motion
     switch (_gait)
     {
     case GaitKind::WALK:
-      return 0.50F;
+      return 1.50F;
     case GaitKind::TROT:
-      return 0.35F;
+      return 0.90F;
     case GaitKind::GALLOP:
+<<<<<<< Updated upstream
       return 0.30F;
     case GaitKind::TURN:
       return 0.35F;
+=======
+      return 0.60F;
+>>>>>>> Stashed changes
     }
 
     return 0.35F;
