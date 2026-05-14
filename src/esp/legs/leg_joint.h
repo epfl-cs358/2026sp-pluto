@@ -38,7 +38,7 @@ namespace pluto
     /// @param pulse The 12-bit pulse width value, constrained by MIN and MAX.
     void write_raw(uint16_t pulse) noexcept
     {
-      _current = constrain(pulse, _config.raw_min, _config.raw_start);
+      _current = constrain(pulse, _config.raw_min, _config.raw_max);
       _pwm->setPWM(_channel, 0, _current);
     }
     /// @brief Sets the joint position using a logical angle in millidegrees.
