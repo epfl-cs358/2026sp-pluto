@@ -9,9 +9,9 @@ namespace pluto::motion
   namespace
   {
     // TODO: Change these constants to reflect the actual measurements of the robot.
-    constexpr float COXA_LENGTH  = 0.40F; // 6.3 centimeters
-    constexpr float FEMUR_LENGTH = 1.20F; // 10 centimeters
-    constexpr float TIBIA_LENGTH = 1.36F; // 9 centimeters
+    constexpr float COXA_LENGTH  = 6.30F; // 6.3 centimeters
+    constexpr float FEMUR_LENGTH = 10.00F; // 10 centimeters
+    constexpr float TIBIA_LENGTH = 9.00F; // 9 centimeters
 
     constexpr float STAND_COMPRESSION = 0.26F;
     constexpr float FOOT_Z_STAND      = -(FEMUR_LENGTH + TIBIA_LENGTH - STAND_COMPRESSION);
@@ -108,6 +108,8 @@ namespace pluto::motion
       return 0.35F;
     case GaitKind::GALLOP:
       return 0.30F;
+    case GaitKind::TURN:
+      return 0.35F;
     }
 
     return 0.35F;
@@ -156,6 +158,18 @@ namespace pluto::motion
         return 0.5F;
       }
       break;
+
+    case GaitKind::TURN:
+      switch (side)
+      {
+      case LegSide::TOP_LEFT:
+      case LegSide::BOTTOM_RIGHT:
+        return 0.0F;
+      case LegSide::TOP_RIGHT:
+      case LegSide::BOTTOM_LEFT:
+        return 0.5F;
+      }
+      break;
     }
 
     return 0.0F;
@@ -165,8 +179,9 @@ namespace pluto::motion
       std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept
   {
     const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
+    const float turn_flip = (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
     const float phase = normalized_phase(time_s, period_seconds(), offset_for(side));
-    const auto foot   = foot_from_phase(phase, direction * _speed);
+    const auto foot   = foot_from_phase(phase, direction * turn_flip * _speed);
     const auto angles = solve_leg(foot, side);
 
     legs[static_cast<uint8_t>(side)].write_angles(
