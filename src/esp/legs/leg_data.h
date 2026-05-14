@@ -1,70 +1,74 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 namespace pluto
 {
-  struct JointRawData
+  struct JointConfig
   {
     uint16_t raw_min;
     uint16_t raw_max;
     uint16_t raw_start;
-  };
 
-  struct JointCalibration
-  {
     int32_t angle_min_md;
     int32_t angle_max_md;
+
+    bool inverted = false;
   };
 
-  struct LegCalibration
+  struct LegConfig
   {
-    JointCalibration top;
-    JointCalibration middle;
-    JointCalibration bottom;
+    JointConfig coxa;
+    JointConfig femur;
+    JointConfig tibia;
   };
 
-  // + opens the leg
-  static constexpr JointRawData LEG_DATA_TOP_RIGHT_BOTTOM = {155, 315, 300};
-  // + opens the leg
-  static constexpr JointRawData LEG_DATA_TOP_RIGHT_MIDDLE = {275, 365, 300};
-  // + closes the leg
-  static constexpr JointRawData LEG_DATA_TOP_RIGHT_TOP = {235, 375, 315};
+  /// @brief Identifiers for the physical position of each leg on the chassis.
+  enum class LegSide : uint8_t
+  {
+    /// @brief Forward facing left leg
+    TOP_LEFT = 0,
+    /// @brief Forward facing right leg
+    TOP_RIGHT = 1,
+    /// @brief Rear facing left leg
+    BOTTOM_LEFT = 2,
+    /// @brief Rear facing right leg
+    BOTTOM_RIGHT = 3,
 
-  // + closes the leg
-  static constexpr JointRawData LEG_DATA_TOP_LEFT_BOTTOM = {285, 445, 300};
-  // + closes the leg
-  static constexpr JointRawData LEG_DATA_TOP_LEFT_MIDDLE = {275, 365, 300};
-  // + opens the leg
-  static constexpr JointRawData LEG_DATA_TOP_LEFT_TOP = {240, 380, 300};
+    _count_LegSide
+  };
 
-  // + closes the leg
-  static constexpr JointRawData LEG_DATA_BOTTOM_LEFT_BOTTOM = {270, 440, 300};
-  // + opens the leg
-  static constexpr JointRawData LEG_DATA_BOTTOM_LEFT_MIDDLE = {200, 355, 300};
-  // + closes the leg
-  static constexpr JointRawData LEG_DATA_BOTTOM_LEFT_TOP = {240, 380, 300};
+  static constexpr size_t LEG_COUNT = 4;
+  static constexpr size_t JOINT_COUNT = 3;
 
-  // + opens the leg
-  static constexpr JointRawData LEG_DATA_BOTTOM_RIGHT_BOTTOM = {160, 340, 300};
-  // + closes the leg
-  static constexpr JointRawData LEG_DATA_BOTTOM_RIGHT_MIDDLE = {245, 400, 300};
-  // + opens the leg
-  static constexpr JointRawData LEG_DATA_BOTTOM_RIGHT_TOP = {240, 380, 300};
-
-  static constexpr JointCalibration CAL_TOP = {-36000, 58000};
-
-  static constexpr LegCalibration LEG_CALIBRATIONS[] = {
-      // TOP_LEFT: TODO replace with measured values.
-      {CAL_TOP, {-66000, 45000}, {-50000, 17000}},
-      // TOP_RIGHT / front right.
-      {CAL_TOP, {-66000, -25000}, {-50000, 15000}},
-      // BOTTOM_LEFT / back left.
-      {CAL_TOP, {-13000, 45000}, {-50000, 17000}},
-      // BOTTOM_RIGHT: TODO replace with measured values.
-      {CAL_TOP, {-66000, 45000}, {-50000, 17000}},
+  static constexpr LegConfig LEG_CONFIGS[LEG_COUNT] = {
+      // TOP LEFT
+      {
+        {240, 380, 300, -36000, 58000, false}, // + opens the leg
+        {275, 365, 300, -66000, 45000, true},  // + closes the leg
+        {285, 445, 300, -50000, 17000, true}   // + closes the leg
+      },
+      // TOP RIGHT
+      {
+        {235, 375, 315, -36000, 58000,  true},   // + closes the leg
+        {275, 365, 300, -66000, -25000, false},  // + opens the leg
+        {155, 315, 300, -50000, 15000,  false}   // + opens the leg
+      },
+      // BOTTOM LEFT
+      {
+        {240, 380, 300, -36000, 58000, true},   // + closes the leg
+        {200, 355, 300, -13000, 45000, false},  // + opens the leg
+        {270, 440, 300, -50000, 17000, true}    // + closes the leg
+      },
+      // BOTTOM RIGHT
+      {
+        {240, 380, 300, -36000, 58000, false},  // + opens the leg
+        {245, 400, 300, -66000, 45000, true},   // + closes the leg
+        {160, 340, 300, -50000, 17000, false}   // + opens the leg
+      }
   };
 } // namespace pluto
 
 #define PLUTO_EXPAND_LEG_DATA(leg_data) \
-  leg_data.raw_min, leg_data.raw_max, leg_data.raw_start
+  leg_data.raw_min, leg_data.raw_max, leg_data.raw_start, leg_data.angle_min_md, leg_data.angle_max_md
