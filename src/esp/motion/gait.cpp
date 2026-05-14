@@ -13,8 +13,7 @@ namespace pluto::motion
     constexpr float FEMUR_LENGTH = 10.00F; // 10 centimeters
     constexpr float TIBIA_LENGTH = 9.00F; // 9 centimeters
 
-    constexpr float STAND_COMPRESSION = 0.26F;
-    constexpr float FOOT_Z_STAND      = -(FEMUR_LENGTH + TIBIA_LENGTH - STAND_COMPRESSION);
+    constexpr float FOOT_Z_STAND = -16.0F; // standing height in cm
 
     constexpr float SWING_RATIO = 0.35F;
     constexpr float STRIDE      = 0.60F;
@@ -107,13 +106,9 @@ namespace pluto::motion
     case GaitKind::TROT:
       return 0.90F;
     case GaitKind::GALLOP:
-<<<<<<< Updated upstream
-      return 0.30F;
-    case GaitKind::TURN:
-      return 0.35F;
-=======
       return 0.60F;
->>>>>>> Stashed changes
+    case GaitKind::TURN:
+      return 0.60F;
     }
 
     return 0.35F;

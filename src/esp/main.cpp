@@ -109,13 +109,13 @@ void loop()
   if (ultrasonic_pending && now - ultrasonic_begin_ms >= 10)
   {
 #ifdef PLUTO_ENABLE_MICROPHONE
-    Serial.print("Current Energy: ");
-    Serial.println(SENSOR_MICROPHONE.current_energy());
+   // Serial.print("Current Energy: ");
+    // Serial.println(SENSOR_MICROPHONE.current_energy());
 #endif
 
 #ifdef PLUTO_ENABLE_ULTRASONIC
-    Serial.print("Current Distance: ");
-    Serial.println(SENSOR_ULTRASONIC.read_end());
+    // Serial.print("Current Distance: ");
+    // Serial.println(SENSOR_ULTRASONIC.read_end());
     ultrasonic_pending = false;
     last_sensor_ms     = now;
 #endif
