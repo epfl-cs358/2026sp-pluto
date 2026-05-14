@@ -9,15 +9,15 @@ namespace pluto::motion
   namespace
   {
     // TODO: Change these constants to reflect the actual measurements of the robot.
-    constexpr float COXA_LENGTH  = 6.30F; // 6.3 centimeters
-    constexpr float FEMUR_LENGTH = 10.00F; // 10 centimeters
-    constexpr float TIBIA_LENGTH = 9.00F; // 9 centimeters
+    constexpr float COXA_LENGTH  = 7.00F;
+    constexpr float FEMUR_LENGTH = 12.00F;
+    constexpr float TIBIA_LENGTH = 13.50F;
 
-    constexpr float FOOT_Z_STAND = -16.0F; // standing height in cm
+    constexpr float FOOT_Z_STAND = -22.0F; // standing height in cm
 
-    constexpr float SWING_RATIO = 0.35F;
-    constexpr float STRIDE      = 0.60F;
-    constexpr float LIFT        = 0.50F;
+    constexpr float SWING_RATIO = 0.25F;
+    constexpr float STRIDE      = 4.00F;
+    constexpr float LIFT        = 2.00F;
 
     constexpr bool is_right_side(LegSide side) noexcept
     {
@@ -182,6 +182,15 @@ namespace pluto::motion
     const float phase = normalized_phase(time_s, period_seconds(), offset_for(side));
     const auto foot   = foot_from_phase(phase, direction * turn_flip * _speed);
     const auto angles = solve_leg(foot, side);
+
+    // DEBUG: print angles for leg 0 only (remove after tuning)
+    static uint32_t last_print = 0;
+    if (side == LegSide::TOP_LEFT && millis() - last_print > 500) {
+      last_print = millis();
+      Serial.printf("TL foot=(%.2f,%.2f,%.2f) coxa=%d femur=%d tibia=%d\n",
+        foot.x, foot.y, foot.z,
+        angles.coxa_md/1000, angles.femur_md/1000, angles.tibia_md/1000);
+    }
 
     legs[static_cast<uint8_t>(side)].write_angles(
         angles.coxa_md, angles.femur_md, angles.tibia_md);
