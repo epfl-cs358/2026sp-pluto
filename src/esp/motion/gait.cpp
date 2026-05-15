@@ -12,14 +12,14 @@ namespace pluto::motion
     constexpr float FEMUR_LENGTH = 12.00F;
     constexpr float TIBIA_LENGTH = 13.50F;
 
-    constexpr float FOOT_Z_STAND = -22.0F; // standing height in cm
+    constexpr float FOOT_Z_STAND = -22.0F; // standing height
 
     constexpr float SHIFT_END = 0.25F;
     constexpr float LIFT_END  = 0.50F;
     constexpr float STEP_END  = 0.75F;
 
-    constexpr float STRIDE = 4.00F;
-    constexpr float LIFT   = 2.00F;
+    constexpr float STRIDE = 2.00F;
+    constexpr float LIFT   = 1.00F;
 
     constexpr float FOOT_Y_STANCE          = 7.00F;
     constexpr float WALK_BALANCE_SHIFT_Y   = 2.50F;
@@ -181,7 +181,7 @@ namespace pluto::motion
     switch (_gait)
     {
     case GaitKind::WALK:
-      return 1.50F;
+      return 3.00F;
     case GaitKind::TROT:
       return 0.90F;
     case GaitKind::GALLOP:
