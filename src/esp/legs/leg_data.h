@@ -45,27 +45,27 @@ namespace pluto
   static constexpr LegConfig LEG_CONFIGS[LEG_COUNT] = {
       // TOP LEFT
       {
-        {240, 380, 300, -36000, 58000, false}, // + opens the leg
-        {275, 365, 300, -66000, 45000, true},  // + closes the leg
-        {285, 445, 300, -50000, 17000, true}   // + closes the leg
+        {240, 380, 300, -30000, 30000, false}, // + opens the leg
+        {275, 365, 300,  15000, 60000, true},  // + closes the leg
+        {285, 445, 300, -95000, -40000, true}  // + closes the leg
       },
       // TOP RIGHT
       {
-        {235, 375, 315, -36000, 58000,  true},   // + closes the leg
-        {275, 365, 300, -66000, -25000, false},  // + opens the leg
-        {155, 315, 300, -50000, 15000,  false}   // + opens the leg
+        {235, 375, 315, -30000, 30000, true},  // + closes the leg
+        {275, 365, 300,  15000, 60000, false}, // + opens the leg
+        {155, 315, 300, -95000, -40000, false} // + opens the leg
       },
       // BOTTOM LEFT
       {
-        {240, 380, 300, -36000, 58000, true},   // + closes the leg
-        {200, 355, 300, -13000, 45000, false},  // + opens the leg
-        {270, 440, 300, -50000, 17000, true}    // + closes the leg
+        {240, 380, 300, -30000, 30000, true},  // + closes the leg
+        {200, 355, 300,  15000, 60000, false}, // + opens the leg
+        {270, 440, 300, -95000, -40000, true}  // + closes the leg
       },
       // BOTTOM RIGHT
       {
-        {240, 380, 300, -36000, 58000, false},  // + opens the leg
-        {245, 400, 300, -66000, 45000, true},   // + closes the leg
-        {160, 340, 300, -50000, 17000, false}   // + opens the leg
+        {240, 380, 300, -30000, 30000, false}, // + opens the leg
+        {245, 400, 300,  15000, 60000, true},  // + closes the leg
+        {160, 340, 300, -95000, -40000, false} // + opens the leg
       }
   };
 } // namespace pluto
