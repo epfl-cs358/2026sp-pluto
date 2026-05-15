@@ -131,8 +131,6 @@ static_assert(
     sizeof(UDPPacket) == 17 + (8 * MAX_MESSAGES_PER_PACKET),
     "UDPPacket size mismatch");
 
-#pragma once
-
 namespace pluto
 {
   inline Message create_move_by(
