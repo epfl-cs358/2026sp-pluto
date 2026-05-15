@@ -7,9 +7,9 @@ from pluto_menu import simulation
 from pluto_menu import controller
 from pluto_menu import navigation_bar
 from pluto_server.server import PlutoController
-from pluto_server import message
-import struct
-import time
+from pluto_speech.speech import start_speech_engine
+
+import threading
 
 logging.basicConfig(level=logging.INFO)
 
@@ -50,5 +50,12 @@ def index():
 if __name__ in {"__main__", "__mp_main__"}:
     args = parse_args()
 
+    IP_OF_ESP = ""
+    CONTROLLER = PlutoController(IP_OF_ESP)
+    app.on_startup(
+        lambda: threading.Thread(
+            target=start_speech_engine, args=(CONTROLLER,), daemon=True
+        ).start()
+    )
     app.on_shutdown(lambda: simulation.stop_sim(show_notice=False))
     ui.run(title="Pluto Controller", port=args.port, reload=True)

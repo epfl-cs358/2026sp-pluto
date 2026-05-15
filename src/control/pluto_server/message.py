@@ -13,6 +13,7 @@ class MessageFamilyKind(IntEnum):
     KIND_INFO = 0
     KIND_MOVE = 1
     KIND_SENSOR = 2
+    KIND_BEHAVIOR = 3
 
 
 class MessageInfoKind(IntEnum):
@@ -38,6 +39,12 @@ class SensorMicrophone(IntEnum):
     MIC_NONE = 0
     MIC_SIT = 1
     MIC_GIVE_PAW = 2
+
+
+class MessageBehaviorKind(IntEnum):
+    BEHAVIOR_SIT = 0
+    BEHAVIOR_GIVE_PAW = 1
+    BEHAVIOR_LIE_DOWN = 2
 
 
 class Message:
@@ -187,4 +194,17 @@ def create_sensor_distance(distance_mm: int, current_millis: int) -> Message:
         MessageSensorKind.SENSOR_DISTANCE,
         current_millis,
         payload,
+    )
+
+
+def create_behavior(behavior_kind: MessageBehaviorKind, duration_ms: int = 0) -> Message:
+    """
+    Creates a high-level behavior command.
+    The behavior_kind is stored in the 4-bit 'kind' field.
+    """
+    return Message(
+        family=MessageFamilyKind.KIND_BEHAVIOR,
+        kind=behavior_kind,
+        event_clock_or_duration=duration_ms,
+        payload_bytes=b"\x00\x00\x00\x00",  # Empty payload as kind defines the action
     )

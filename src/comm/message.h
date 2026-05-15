@@ -11,6 +11,7 @@ enum class MessageFamilyKind : uint8_t
   KIND_INFO,
   KIND_MOVE,
   KIND_SENSOR,
+  KIND_BEHAVIOR,
   _count_MessageKind
 };
 
@@ -38,6 +39,13 @@ enum class MessageSensorKind : uint8_t
 {
   SENSOR_DISTANCE,
   SENSOR_MICROPHONE,
+};
+
+enum class MessageBehaviorKind : uint8_t
+{
+  BEHAVIOR_SIT,
+  BEHAVIOR_GIVE_PAW,
+  BEHAVIOR_LIE_DOWN,
 };
 
 enum class SensorMicrophone : uint8_t
@@ -86,6 +94,10 @@ struct Message
       SensorMicrophone detected_phrase;
     } sensor_microphone;
 
+    struct
+    {
+      MessageBehaviorKind behavior_kind;
+    } behavior;
   } payload;
 };
 #pragma pack(pop) // restore default compiler alignment
@@ -118,8 +130,6 @@ struct UDPPacket
 static_assert(
     sizeof(UDPPacket) == 17 + (8 * MAX_MESSAGES_PER_PACKET),
     "UDPPacket size mismatch");
-
-#pragma once
 
 namespace pluto
 {
@@ -205,23 +215,25 @@ namespace pluto
   inline void finalize_packet_crc(UDPPacket& packet)
   {
     size_t packet_size = 17 + (8 * packet.message_count);
-    
+
     // skip the first 4 bytes (as this is the checksum...)
     const uint8_t* payload_start = reinterpret_cast<const uint8_t*>(&packet) + 4;
-    size_t payload_length = packet_size - 4;
+    size_t payload_length        = packet_size - 4;
 
     packet.crc32 = calculate_crc32(payload_start, payload_length);
   }
 
   inline bool validate_packet(const UDPPacket& packet, size_t received_bytes)
   {
-    if (received_bytes < 17) return false; 
+    if (received_bytes < 17)
+      return false;
     size_t expected_size = 17 + (8 * packet.message_count);
-    if (received_bytes != expected_size) return false;
+    if (received_bytes != expected_size)
+      return false;
 
     // skip the first 4 bytes (as this is the checksum...)
     const uint8_t* payload_start = reinterpret_cast<const uint8_t*>(&packet) + 4;
-    size_t payload_length = expected_size - 4;
+    size_t payload_length        = expected_size - 4;
 
     uint32_t computed_crc = calculate_crc32(payload_start, payload_length);
     return computed_crc == packet.crc32;
