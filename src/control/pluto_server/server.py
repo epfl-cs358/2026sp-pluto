@@ -2,6 +2,7 @@ from collections import deque
 import socket
 import time
 import threading
+import logging
 
 from . import message
 
@@ -29,6 +30,13 @@ class PlutoController:
         )
         self.send_messages([msg])
 
+    def send_behavior(
+        self, behavior_kind: message.MessageBehaviorKind, duration_ms: int = 0
+    ):
+        """Sends a high-level behavior command."""
+        msg = message.create_behavior(behavior_kind, duration_ms)
+        self.send_messages([msg])
+
     def get_latest_messages(self):
         """Returns and clears all received messages."""
         with self._lock:
@@ -38,7 +46,6 @@ class PlutoController:
 
     def connect(self) -> bool:
         """Performs the handshake to acquire a session token."""
-        # Initial packet with SESSION_REQUEST_TOKEN (0)
         handshake_packet = message.UDPPacket(
             session_token=0,
             sequence_number=self.sequence_number,
@@ -53,11 +60,13 @@ class PlutoController:
             self.session_token = response.session_token
             self.is_connected = True
 
-            # Start background listener for ACKs and sensor data
+            # Start background listeners and heartbeats
             threading.Thread(target=self._listen_loop, daemon=True).start()
+            self._start_heartbeat()
+
             return True
         except (socket.timeout, ValueError) as e:
-            print(f"Connection failed: {e}")
+            logging.error(f"Connection failed: {e}")
             return False
 
     def send_messages(self, messages: list[message.Message]):
@@ -66,17 +75,26 @@ class PlutoController:
             return
 
         with self._lock:
-            self.sequence_number += 1
+            self.sequence_number = (self.sequence_number + 1) & 0xFFFFFFFF
             packet = message.UDPPacket(
                 session_token=self.session_token,
                 sequence_number=self.sequence_number,
                 timestamp=int(time.time() * 1000) & 0xFFFFFFFF,
                 messages=messages,
             )
-            self.sock.sendto(packet.pack(), self.target_addr)
+            try:
+                self.sock.sendto(packet.pack(), self.target_addr)
+            except Exception as e:
+                logging.error(f"Failed to send packet: {e}")
+
+    def _start_heartbeat(self):
+        """Recursive timer for heartbeat maintenance."""
+        if not self._stop_event.is_set() and self.is_connected:
+            self.send_heartbeat()
+            threading.Timer(2.0, self._start_heartbeat).start()
 
     def _listen_loop(self):
-        """Background thread to handle incoming packets from the ESP32."""
+        """Background thread to handle incoming packets from the ESP."""
         self.sock.settimeout(0.5)
         while not self._stop_event.is_set():
             try:
@@ -89,8 +107,15 @@ class PlutoController:
             except socket.timeout:
                 continue
             except Exception as e:
-                print(f"Listener error: {e}")
+                if not self._stop_event.is_set():
+                    logging.error(f"Listener error: {e}")
 
     def disconnect(self):
+        """Safely stops background tasks and closes the socket."""
         self._stop_event.set()
+        self.is_connected = False
+        try:
+            self.sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
         self.sock.close()
