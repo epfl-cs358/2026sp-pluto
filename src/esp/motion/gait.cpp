@@ -24,6 +24,16 @@ namespace pluto::motion
     constexpr float FOOT_Y_STANCE          = 7.00F;
     constexpr float WALK_BALANCE_SHIFT_Y   = 2.50F;
     constexpr float WALK_SUPPORT_PUSH_DOWN = 0.80F;
+    constexpr float BOW_FRONT_DROP         = 5.00F;
+    constexpr float BOW_REAR_RISE          = 2.00F;
+    constexpr float BOW_FRONT_BACK         = 1.50F;
+    constexpr float BOW_PERIOD             = 2.00F;
+
+    constexpr float PAW_REST_X             = 1.50F;
+    constexpr float PAW_REST_Z             = -16.00F;
+    constexpr float PAW_PEAK_X             = 4.50F;
+    constexpr float PAW_PEAK_Z             = -12.00F;
+    constexpr float PAW_PERIOD             = 1.20F;
 
     constexpr bool is_right_side(LegSide side) noexcept
     {
@@ -148,6 +158,18 @@ namespace pluto::motion
     }
 
     const float time_s = static_cast<float>(now_ms) * 0.001F;
+    if (_motion == MotionCommand::BOW)
+    {
+      write_bow(legs, time_s);
+      return;
+    }
+
+    if (_motion == MotionCommand::PAW)
+    {
+      write_paw(legs, time_s);
+      return;
+    }
+
     for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
     {
       write_leg(legs, static_cast<LegSide>(i), time_s);
@@ -282,5 +304,60 @@ namespace pluto::motion
 
     legs[static_cast<uint8_t>(side)].write_angles(
         angles.coxa_md, angles.femur_md, angles.tibia_md);
+  }
+
+  void GaitController::write_bow(std::array<Leg, 4>& legs, float time_s) const noexcept
+  {
+    const float phase = normalized_phase(time_s, BOW_PERIOD, 0.0F);
+    const float pose  = sinf(phase * PI);
+
+    for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
+    {
+      const auto side = static_cast<LegSide>(i);
+      FootTarget foot = {0.0F, side_stance_y(side), FOOT_Z_STAND};
+
+      if (is_front_side(side))
+      {
+        foot.x += BOW_FRONT_BACK * pose;
+        foot.z -= BOW_FRONT_DROP * pose;
+      }
+      else
+      {
+        foot.z += BOW_REAR_RISE * pose;
+      }
+
+      const auto angles = solve_leg(foot, side);
+      legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
+    }
+  }
+
+  void GaitController::write_paw(std::array<Leg, 4>& legs, float time_s) const noexcept
+  {
+    constexpr LegSide paw_side = LegSide::TOP_RIGHT;
+    const float phase          = normalized_phase(time_s, PAW_PERIOD, 0.0F);
+    const float wave           = 0.5F - 0.5F * cosf(2.0F * PI * phase);
+
+    for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
+    {
+      const auto side = static_cast<LegSide>(i);
+      FootTarget foot = {0.0F, side_stance_y(side), FOOT_Z_STAND};
+
+      if (side == paw_side)
+      {
+        foot.x = PAW_REST_X + (PAW_PEAK_X - PAW_REST_X) * wave;
+        foot.z = PAW_REST_Z + (PAW_PEAK_Z - PAW_REST_Z) * wave;
+      }
+      else if (is_front_side(side))
+      {
+        foot.x = -0.80F;
+      }
+      else
+      {
+        foot.z = FOOT_Z_STAND - 1.00F;
+      }
+
+      const auto angles = solve_leg(foot, side);
+      legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
+    }
   }
 } // namespace pluto::motion

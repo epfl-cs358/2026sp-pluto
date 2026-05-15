@@ -24,6 +24,9 @@ namespace pluto::motion
 
     BACKWARD = 2,
     LEFT = BACKWARD,
+
+    BOW = 3,
+    PAW = 4,
   };
 
   class GaitController
@@ -44,6 +47,8 @@ namespace pluto::motion
     float period_seconds() const noexcept;
     float offset_for(LegSide side) const noexcept;
     void write_leg(std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept;
+    void write_bow(std::array<Leg, 4>& legs, float time_s) const noexcept;
+    void write_paw(std::array<Leg, 4>& legs, float time_s) const noexcept;
 
     GaitKind _gait        = GaitKind::TROT;
     MotionCommand _motion = MotionCommand::IDLE;
