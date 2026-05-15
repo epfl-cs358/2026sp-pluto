@@ -47,25 +47,25 @@ namespace pluto
       {
         {240, 380, 300, -30000, 30000, false}, // + opens the leg
         {275, 365, 300,  15000, 60000, true},  // + closes the leg
-        {285, 445, 300, -95000, -50000, true}  // + closes the leg
+        {285, 445, 300, -95000, -40000, true}  // + closes the leg
       },
       // TOP RIGHT
       {
         {235, 375, 315, -30000, 30000, true},  // + closes the leg
         {275, 365, 300,  15000, 60000, false}, // + opens the leg
-        {155, 315, 300, -95000, -50000, false} // + opens the leg
+        {155, 315, 300, -95000, -40000, false} // + opens the leg
       },
       // BOTTOM LEFT
       {
         {240, 380, 300, -30000, 30000, true},  // + closes the leg
         {200, 355, 300,  15000, 60000, false}, // + opens the leg
-        {270, 440, 300, -95000, -50000, true}  // + closes the leg
+        {270, 440, 300, -95000, -40000, true}  // + closes the leg
       },
       // BOTTOM RIGHT
       {
         {240, 380, 300, -30000, 30000, false}, // + opens the leg
         {245, 400, 300,  15000, 60000, true},  // + closes the leg
-        {160, 340, 300, -95000, -50000, false} // + opens the leg
+        {160, 340, 300, -95000, -40000, false} // + opens the leg
       }
   };
 } // namespace pluto

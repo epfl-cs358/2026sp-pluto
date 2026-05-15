@@ -19,6 +19,10 @@ namespace pluto::motion
     constexpr float STRIDE      = 4.00F;
     constexpr float LIFT        = 2.00F;
 
+    constexpr float FOOT_Y_STANCE          = 7.00F;
+    constexpr float WALK_BALANCE_SHIFT_Y   = 2.50F;
+    constexpr float WALK_SUPPORT_PUSH_DOWN = 0.80F;
+
     constexpr bool is_right_side(LegSide side) noexcept
     {
       return side == LegSide::TOP_RIGHT || side == LegSide::BOTTOM_RIGHT;
@@ -40,19 +44,34 @@ namespace pluto::motion
       return phase;
     }
 
-    FootTarget foot_from_phase(float phase, float forward_scale) noexcept
+    float swing_weight(float phase) noexcept
+    {
+      if (phase >= SWING_RATIO)
+      {
+        return 0.0F;
+      }
+
+      return sinf(PI * phase / SWING_RATIO);
+    }
+
+    float side_stance_y(LegSide side) noexcept
+    {
+      return is_right_side(side) ? -FOOT_Y_STANCE : FOOT_Y_STANCE;
+    }
+
+    FootTarget foot_from_phase(float phase, float forward_scale, float foot_y) noexcept
     {
       if (phase < SWING_RATIO)
       {
         const float t = phase / SWING_RATIO;
         return {
             (-STRIDE + 2.0F * STRIDE * t) * forward_scale,
-            0.0F,
+            foot_y,
             FOOT_Z_STAND + LIFT * sinf(PI * t)};
       }
 
       const float t = (phase - SWING_RATIO) / (1.0F - SWING_RATIO);
-      return {(STRIDE - 2.0F * STRIDE * t) * forward_scale, 0.0F, FOOT_Z_STAND};
+      return {(STRIDE - 2.0F * STRIDE * t) * forward_scale, foot_y, FOOT_Z_STAND};
     }
 
     JointAnglesMd solve_leg(FootTarget foot, LegSide side) noexcept
@@ -179,8 +198,34 @@ namespace pluto::motion
   {
     const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
     const float turn_flip = (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
-    const float phase = normalized_phase(time_s, period_seconds(), offset_for(side));
-    const auto foot   = foot_from_phase(phase, direction * turn_flip * _speed);
+    const float period = period_seconds();
+    const float phase = normalized_phase(time_s, period, offset_for(side));
+    const float current_swing_weight = swing_weight(phase);
+
+    float balance_y = 0.0F;
+    float support_push_down = 0.0F;
+    if (_gait == GaitKind::WALK)
+    {
+      for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
+      {
+        const auto other_side = static_cast<LegSide>(i);
+        const float other_phase = normalized_phase(time_s, period, offset_for(other_side));
+        const float other_swing_weight = swing_weight(other_phase);
+        const float away_from_swing_side = is_right_side(other_side) ? -1.0F : 1.0F;
+        balance_y += away_from_swing_side * WALK_BALANCE_SHIFT_Y * other_swing_weight;
+        support_push_down = max(support_push_down, other_swing_weight);
+      }
+    }
+
+    auto foot = foot_from_phase(
+        phase,
+        direction * turn_flip * _speed,
+        side_stance_y(side) + balance_y);
+    if (_gait == GaitKind::WALK && current_swing_weight <= 0.0F)
+    {
+      foot.z -= WALK_SUPPORT_PUSH_DOWN * support_push_down;
+    }
+
     const auto angles = solve_leg(foot, side);
 
     // DEBUG: print angles for leg 0 only (remove after tuning)
