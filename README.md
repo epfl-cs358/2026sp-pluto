@@ -30,3 +30,11 @@ pio run -t upload --upload-port /dev/cu.usbserial-XXXX
 pio device monitor # or
 pio device monitor -b 115200
 ```
+
+cmake -S sim -B sim/build
+cmake --build sim/build -j4
+
+export GZ_SIM_SYSTEM_PLUGIN_PATH=$PWD/sim/build
+export GZ_SIM_RESOURCE_PATH=$PWD/sim/models
+gz sim -s sim/worlds/pluto_empty.sdf
+gz sim -g

@@ -24,3 +24,5 @@ launch.json
 # OS
 .DS_Store
 Thumbs.db
+
+sim/build/
