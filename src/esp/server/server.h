@@ -20,16 +20,22 @@ namespace pluto
     void begin();
     void addAP(const char* ssid, const char* pass);
     bool getNextMessage(Message& msg);
+    void sendMessage(const Message& msg);
 
   private:
     static void serverTask(void* pvParameters);
     void handleIncomingPackets();
+    void sendOutboundPackets();
     void sendAcknowledge(uint32_t sequence);
 
     uint16_t _port;
     WiFiMulti _wifiMulti;
     WiFiUDP _udp;
     QueueHandle_t _msgQueue;
+    QueueHandle_t _txQueue;
+
+    IPAddress _clientIP;
+    uint16_t _clientPort{0};
 
     std::atomic<uint32_t> _sessionToken{0};
     std::atomic<uint32_t> _lastSequence{0};
