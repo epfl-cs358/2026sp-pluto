@@ -44,6 +44,7 @@ namespace pluto
 
   static constexpr LegConfig LEG_CONFIGS[LEG_COUNT] = {
       // TOP LEFT
+      // {raw_min, raw_max, raw_start, angle_min_md, angle_max_md, inverted}
       {
         {240, 380, 300, -30000, 30000, false}, // + opens the leg
         {275, 365, 300,  15000, 60000, true},  // + closes the leg
@@ -51,13 +52,13 @@ namespace pluto
       },
       // TOP RIGHT
       {
-        {235, 375, 315, -30000, 30000, true},  // + closes the leg
+        {235, 375, 320, -30000, 30000, true},  // + closes the leg
         {275, 365, 300,  15000, 60000, false}, // + opens the leg
         {155, 315, 300, -95000, -40000, false} // + opens the leg
       },
       // BOTTOM LEFT
       {
-        {240, 380, 300, -30000, 30000, true},  // + closes the leg
+        {240, 380, 310, -30000, 30000, true},  // + closes the leg
         {200, 355, 300,  15000, 60000, false}, // + opens the leg
         {270, 440, 300, -95000, -40000, true}  // + closes the leg
       },

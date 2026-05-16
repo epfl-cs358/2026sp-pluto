@@ -15,7 +15,7 @@ namespace pluto::motion
     constexpr float FOOT_Z_STAND = -22.0F; // standing height
 
     constexpr float SHIFT_END = 0.25F;
-    constexpr float LIFT_END  = 0.50F;
+    constexpr float LIFT_END  = 0.50F;   
     constexpr float STEP_END  = 0.75F;
 
     constexpr float STRIDE = 2.00F;
@@ -24,6 +24,18 @@ namespace pluto::motion
     constexpr float FOOT_Y_STANCE          = 7.00F;
     constexpr float WALK_BALANCE_SHIFT_Y   = 2.50F;
     constexpr float WALK_SUPPORT_PUSH_DOWN = 0.80F;
+    constexpr float WALK_REAR_LEG_EXTEND_Z = 1.50F;
+    constexpr float WALK_FRONT_STRIDE_SCALE = 0.82F;
+    constexpr float WALK_REAR_STRIDE_SCALE  = 1.10F;
+    constexpr float WALK_FRONT_SWING_DROP_Z = 0.20F;
+    constexpr float WALK_FRONT_LEAN_DROP_Z  = 0.20F;
+    constexpr float WALK_REAR_LEAN_RISE_Z   = 0.50F;
+    constexpr float WALK_PRELIFT_SHIFT_Y    = 1.40F;
+    constexpr float WALK_PRELIFT_DOWN_Z     = 0.90F;
+    constexpr float WALK_LF_EXTRA_DROP_Z    = 0.00F;
+    constexpr int32_t WALK_REAR_TIBIA_EXTEND_MD = 0;
+    constexpr int32_t WALK_LF_FEMUR_FLAT_MD = 30000;
+    constexpr int32_t WALK_RF_FEMUR_FLAT_MD = 0;
     constexpr float BOW_FRONT_DROP         = 5.00F;
     constexpr float BOW_REAR_RISE          = 2.00F;
     constexpr float BOW_FRONT_BACK         = 1.50F;
@@ -81,6 +93,17 @@ namespace pluto::motion
       return 1.0F - smoothstep((phase - STEP_END) / (1.0F - STEP_END));
     }
 
+    float prelift_weight(float phase) noexcept
+    {
+      if (phase >= SHIFT_END)
+      {
+        return 0.0F;
+      }
+
+      // Weight transfer ramps up during pre-lift shift stage.
+      return smoothstep(phase / SHIFT_END);
+    }
+
     float side_stance_y(LegSide side) noexcept
     {
       return is_right_side(side) ? -FOOT_Y_STANCE : FOOT_Y_STANCE;
@@ -135,6 +158,22 @@ namespace pluto::motion
 
   void GaitController::set_speed(float speed) noexcept { _speed = constrain(speed, 0.0F, 1.0F); }
 
+  void GaitController::set_walk_manual_phase(bool enabled) noexcept
+  {
+    _walk_manual_phase_enabled = enabled;
+    _walk_manual_stage = 0;
+  }
+
+  void GaitController::next_walk_manual_stage() noexcept
+  {
+    _walk_manual_stage = static_cast<uint8_t>((_walk_manual_stage + 1) % 4);
+  }
+
+  void GaitController::next_walk_manual_leg() noexcept
+  {
+    _walk_manual_leg = pluto::next_leg_side(_walk_manual_leg);
+  }
+
   void GaitController::stand(std::array<Leg, 4>& legs) const noexcept
   {
     for (auto& leg : legs)
@@ -181,7 +220,7 @@ namespace pluto::motion
     switch (_gait)
     {
     case GaitKind::WALK:
-      return 3.00F;
+      return 5.50F;
     case GaitKind::TROT:
       return 0.90F;
     case GaitKind::GALLOP:
@@ -253,17 +292,37 @@ namespace pluto::motion
     return 0.0F;
   }
 
+  float GaitController::phase_for(LegSide side, float time_s, float period) const noexcept
+  {
+    if (!(_gait == GaitKind::WALK && _walk_manual_phase_enabled))
+    {
+      return normalized_phase(time_s, period, offset_for(side));
+    }
+
+    // Manual single-leg walk debugging:
+    // 0: pre-shift, 1: lift, 2: step forward, 3: place/support.
+    static constexpr float STAGE_PHASES[4] = {0.12F, 0.38F, 0.62F, 0.88F};
+    if (side == _walk_manual_leg)
+    {
+      return STAGE_PHASES[_walk_manual_stage];
+    }
+
+    // Keep non-active legs in a stable support phase.
+    return 0.88F;
+  }
+
   void GaitController::write_leg(
       std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept
   {
     const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
     const float turn_flip = (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
     const float period = period_seconds();
-    const float phase = normalized_phase(time_s, period, offset_for(side));
+    const float phase = phase_for(side, time_s, period);
     const bool current_leg_airborne = is_airborne(phase);
 
     float balance_y = 0.0F;
     float support_push_down = 0.0F;
+    float prelift_down_bias = 0.0F;
     if (_gait == GaitKind::WALK)
     {
       for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
@@ -274,24 +333,79 @@ namespace pluto::motion
           continue;
         }
 
-        const float other_phase = normalized_phase(time_s, period, offset_for(other_side));
+        const float other_phase = phase_for(other_side, time_s, period);
         const float other_support_request = support_request_weight(other_phase);
         const float away_from_swing_side = is_right_side(other_side) ? -1.0F : 1.0F;
         balance_y += away_from_swing_side * WALK_BALANCE_SHIFT_Y * other_support_request;
         support_push_down = fmaxf(support_push_down, other_support_request);
+
+        const float other_prelift = prelift_weight(other_phase);
+        const bool this_is_opposite_side = is_right_side(side) != is_right_side(other_side);
+        if (this_is_opposite_side)
+        {
+          const float away_from_lift_side = is_right_side(other_side) ? 1.0F : -1.0F;
+          balance_y += away_from_lift_side * WALK_PRELIFT_SHIFT_Y * other_prelift;
+          prelift_down_bias = fmaxf(prelift_down_bias, other_prelift);
+        }
       }
+    }
+
+    float leg_stride_scale = 1.0F;
+    if (_gait == GaitKind::WALK)
+    {
+      leg_stride_scale = is_front_side(side) ? WALK_FRONT_STRIDE_SCALE : WALK_REAR_STRIDE_SCALE;
     }
 
     auto foot = foot_from_phase(
         phase,
-        direction * turn_flip * _speed,
+        direction * turn_flip * _speed * leg_stride_scale,
         side_stance_y(side) + balance_y);
+
+    if (_gait == GaitKind::WALK && !is_front_side(side))
+    {
+      foot.z -= WALK_REAR_LEG_EXTEND_Z;
+    }
+
+    if (_gait == GaitKind::WALK)
+    {
+      if (is_front_side(side))
+      {
+        foot.z -= WALK_FRONT_LEAN_DROP_Z;
+        if (side == LegSide::TOP_LEFT)
+        {
+          foot.z += WALK_LF_EXTRA_DROP_Z;
+        }
+        if (current_leg_airborne)
+        {
+          foot.z -= WALK_FRONT_SWING_DROP_Z;
+        }
+      }
+      else
+      {
+        foot.z += WALK_REAR_LEAN_RISE_Z;
+      }
+    }
+
     if (_gait == GaitKind::WALK && !current_leg_airborne)
     {
       foot.z -= WALK_SUPPORT_PUSH_DOWN * support_push_down;
+      foot.z -= WALK_PRELIFT_DOWN_Z * prelift_down_bias;
     }
 
-    const auto angles = solve_leg(foot, side);
+    auto angles = solve_leg(foot, side);
+    if (_gait == GaitKind::WALK && side == LegSide::TOP_LEFT)
+    {
+      angles.femur_md -= WALK_LF_FEMUR_FLAT_MD;
+    }
+    if (_gait == GaitKind::WALK && side == LegSide::TOP_RIGHT)
+    {
+      angles.femur_md += WALK_RF_FEMUR_FLAT_MD;
+    }
+
+    if (_gait == GaitKind::WALK && !is_front_side(side))
+    {
+      angles.tibia_md += WALK_REAR_TIBIA_EXTEND_MD;
+    }
 
     // DEBUG: print angles for leg 0 only (remove after tuning)
     static uint32_t last_print = 0;
