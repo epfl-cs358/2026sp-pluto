@@ -109,7 +109,7 @@ void loop()
   if (ultrasonic_pending && now - ultrasonic_begin_ms >= 10)
   {
 #ifdef PLUTO_ENABLE_MICROPHONE
-   // Serial.print("Current Energy: ");
+    // Serial.print("Current Energy: ");
     // Serial.println(SENSOR_MICROPHONE.current_energy());
 #endif
 
@@ -236,18 +236,65 @@ void loop()
   Message msg;
   while (PLUTO_SERVER.getNextMessage(msg))
   {
-    Serial.println("Received message!");
     switch (static_cast<MessageFamilyKind>(msg.family))
     {
     case MessageFamilyKind::KIND_MOVE:
-      if (msg.kind == static_cast<uint8_t>(MessageMoveKind::MOVE_BY))
+      switch (static_cast<MessageMoveKind>(msg.kind))
+      {
+      case MessageMoveKind::MOVE_BY:
       {
         int16_t fwd  = msg.payload.move_by.top_bottom_dir;
         int16_t side = msg.payload.move_by.left_right_dir;
+        // Map to gait controller inputs
+      }
+      break;
+
+      case MessageMoveKind::MOVE_STOP_FOR:
+        GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
+        GAIT.stand(LEGS);
+        Serial.println("Command: Stop and Stand");
+        break;
+
+      default:
+        break;
       }
       break;
 
     case MessageFamilyKind::KIND_INFO:
+      if (msg.kind == static_cast<uint8_t>(MessageInfoKind::INFO_REQUEST_SENSOR))
+      {
+        if (msg.payload.info_request_sensor.sensor_kind
+            == MessageSensorKind::SENSOR_DISTANCE)
+        {
+  #ifdef PLUTO_ENABLE_ULTRASONIC
+          // Retrieve the latest sensor cache value and stream back to PC
+          uint32_t current_dist = SENSOR_ULTRASONIC.read_end();
+          Message reply = pluto::create_sensor_distance(current_dist, millis());
+          PLUTO_SERVER.sendMessage(reply);
+  #endif
+        }
+      }
+      break;
+
+    case MessageFamilyKind::KIND_BEHAVIOR:
+      switch (static_cast<MessageBehaviorKind>(msg.kind))
+      {
+      case MessageBehaviorKind::BEHAVIOR_SIT:
+        Serial.println("Behavior: Executing SIT sequence");
+        // Update kinematics state to sit configuration
+        break;
+
+      case MessageBehaviorKind::BEHAVIOR_GIVE_PAW:
+        Serial.println("Behavior: Executing GIVE PAW sequence");
+        break;
+
+      case MessageBehaviorKind::BEHAVIOR_LIE_DOWN:
+        Serial.println("Behavior: Executing LIE DOWN sequence");
+        break;
+
+      default:
+        break;
+      }
       break;
 
     default:

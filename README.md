@@ -29,4 +29,3 @@ pio run -t upload --upload-port /dev/cu.usbserial-XXXX
 # test, serial monitor
 pio device monitor # or
 pio device monitor -b 115200
-```
