@@ -41,11 +41,14 @@ namespace pluto::motion
     constexpr float BOW_FRONT_BACK         = 1.50F;
     constexpr float BOW_PERIOD             = 2.00F;
 
-    constexpr float PAW_REST_X             = 1.50F;
-    constexpr float PAW_REST_Z             = -16.00F;
-    constexpr float PAW_PEAK_X             = 4.50F;
-    constexpr float PAW_PEAK_Z             = -12.00F;
-    constexpr float PAW_PERIOD             = 1.20F;
+    constexpr float PAW_REST_X             = 1.20F;
+    constexpr float PAW_REST_Z             = -16.20F;
+    constexpr float PAW_PEAK_X             = 2.60F;
+    constexpr float PAW_PEAK_Z             = -15.20F;
+    constexpr float PAW_PERIOD             = 1.40F;
+    constexpr float PAW_SHIFT_Y            = 1.60F;
+    constexpr float PAW_REAR_SUPPORT_DROP_Z = 1.80F;
+    constexpr float PAW_FRONT_SUPPORT_BACK_X = -1.00F;
 
     constexpr bool is_right_side(LegSide side) noexcept
     {
@@ -448,26 +451,34 @@ namespace pluto::motion
   void GaitController::write_paw(std::array<Leg, 4>& legs, float time_s) const noexcept
   {
     constexpr LegSide paw_side = LegSide::TOP_RIGHT;
-    const float phase          = normalized_phase(time_s, PAW_PERIOD, 0.0F);
-    const float wave           = 0.5F - 0.5F * cosf(2.0F * PI * phase);
+    const float phase = normalized_phase(time_s, PAW_PERIOD, 0.0F);
+    const float shift_up = smoothstep(fminf(1.0F, phase / 0.30F));
+    const float shift_down = smoothstep(fmaxf(0.0F, (phase - 0.85F) / 0.15F));
+    const float shift_weight = shift_up * (1.0F - shift_down);
+    const float wave = 0.5F - 0.5F * cosf(2.0F * PI * phase);
+    const float swing_scale = shift_weight;
+    const float away_from_paw = is_right_side(paw_side) ? 1.0F : -1.0F;
 
     for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
     {
       const auto side = static_cast<LegSide>(i);
-      FootTarget foot = {0.0F, side_stance_y(side), FOOT_Z_STAND};
+      FootTarget foot = {
+          0.0F,
+          side_stance_y(side) + away_from_paw * PAW_SHIFT_Y * shift_weight,
+          FOOT_Z_STAND};
 
       if (side == paw_side)
       {
-        foot.x = PAW_REST_X + (PAW_PEAK_X - PAW_REST_X) * wave;
-        foot.z = PAW_REST_Z + (PAW_PEAK_Z - PAW_REST_Z) * wave;
+        foot.x = PAW_REST_X + (PAW_PEAK_X - PAW_REST_X) * wave * swing_scale;
+        foot.z = PAW_REST_Z + (PAW_PEAK_Z - PAW_REST_Z) * wave * swing_scale;
       }
       else if (is_front_side(side))
       {
-        foot.x = -0.80F;
+        foot.x = PAW_FRONT_SUPPORT_BACK_X;
       }
       else
       {
-        foot.z = FOOT_Z_STAND - 1.00F;
+        foot.z = FOOT_Z_STAND - PAW_REAR_SUPPORT_DROP_Z;
       }
 
       const auto angles = solve_leg(foot, side);
