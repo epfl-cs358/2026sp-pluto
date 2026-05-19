@@ -43,29 +43,29 @@ namespace pluto
   static constexpr size_t JOINT_COUNT = 3;
 
   static constexpr LegConfig LEG_CONFIGS[LEG_COUNT] = {
-      // TOP LEFT
+      // TOP RIGHT
       // {raw_min, raw_max, raw_start, angle_min_md, angle_max_md, inverted}
       {
-        {240, 380, 300, -30000, 30000, false}, // + opens the leg
+        {240, 380, 295, -30000, 30000, false}, // + opens the leg
         {275, 365, 300,  15000, 60000, true},  // + closes the leg
-        {285, 445, 300, -95000, -40000, true}  // + closes the leg
+        {250, 445, 280, -95000, -40000, true}  // + closes the leg
       },
-      // TOP RIGHT
+      // TOP LEFT
       {
-        {235, 375, 320, -30000, 30000, true},  // + closes the leg
+        {235, 375, 330, -30000, 30000, true},  // + closes the leg
         {275, 365, 300,  15000, 60000, false}, // + opens the leg
         {155, 315, 300, -95000, -40000, false} // + opens the leg
       },
       // BOTTOM LEFT
       {
-        {240, 380, 290, -30000, 30000, true},  // + closes the leg
-        {200, 355, 285,  15000, 60000, false}, // + opens the leg
+        {240, 380, 287, -30000, 30000, true},  // + closes the leg
+        {200, 355, 305,  15000, 60000, false}, // + opens the leg
         {270, 440, 300, -95000, -40000, true}  // + closes the leg
       },
       // BOTTOM RIGHT
       {
-        {240, 380, 300, -30000, 30000, false}, // + opens the leg
-        {245, 400, 300,  15000, 60000, true},  // + closes the leg
+        {240, 380, 303, -30000, 30000, false}, // + opens the leg
+        {245, 400, 325,  15000, 60000, true},  // + closes the leg
         {160, 340, 300, -95000, -40000, false} // + opens the leg
       }
   };
