@@ -58,8 +58,8 @@ namespace pluto
       },
       // BOTTOM LEFT
       {
-        {240, 380, 310, -30000, 30000, true},  // + closes the leg
-        {200, 355, 300,  15000, 60000, false}, // + opens the leg
+        {240, 380, 290, -30000, 30000, true},  // + closes the leg
+        {200, 355, 285,  15000, 60000, false}, // + opens the leg
         {270, 440, 300, -95000, -40000, true}  // + closes the leg
       },
       // BOTTOM RIGHT
