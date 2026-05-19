@@ -5,7 +5,7 @@
 #include <motion/ik_solver.h>
 
 namespace pluto::motion
-{
+{ 
   namespace
   {
     constexpr float COXA_LENGTH  = 7.00F;
@@ -22,16 +22,13 @@ namespace pluto::motion
     constexpr float LIFT   = 1.00F;
 
     constexpr float FOOT_Y_STANCE          = 7.00F;
-    constexpr float WALK_BALANCE_SHIFT_Y   = 2.50F;
-    constexpr float WALK_SUPPORT_PUSH_DOWN = 0.80F;
     constexpr float WALK_REAR_LEG_EXTEND_Z = 1.50F;
     constexpr float WALK_FRONT_STRIDE_SCALE = 0.82F;
-    constexpr float WALK_REAR_STRIDE_SCALE  = 1.10F;
+    constexpr float WALK_REAR_STRIDE_SCALE  = 2.10F;
     constexpr float WALK_FRONT_SWING_DROP_Z = 0.20F;
     constexpr float WALK_FRONT_LEAN_DROP_Z  = 0.20F;
     constexpr float WALK_REAR_LEAN_RISE_Z   = 0.50F;
-    constexpr float WALK_PRELIFT_SHIFT_Y    = 1.40F;
-    constexpr float WALK_PRELIFT_DOWN_Z     = 0.90F;
+    constexpr float WALK_REAR_X_BIAS         = 0.60F;
     constexpr float WALK_LF_EXTRA_DROP_Z    = 0.00F;
     constexpr int32_t WALK_REAR_TIBIA_EXTEND_MD = 0;
     constexpr int32_t WALK_LF_FEMUR_FLAT_MD = 30000;
@@ -78,33 +75,7 @@ namespace pluto::motion
 
     bool is_airborne(float phase) noexcept
     {
-      return phase >= SHIFT_END && phase < STEP_END;
-    }
-
-    float support_request_weight(float phase) noexcept
-    {
-      if (phase < SHIFT_END)
-      {
-        return smoothstep(phase / SHIFT_END);
-      }
-
-      if (phase < STEP_END)
-      {
-        return 1.0F;
-      }
-
-      return 1.0F - smoothstep((phase - STEP_END) / (1.0F - STEP_END));
-    }
-
-    float prelift_weight(float phase) noexcept
-    {
-      if (phase >= SHIFT_END)
-      {
-        return 0.0F;
-      }
-
-      // Weight transfer ramps up during pre-lift shift stage.
-      return smoothstep(phase / SHIFT_END);
+      return phase >= SHIFT_END && phase < STEP_END; // add multiplier to where the angles is fed (like 2) whenevern it should be higher
     }
 
     float side_stance_y(LegSide side) noexcept
@@ -183,13 +154,6 @@ namespace pluto::motion
     {
       leg.write_starting();
     }
-
-    //for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
-    //{
-    //  const auto side   = static_cast<LegSide>(i);
-    //  const auto angles = solve_leg({0.0F, 0.0F, FOOT_Z_STAND}, side);
-    //  legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
-    //}
   }
 
   void GaitController::update(std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept
@@ -323,36 +287,6 @@ namespace pluto::motion
     const float phase = phase_for(side, time_s, period);
     const bool current_leg_airborne = is_airborne(phase);
 
-    float balance_y = 0.0F;
-    float support_push_down = 0.0F;
-    float prelift_down_bias = 0.0F;
-    if (_gait == GaitKind::WALK)
-    {
-      for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
-      {
-        const auto other_side = static_cast<LegSide>(i);
-        if (other_side == side)
-        {
-          continue;
-        }
-
-        const float other_phase = phase_for(other_side, time_s, period);
-        const float other_support_request = support_request_weight(other_phase);
-        const float away_from_swing_side = is_right_side(other_side) ? -1.0F : 1.0F;
-        balance_y += away_from_swing_side * WALK_BALANCE_SHIFT_Y * other_support_request;
-        support_push_down = fmaxf(support_push_down, other_support_request);
-
-        const float other_prelift = prelift_weight(other_phase);
-        const bool this_is_opposite_side = is_right_side(side) != is_right_side(other_side);
-        if (this_is_opposite_side)
-        {
-          const float away_from_lift_side = is_right_side(other_side) ? 1.0F : -1.0F;
-          balance_y += away_from_lift_side * WALK_PRELIFT_SHIFT_Y * other_prelift;
-          prelift_down_bias = fmaxf(prelift_down_bias, other_prelift);
-        }
-      }
-    }
-
     float leg_stride_scale = 1.0F;
     if (_gait == GaitKind::WALK)
     {
@@ -362,7 +296,12 @@ namespace pluto::motion
     auto foot = foot_from_phase(
         phase,
         direction * turn_flip * _speed * leg_stride_scale,
-        side_stance_y(side) + balance_y);
+        side_stance_y(side));
+
+    if (_gait == GaitKind::WALK && !is_front_side(side))
+    {
+      foot.x += WALK_REAR_X_BIAS;
+    }
 
     if (_gait == GaitKind::WALK && !is_front_side(side))
     {
@@ -387,12 +326,6 @@ namespace pluto::motion
       {
         foot.z += WALK_REAR_LEAN_RISE_Z;
       }
-    }
-
-    if (_gait == GaitKind::WALK && !current_leg_airborne)
-    {
-      foot.z -= WALK_SUPPORT_PUSH_DOWN * support_push_down;
-      foot.z -= WALK_PRELIFT_DOWN_Z * prelift_down_bias;
     }
 
     auto angles = solve_leg(foot, side);

@@ -45,28 +45,29 @@ namespace pluto
   static constexpr LegConfig LEG_CONFIGS[LEG_COUNT] = {
       // TOP LEFT
       // {raw_min, raw_max, raw_start, angle_min_md, angle_max_md, inverted}
+      // TODO: set the limits for each servo
       {
-        {235, 375, 330, -30000, 30000, true},  // + closes the leg
-        {275, 365, 300,  15000, 60000, false}, // + opens the leg
-        {155, 315, 300, -95000, -40000, false} // + opens the leg
+        {235, 375, 330, -30000, 30000, true},
+        {275, 365, 300,  15000, 60000, false},
+        {155, 315, 300, -95000, -40000, false}
       },
-      // TOB RIGHT
+      // TOP RIGHT
       {
-        {240, 380, 295, -30000, 30000, false}, // + opens the leg
-        {275, 365, 310,  15000, 60000, true},  // + closes the leg
-        {250, 445, 305, -95000, -40000, true}  // + closes the leg
+        {240, 380, 295, -30000, 30000, false},
+        {275, 365, 310,  15000, 60000, true},
+        {250, 445, 305, -95000, -40000, true}
       },
       // BOTTOM LEFT
       {
-        {240, 380, 287, -30000, 30000, true},  // + closes the leg
-        {200, 355, 325,  15000, 60000, false}, // + opens the leg
-        {270, 440, 345, -95000, -40000, true}  // + closes the leg
+        {240, 380, 287, -30000, 30000, true},
+        {200, 355, 325,  15000, 60000, false},
+        {270, 440, 345, -95000, -40000, true}
       }, 
       // BOTTOM RIGHT
       {
-        {240, 380, 313, -30000, 30000, false}, // + opens the leg
-        {245, 400, 260,  15000, 60000, true},  // + closes the leg
-        {160, 340, 255, -95000, -40000, false} // + opens the leg
+        {240, 380, 313, -30000, 30000, false},
+        {245, 400, 260,  15000, 60000, true},
+        {160, 340, 255, -95000, -40000, false}
       }
   };
 } // namespace pluto
