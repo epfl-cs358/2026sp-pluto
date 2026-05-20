@@ -17,6 +17,9 @@ namespace pluto::motion
     constexpr float SHIFT_END = 0.25F;
     constexpr float LIFT_END  = 0.50F;   
     constexpr float STEP_END  = 0.75F;
+    constexpr float PHASE_QUANTIZATION_STEPS = 10.0F;
+    constexpr float FOOT_X_QUANTIZATION_STEP = 0.25F;
+    constexpr float FOOT_Z_QUANTIZATION_STEP = 0.25F;
 
     constexpr float STRIDE = 2.00F;
     constexpr float LIFT   = 1.00F;
@@ -66,6 +69,26 @@ namespace pluto::motion
       }
 
       return phase;
+    }
+
+    float quantize_step(float value, float step) noexcept
+    {
+      if (step <= 0.0F)
+      {
+        return value;
+      }
+
+      return roundf(value / step) * step;
+    }
+
+    float quantize_phase(float phase) noexcept
+    {
+      if (PHASE_QUANTIZATION_STEPS <= 0.0F)
+      {
+        return phase;
+      }
+
+      return roundf(phase * PHASE_QUANTIZATION_STEPS) / PHASE_QUANTIZATION_STEPS;
     }
 
     float smoothstep(float t) noexcept
@@ -349,7 +372,7 @@ namespace pluto::motion
     const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
     const float turn_flip = (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
     const float period = period_seconds();
-    const float phase = phase_for(side, time_s, period);
+    const float phase = quantize_phase(phase_for(side, time_s, period));
     const bool current_leg_airborne = is_airborne(phase);
 
     float leg_stride_scale = 1.0F;
@@ -392,6 +415,9 @@ namespace pluto::motion
         foot.z += WALK_REAR_LEAN_RISE_Z;
       }
     }
+
+    foot.x = quantize_step(foot.x, FOOT_X_QUANTIZATION_STEP);
+    foot.z = quantize_step(foot.z, FOOT_Z_QUANTIZATION_STEP);
 
     auto angles = solve_leg(foot, side);
     if (_gait == GaitKind::WALK && side == LegSide::TOP_LEFT)
