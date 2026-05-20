@@ -124,6 +124,71 @@ namespace pluto::motion
       const float signed_coxa = is_right_side(side) ? -COXA_LENGTH : COXA_LENGTH;
       return to_millidegrees(solve_ik(foot, signed_coxa, FEMUR_LENGTH, TIBIA_LENGTH));
     }
+
+    constexpr const char* leg_name(LegSide side) noexcept
+    {
+      switch (side)
+      {
+      case LegSide::TOP_LEFT:
+        return "TL";
+      case LegSide::TOP_RIGHT:
+        return "TR";
+      case LegSide::BOTTOM_LEFT:
+        return "BL";
+      case LegSide::BOTTOM_RIGHT:
+        return "BR";
+      default:
+        return "??";
+      }
+    }
+
+    int32_t raw_to_angle_md(const JointConfig& config, uint16_t raw) noexcept
+    {
+      uint16_t normalized_raw = raw;
+      if (config.inverted)
+      {
+        normalized_raw = config.raw_max - (raw - config.raw_min);
+      }
+
+      return config.angle_min_md
+             + static_cast<int32_t>(
+                   static_cast<int64_t>(normalized_raw - config.raw_min)
+                   * static_cast<int64_t>(config.angle_max_md - config.angle_min_md)
+                   / static_cast<int64_t>(config.raw_max - config.raw_min));
+    }
+
+    JointAnglesMd standing_servo_angles_md(LegSide side) noexcept
+    {
+      const auto& config = LEG_CONFIGS[static_cast<uint8_t>(side)];
+      return {
+          raw_to_angle_md(config.coxa, config.coxa.raw_start),
+          raw_to_angle_md(config.femur, config.femur.raw_start),
+          raw_to_angle_md(config.tibia, config.tibia.raw_start)};
+    }
+
+    JointAnglesMd standing_ik_angles_md(LegSide side) noexcept
+    {
+      return solve_leg({0.0F, side_stance_y(side), FOOT_Z_STAND}, side);
+    }
+
+    JointAnglesMd standing_angle_offsets_md(LegSide side) noexcept
+    {
+      const auto servo = standing_servo_angles_md(side);
+      const auto ik    = standing_ik_angles_md(side);
+      return {
+          servo.coxa_md - ik.coxa_md,
+          servo.femur_md - ik.femur_md,
+          servo.tibia_md - ik.tibia_md};
+    }
+
+    JointAnglesMd apply_standing_offsets(JointAnglesMd angles, LegSide side) noexcept
+    {
+      const auto offsets = standing_angle_offsets_md(side);
+      angles.coxa_md += offsets.coxa_md;
+      angles.femur_md += offsets.femur_md;
+      angles.tibia_md += offsets.tibia_md;
+      return angles;
+    }
   } // namespace
 
   void GaitController::set_gait(GaitKind gait) noexcept { _gait = gait; }
@@ -343,17 +408,44 @@ namespace pluto::motion
       angles.tibia_md += WALK_REAR_TIBIA_EXTEND_MD;
     }
 
-    // DEBUG: print angles for leg 0 only (remove after tuning)
+    const auto servo_angles = apply_standing_offsets(angles, side);
+
     static uint32_t last_print = 0;
-    if (side == LegSide::TOP_LEFT && millis() - last_print > 500) {
-      last_print = millis();
-      Serial.printf("TL foot=(%.2f,%.2f,%.2f) coxa=%d femur=%d tibia=%d\n",
-        foot.x, foot.y, foot.z,
-        angles.coxa_md/1000, angles.femur_md/1000, angles.tibia_md/1000);
+    static bool log_cycle = false;
+    if (side == LegSide::TOP_LEFT)
+    {
+      log_cycle = millis() - last_print > 500;
+      if (log_cycle)
+      {
+        last_print = millis();
+      }
+    }
+    if (log_cycle)
+    {
+      const auto offsets = standing_angle_offsets_md(side);
+      Serial.printf(
+          "%s foot=(%.2f,%.2f,%.2f) ik=(%d,%d,%d) off=(%d,%d,%d) servo=(%d,%d,%d)\n",
+          leg_name(side),
+          foot.x,
+          foot.y,
+          foot.z,
+          angles.coxa_md / 1000,
+          angles.femur_md / 1000,
+          angles.tibia_md / 1000,
+          offsets.coxa_md / 1000,
+          offsets.femur_md / 1000,
+          offsets.tibia_md / 1000,
+          servo_angles.coxa_md / 1000,
+          servo_angles.femur_md / 1000,
+          servo_angles.tibia_md / 1000);
+      if (side == LegSide::BOTTOM_RIGHT)
+      {
+        log_cycle = false;
+      }
     }
 
     legs[static_cast<uint8_t>(side)].write_angles(
-        angles.coxa_md, angles.femur_md, angles.tibia_md);
+        servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
   }
 
   void GaitController::write_bow(std::array<Leg, 4>& legs, float time_s) const noexcept
@@ -376,8 +468,8 @@ namespace pluto::motion
         foot.z += BOW_REAR_RISE * pose;
       }
 
-      const auto angles = solve_leg(foot, side);
-      legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
+      const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+      legs[i].write_angles(servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
   }
 
@@ -414,8 +506,8 @@ namespace pluto::motion
         foot.z = FOOT_Z_STAND - PAW_REAR_SUPPORT_DROP_Z;
       }
 
-      const auto angles = solve_leg(foot, side);
-      legs[i].write_angles(angles.coxa_md, angles.femur_md, angles.tibia_md);
+      const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+      legs[i].write_angles(servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
   }
 } // namespace pluto::motion
