@@ -28,7 +28,7 @@ usage() {
     echo ""
     echo "Options:"
     echo "  --reinstall     Remove the install stamp and reinstall all dependencies"
-    echo "  --port <port>   Port to run the web UI on (default: 8080)"
+    echo "  --port <port>   Port to run the web UI on (default: 8090)"
     echo "  --help          Show this help message"
 }
 
