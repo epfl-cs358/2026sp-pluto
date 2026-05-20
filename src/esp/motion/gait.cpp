@@ -89,7 +89,7 @@ namespace pluto::motion
       {
         const float t = phase / SHIFT_END;
         return {
-            (-STRIDE * smoothstep(t)) * forward_scale,
+            (STRIDE * smoothstep(t)) * forward_scale,
             foot_y,
             FOOT_Z_STAND};
       }
@@ -98,7 +98,7 @@ namespace pluto::motion
       {
         const float t = (phase - SHIFT_END) / (LIFT_END - SHIFT_END);
         return {
-            -STRIDE * forward_scale,
+            STRIDE * forward_scale,
             foot_y,
             FOOT_Z_STAND + LIFT * sinf(0.5F * PI * t)};
       }
@@ -107,14 +107,14 @@ namespace pluto::motion
       {
         const float t = (phase - LIFT_END) / (STEP_END - LIFT_END);
         return {
-            (-STRIDE + 2.0F * STRIDE * smoothstep(t)) * forward_scale,
+            (STRIDE - 2.0F * STRIDE * smoothstep(t)) * forward_scale,
             foot_y,
             FOOT_Z_STAND + LIFT * cosf(0.5F * PI * t)};
       }
 
       const float t = (phase - STEP_END) / (1.0F - STEP_END);
       return {
-          (STRIDE * (1.0F - smoothstep(t))) * forward_scale,
+          (-STRIDE * (1.0F - smoothstep(t))) * forward_scale,
           foot_y,
           FOOT_Z_STAND};
     }
