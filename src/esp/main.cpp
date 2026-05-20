@@ -91,7 +91,7 @@ void loop()
 
   const uint32_t now = millis();
 
-  if (now - last_motion_ms >= 20)
+  if (now - last_motion_ms >= 40)
   {
     GAIT.update(LEGS, now);
     last_motion_ms = now;
