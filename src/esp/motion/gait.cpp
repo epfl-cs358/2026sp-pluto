@@ -22,14 +22,14 @@ namespace pluto::motion
     constexpr float FOOT_Z_QUANTIZATION_STEP = 0.25F;
 
     constexpr float STRIDE = 1.80F;
-    constexpr float LIFT   = 1.50F;
+    constexpr float LIFT   = 3.20F;
 
     constexpr float FOOT_Y_STANCE          = 7.00F;
-    constexpr float WALK_REAR_LEG_EXTEND_Z = 1.70F;
+    constexpr float WALK_REAR_LEG_EXTEND_Z = 1.10F;
     constexpr float WALK_FRONT_STRIDE_SCALE = 0.82F;
     constexpr float WALK_REAR_STRIDE_SCALE  = 2.10F;
-    constexpr float WALK_FRONT_SWING_DROP_Z = 0.20F;
-    constexpr float WALK_FRONT_LEAN_DROP_Z  = 0.20F;
+    constexpr float WALK_FRONT_SWING_DROP_Z = 0.00F;
+    constexpr float WALK_FRONT_LEAN_DROP_Z  = 0.00F;
     constexpr float WALK_REAR_LEAN_RISE_Z   = 0.50F;
     constexpr float WALK_REAR_X_BIAS         = 0.60F;
     constexpr float WALK_LF_EXTRA_DROP_Z    = 0.00F;
