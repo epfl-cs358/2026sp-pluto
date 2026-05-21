@@ -3,5 +3,6 @@ numpy
 debugpy
 pybullet
 mujoco
+glfw
 vosk
 sounddevice
