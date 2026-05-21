@@ -1,0 +1,178 @@
+<mujoco model="pluto">
+    <compiler angle="degree"/>
+
+    <!-- ===================================================== -->
+    <!-- DEFAULTS -->
+    <!-- ===================================================== -->
+    <default>
+        <!-- Convert Fusion360 coordinates to MuJoCo -->
+        <geom type="mesh" xyaxes="1 0 0 0 0 1" density="1000000" condim="3" friction="1.0 0.1 0.1"/>
+
+        <joint type="hinge" limited="true" damping="2" armature="0.01"/>
+
+        <position ctrllimited="true" kp="5000" kv="200" forcerange="-20 20"/>
+    </default>
+
+    <!-- ===================================================== -->
+    <!-- ASSETS -->
+    <!-- ===================================================== -->
+    <asset>
+        <mesh name="body"      file="body.stl"      scale="0.001 0.001 0.001"/>
+
+        <mesh name="tl_coxa"   file="tl_coxa.stl"   scale="0.001 0.001 0.001"/>
+        <mesh name="tl_femur"  file="tl_femur.stl"  scale="0.001 0.001 0.001"/>
+        <mesh name="tl_tibia"  file="tl_tibia.stl"  scale="0.001 0.001 0.001"/>
+
+        <mesh name="tr_coxa"   file="tr_coxa.stl"   scale="0.001 0.001 0.001"/>
+        <mesh name="tr_femur"  file="tr_femur.stl"  scale="0.001 0.001 0.001"/>
+        <mesh name="tr_tibia"  file="tr_tibia.stl"  scale="0.001 0.001 0.001"/>
+
+        <mesh name="bl_coxa"   file="bl_coxa.stl"   scale="0.001 0.001 0.001"/>
+        <mesh name="bl_femur"  file="bl_femur.stl"  scale="0.001 0.001 0.001"/>
+        <mesh name="bl_tibia"  file="bl_tibia.stl"  scale="0.001 0.001 0.001"/>
+
+        <mesh name="br_coxa"   file="br_coxa.stl"   scale="0.001 0.001 0.001"/>
+        <mesh name="br_femur"  file="br_femur.stl"  scale="0.001 0.001 0.001"/>
+        <mesh name="br_tibia"  file="br_tibia.stl"  scale="0.001 0.001 0.001"/>
+
+    </asset>
+
+    <!-- ===================================================== -->
+    <!-- WORLD -->
+    <!-- ===================================================== -->
+    <worldbody>
+        <!-- ================================================= -->
+        <!-- BODY -->
+        <!-- ================================================= -->
+        <body name="body" pos="0 0 2" euler="-90 0 0">
+            <geom mesh="body" mass="0.8"/>
+
+            <!-- ============================================= -->
+            <!-- TOP LEFT LEG -->
+            <!-- ============================================= -->
+            <body name="tl_coxa" pos="0.10 -0.10 -0.10">
+                <joint name="tl_coxa_joint" axis="0 0 1" pos="1.3 -0.05 0" range="-25 25"/>
+                <geom mesh="tl_coxa" mass="0.05"/>
+
+                <body name="tl_femur">
+                    <joint name="tl_femur_joint" axis="1 0 0" pos="1.0 -0.05 0.7" range="-40 35"/>
+                    <geom mesh="tl_femur" mass="0.08"/>
+
+                    <body name="tl_tibia">
+                        <joint name="tl_tibia_joint" axis="1 0 0" pos="1.5 0.65 1.3" range="-40 35"/>
+                        <geom mesh="tl_tibia" mass="0.06"/>
+
+                    </body>
+                </body>
+            </body>
+
+            <!-- ============================================= -->
+            <!-- TOP RIGHT LEG -->
+            <!-- ============================================= -->
+            <body name="tr_coxa">
+                <joint name="tr_coxa_joint" axis="0 0 1"  pos="0.45 -0.15 0"  range="-25 25"/>
+                <geom mesh="tr_coxa" mass="0.05"/>
+            
+                <body name="tr_femur">
+                    <joint name="tr_femur_joint"  axis="1 0 0" pos="-1 -0.1 0.6" range="-40 35"/>
+                    <geom mesh="tr_femur" mass="0.08"/>
+
+                    <body name="tr_tibia">
+                        <joint name="tr_tibia_joint" axis="1 0 0" pos="-0.5 0.6 1.3"  range="-40 35"/>
+                        <geom mesh="tr_tibia" mass="0.06"/>
+
+                    </body>
+                </body>
+            </body>
+
+            <!-- ============================================= -->
+            <!-- BOTTOM LEFT LEG -->
+            <!-- ============================================= -->
+            <body name="bl_coxa" pos="0.10 -0.10 0.10">
+                <joint name="bl_coxa_joint"  axis="0 0 1" pos="1.3 -0.05 4"  range="-25 25"/>
+                <geom mesh="bl_coxa" mass="0.05"/>
+
+                <body name="bl_femur">
+                    <joint name="bl_femur_joint" axis="1 0 0" pos="1 -0.05 3.5" range="-40 35"/>
+                    <geom mesh="bl_femur" mass="0.08"/>
+
+                    <body name="bl_tibia">
+                        <joint name="bl_tibia_joint"  axis="1 0 0"  pos="1.5 0.65 4.2" range="-40 35"/>
+                        <geom mesh="bl_tibia" mass="0.06"/>
+
+                    </body>
+                </body>
+            </body>
+
+            <!-- ============================================= -->
+            <!-- BOTTOM RIGHT LEG -->
+            <!-- ============================================= -->
+            <body name="br_coxa" pos="0.025 -0.05 0.125">
+                <joint name="br_coxa_joint" axis="0 0 1" pos="0.45 -0.1 4" range="-25 25"/>
+                <geom mesh="br_coxa" mass="0.05"/>
+
+                <body name="br_femur">
+                    <joint name="br_femur_joint" axis="1 0 0" pos="-1 -0.1 3.5" range="-40 35"/>
+                    <geom mesh="br_femur" mass="0.08"/>
+
+                    <body name="br_tibia">
+                        <joint name="br_tibia_joint" axis="1 0 0" pos="-0.5 0.6 4.1" range="-40 35"/>
+                        <geom mesh="br_tibia" mass="0.06"/>
+
+                    </body>
+                </body>
+            </body>
+
+        </body>
+    </worldbody>
+
+    <!-- ===================================================== -->
+    <!-- ACTUATORS -->
+    <!-- ===================================================== -->
+    <actuator>
+        <!-- Top Left -->
+        <position name="tl_coxa_motor"  joint="tl_coxa_joint"  ctrlrange="-0.436 0.436"/>
+        <position name="tl_femur_motor" joint="tl_femur_joint" ctrlrange="-0.698 0.611"/>
+        <position name="tl_tibia_motor" joint="tl_tibia_joint" ctrlrange="-0.698 0.611"/>
+
+        <!-- Top Right -->
+        <position name="tr_coxa_motor"  joint="tr_coxa_joint"  ctrlrange="-0.436 0.436"/>
+        <position name="tr_femur_motor" joint="tr_femur_joint" ctrlrange="-0.698 0.611"/>
+        <position name="tr_tibia_motor" joint="tr_tibia_joint" ctrlrange="-0.698 0.611"/>
+
+        <!-- Bottom Left -->
+        <position name="bl_coxa_motor"  joint="bl_coxa_joint"  ctrlrange="-0.436 0.436"/>
+        <position name="bl_femur_motor" joint="bl_femur_joint" ctrlrange="-0.698 0.611"/>
+        <position name="bl_tibia_motor" joint="bl_tibia_joint" ctrlrange="-0.698 0.611"/>
+
+        <!-- Bottom Right -->
+        <position name="br_coxa_motor"  joint="br_coxa_joint"  ctrlrange="-0.436 0.436"/>
+        <position name="br_femur_motor" joint="br_femur_joint" ctrlrange="-0.698 0.611"/>
+        <position name="br_tibia_motor" joint="br_tibia_joint" ctrlrange="-0.698 0.611"/>
+    </actuator>
+
+    <!-- ===================================================== -->
+    <!-- CONTACT EXCLUSIONS -->
+    <!-- ===================================================== -->
+    <contact>
+        <!-- Top Left -->
+        <exclude body1="body"      body2="tl_coxa"/>
+        <exclude body1="tl_coxa"   body2="tl_femur"/>
+        <exclude body1="tl_femur"  body2="tl_tibia"/>
+
+        <!-- Top Right -->
+        <exclude body1="body"      body2="tr_coxa"/>
+        <exclude body1="tr_coxa"   body2="tr_femur"/>
+        <exclude body1="tr_femur"  body2="tr_tibia"/>
+
+        <!-- Bottom Left -->
+        <exclude body1="body"      body2="bl_coxa"/>
+        <exclude body1="bl_coxa"   body2="bl_femur"/>
+        <exclude body1="bl_femur"  body2="bl_tibia"/>
+
+        <!-- Bottom Right -->
+        <exclude body1="body"      body2="br_coxa"/>
+        <exclude body1="br_coxa"   body2="br_femur"/>
+        <exclude body1="br_femur"  body2="br_tibia"/>
+    </contact>
+</mujoco>

@@ -2,5 +2,6 @@ nicegui
 numpy
 debugpy
 pybullet
+mujoco
 vosk
 sounddevice
