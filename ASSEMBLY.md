@@ -70,13 +70,17 @@ Once the COXA, FEMUR, and TIBIA are assembled individually, connect them togethe
 ## 4. Assemble body 
 (Use 3mm screws everywhere except the coxa servos)
 - Screw the coxa servo motors onto the body using 2.5mm screws
+![Coxa Servo](/images/servo.jpg)
 - Screw the multiplexer onto the body 
 - Screw the buck converter onto the body 
+![Buck Converter](/images/buckConverter.jpg)
 - Screw the protection board holder onto the body and carefully slide the protection board inside
 - Slide the ultrasonic sensor into its holder and screw it into the body 
 - Put velcro on the bottom of the body and the LIPO and attach it
+![Lipo](/images/lipoProt.jpg)
 - Slide microphone into its holder in the body
-- Slide the ESP into the body 
+- Slide the ESP into the body
+![ESP](/images/esp.jpg) 
 
 ## 5. Plug everything in and run the code 
 - Plug all cables into corresponding locations according to the electronic diagram
