@@ -123,7 +123,7 @@ int main() {
     // --------------------------------------
     while (!glfwWindowShouldClose(window)) {
         auto now = std::chrono::steady_clock::now();
-        double t = duration_cast<std::chrono::duration<double>>(now - start_time).count();
+        double t = std::chrono::duration_cast<std::chrono::duration<double>>(now - start_time).count();
 
         gait.update(legs, static_cast<uint32_t>(t*1000));
 
