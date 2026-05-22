@@ -1,5 +1,6 @@
 #include <mujoco/mujoco.h>
 #include <GLFW/glfw3.h>
+#include <Adafruit_PWMServoDriver.h>
 
 #include <iostream>
 #include <chrono>
@@ -17,8 +18,8 @@ std::array<std::string, 12> actuator_names = {
 };
 
 pluto::motion::GaitController gait;
-pluto::LegJointType current_joint = pluto::LegJointType::COXA;
-pluto::LegSide current_side = pluto::LegSide::TOP_LEFT;
+pluto::LegJointType current_joint   = pluto::LegJointType::COXA;
+pluto::LegSide current_side         = pluto::LegSide::TOP_LEFT;
 
 void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS) return;
@@ -91,12 +92,13 @@ int main() {
 
     mjv_defaultCamera(&cam);
     mjv_defaultOption(&opt);
-    mjv_makeScene(&scn, 1000);
+    mjv_makeScene(m, &scn, 1000);
     mjr_makeContext(m, &con, mjFONTSCALE_150);
 
     // --------------------------------------
     // Initialize legs and gait
     // --------------------------------------
+    Adafruit_PWMServoDriver PWM = Adafruit_PWMServoDriver();
     std::array<pluto::Leg, 4> legs = {
         pluto::Leg{PWM, pluto::LegSide::TOP_LEFT},
         pluto::Leg{PWM, pluto::LegSide::TOP_RIGHT},
@@ -105,7 +107,7 @@ int main() {
     };
     gait.stand(legs);
 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::steady_clock::now();
 
     std::array<int, 12> actuator_indices;
     for (int i=0;i<12;i++) {
@@ -120,8 +122,8 @@ int main() {
     // Simulation loop
     // --------------------------------------
     while (!glfwWindowShouldClose(window)) {
-        auto now = std::chrono::high_resolution_clock::now();
-        double t = std::chrono::duration<double>(now - start_time).count();
+        auto now = std::chrono::steady_clock::now();
+        double t = duration_cast<std::chrono::duration<double>>(now - start_time).count();
 
         gait.update(legs, static_cast<uint32_t>(t*1000));
 
@@ -129,7 +131,7 @@ int main() {
         for (auto side : {pluto::LegSide::TOP_LEFT, pluto::LegSide::TOP_RIGHT,
                           pluto::LegSide::BOTTOM_LEFT, pluto::LegSide::BOTTOM_RIGHT}) {
             for (auto joint : {pluto::LegJointType::COXA, pluto::LegJointType::FEMUR, pluto::LegJointType::TIBIA}) {
-                int32_t md = legs[(uint8_t)side][joint].current_angle();
+                int32_t md = legs[(uint8_t)side][(uint8_t)joint].current_angle();
                 double rad = md * (M_PI / 180000.0);
                 d->ctrl[actuator_indices[idx]] = rad;
                 idx++;
