@@ -1,6 +1,7 @@
 # Pluto
 
 > A four-legged canine robot with ESP32-based gait control, calibrated 12-servo actuation, WiFi command transport, voice-triggered behaviors, and a PyBullet simulation/control hub.
+_Photo to be added later_
 
 **Live Demo**
 
@@ -12,7 +13,7 @@ _Demo media can be added here once the final robot videos are available._
 
 Pluto is a 12-degree-of-freedom quadruped robot developed around the idea of making a compact canine-style robot that can move, react, and be controlled interactively. Each of Pluto's four legs has three joints: coxa, femur, and tibia. The project combines mechanical design, embedded motor control, inverse kinematics, gait generation, wireless communication, sensor feedback, and a Python control interface.
 
-The original project proposal set out a modular robot capable of autonomous locomotion, interactive behavior, obstacle sensing, voice commands, and manual WiFi control. The current repository implements the core platform needed for that goal: ESP32 firmware for servo control and gait execution, a shared UDP packet protocol, ultrasonic and microphone sensor drivers, a NiceGUI controller UI, Vosk-based speech command handling, and a PyBullet simulator using Pluto's STL meshes.
+The current repository implements the core platform for that goal: ESP32 firmware for servo control and gait execution, a shared UDP packet protocol, ultrasonic and microphone sensor drivers, a NiceGUI controller UI, Vosk-based speech command handling, and a PyBullet simulator using Pluto's STL meshes.
 
 **Course Context**
 
@@ -22,11 +23,10 @@ This project was developed as part of the **Making Intelligent Things** course a
 
 - Course staff, TAs, and coaches for guidance throughout the design and development process
 - Existing open-source quadruped projects, including SpotMicro and related quadruped robotics tutorials, for inspiration on legged locomotion and mechanical structure
-- The PyBullet robotics community and reference robot dog implementations that helped shape the simulation approach
 
 **Note on Continued Development**
 
-Pluto is designed as a modular platform, so the current codebase is a foundation rather than a final endpoint. The implemented system already covers servo calibration, inverse kinematics, gait generation, UDP control, speech commands, sensing hooks, and simulation. Future work can build on this by improving gait stability, adding IMU or camera feedback, expanding autonomous obstacle avoidance, implementing more expressive behaviors, and using the platform for higher-level robotics experiments. For current work-in-progress items, known limitations, and future directions, see [Ongoing Works & Next Steps](ONGOING_WORK.md).
+Although the CS-358 course has concluded, SLAMaleykoum remains under active development. For current work-in-progress features, planned enhancements, and future research directions, see [Ongoing Works & Next Steps](ONGOING_WORK.md).
 
 ---
 
@@ -36,11 +36,34 @@ Pluto is designed as a modular platform, so the current codebase is a foundation
 <tr>
 <td width="25%" align="center">
 
+### [Hardware & Assembly](ASSEMBLY.md)
+
+3D-printed body and leg assembly, circuit wiring, and final hardware integration
+
+</td>
+<td width="25%" align="center">
+
+### [Software Overview](SOFTWARE_OVERVIEW.md)
+
+Main implemented software layers and links to each component
+
+</td>
+<td width="25%" align="center">
+
 ### [Controller UI](src/control/README.md)
 
 Python control hub, NiceGUI pages, PyBullet simulation, speech command worker
 
 </td>
+<td width="25%" align="center">
+
+### [Next Steps](ONGOING_WORK.md)
+
+Active work, planned enhancements, and future research directions
+
+</td>
+</tr>
+<tr>
 <td width="25%" align="center">
 
 ### [ESP32 Firmware](src/esp/README.md)
@@ -57,9 +80,16 @@ Shared packet/message format used by Python and C++
 </td>
 <td width="25%" align="center">
 
-### [Next Steps](ONGOING_WORK.md)
+### [Sensors](SOFTWARE_SENSORS.md)
 
-Known limitations, active work, and future extensions
+Ultrasonic distance sensing and INMP441 microphone notes
+
+</td>
+<td width="25%" align="center">
+
+### [WiFi Protocol](SOFTWARE_WIFI.md)
+
+UDP connection setup, packet structure, batching, and payload layout
 
 </td>
 </tr>
@@ -76,8 +106,11 @@ Known limitations, active work, and future extensions
 5. [Software Setup](#software-setup)
 6. [Configuration & Tuning](#configuration--tuning)
 7. [Documentation Index](#documentation-index)
-8. [Credits](#credits)
-9. [Conclusion](#conclusion)
+8. [Archives](#archives)
+9. [Development & Debugging Tools](#development--debugging-tools)
+10. [Ongoing Works & Next Steps](#ongoing-works--next-steps)
+11. [Credits](#credits)
+12. [Conclusion](#conclusion)
 
 ---
 
@@ -120,7 +153,7 @@ Pluto is organized as three cooperating layers:
 
 - **12-DOF**: Twelve degrees of freedom, with three actuated joints on each of four legs
 - **Coxa, femur, tibia**: The hip-yaw, upper-leg, and lower-leg joints of each leg
-- **DMS 15 270**: Servo model selected in the proposal for Pluto's leg actuation
+- **DMS 15 270**: Servo model used for Pluto's leg actuation
 - **PCA9685**: I2C PWM driver used to control the servo channels
 - **Inverse kinematics (IK)**: Math that converts desired foot positions into joint angles
 - **Gait**: A timed footstep pattern such as walk, trot, gallop, or turn
@@ -182,12 +215,11 @@ Pluto is organized as three cooperating layers:
 
 ## Quick Start
 
-### Prerequisites Checklist
+### 1. Check Prerequisites
 
 **Control UI and simulation:**
 
 - Python 3.13, as required by the install scripts
-- A microphone if using speech commands
 - A desktop environment that can open a PyBullet GUI window
 
 **Firmware:**
@@ -196,7 +228,19 @@ Pluto is organized as three cooperating layers:
 - ESP32 development board connected over USB
 - Pluto hardware assembled with the PCA9685 and servos connected
 
-### Run Pluto's Controller UI
+For hardware assembly and wiring, see [Hardware & Assembly](ASSEMBLY.md). For sensor notes, see [Sensors](SOFTWARE_SENSORS.md).
+
+### 2. Run Pluto's Controller UI
+
+If you are using the physical robot, power it up before opening the controller:
+
+1. Check the wiring against [Hardware & Assembly](ASSEMBLY.md), especially the LiPo, buck converter, PCA9685, ESP32, and servo power lines.
+2. Connect the ESP32 over USB so it can be flashed, monitored, or powered during setup.
+3. Connect the charged 7.4V LiPo battery through the XT60 connector.
+4. Turn on the KCD1 rocker switch and confirm that the ESP32, PCA9685, sensors, and servos power up normally.
+5. Make sure the computer and ESP32 are on the same WiFi network configured in `src/esp/main.cpp`.
+
+For software-only use, you can run the controller UI and PyBullet simulation without powering the robot hardware.
 
 For Windows, in the root project directory, type:
 
@@ -210,7 +254,17 @@ For macOS and Linux, in the root project directory, type:
 bash run.sh
 ```
 
-These scripts create a virtual environment, install dependencies from `requirements.txt`, and launch the NiceGUI app.
+The run scripts call the installer, create or reuse `.venv`, install `requirements.txt`, and launch the NiceGUI app. Installation is skipped automatically when `requirements.txt` has not changed.
+
+To force a clean dependency reinstall:
+
+```bash
+bash run.sh --reinstall
+```
+
+```cmd
+run.bat --reinstall
+```
 
 When launched through `run.sh` or `run.bat`, the application runs on port `8090` by default. If another process is already using that port, provide another one:
 
@@ -218,7 +272,17 @@ When launched through `run.sh` or `run.bat`, the application runs on port `8090`
 bash run.sh --port 8081
 ```
 
-### Flash the ESP32 Firmware
+```cmd
+run.bat --port 8081
+```
+
+Then open:
+
+```text
+http://localhost:8090
+```
+
+### 3. Flash the ESP32 Firmware
 
 ```bash
 pio run
@@ -239,7 +303,17 @@ pio device monitor
 pio device monitor -b 115200
 ```
 
-### What To Expect
+### 4. Configure WiFi Control
+
+The ESP32 firmware and Python controller communicate over UDP on port `4242`.
+
+1. Add one or more WiFi networks in `src/esp/main.cpp` using `PLUTO_SERVER.addAP(<WIFI_NAME>, <WIFI_PASSWORD>)`.
+2. Set the ESP32 IP address in `src/control/main.py` where `PlutoController(IP_OF_ESP)` is constructed.
+3. Keep the Python and C++ message definitions in sync through [Communication](src/comm/README.md).
+
+For packet format and binary message details, see [WiFi Protocol](SOFTWARE_WIFI.md).
+
+### 5. What To Expect
 
 - The web UI opens a home page with simulation and controller modes.
 - Simulation mode can launch a PyBullet window and send forward/backward/turn commands.
@@ -247,25 +321,103 @@ pio device monitor -b 115200
 - The ESP32 firmware can run serial commands for forward, backward, stop, walk, trot, gallop, speed changes, and servo trimming.
 - Speech commands are recognized on the computer and mapped to behavior or stop messages when the controller is connected.
 
+First-time setup problems are collected in [First-Time Troubleshooting](TROUBLESHOOTING.md).
+
 ---
 
 ## Hardware
 
 ### Component Overview
 
-The proposal and current codebase are built around a compact 12-servo quadruped architecture:
+Pluto is built around a compact 12-servo quadruped architecture. Reference links are included for the main parts or equivalent modules.
 
-| Component | Role | Status |
-|-----------|------|--------|
-| 3D-printed body and legs | Mechanical structure for the quadruped | Meshes are included in `src/mesh` |
-| DMS 15 270 servos x12 | Three actuated joints per leg | Supported by servo calibration code |
-| PCA9685 PWM driver | Generates stable PWM for the servos over I2C | Used by ESP32 firmware |
-| ESP32-DEVKITM-1 / ESP32 dev board | Main embedded controller | PlatformIO target is `esp32dev` |
-| HC-SR04 ultrasonic sensor | Distance sensing for obstacle feedback | Driver implemented |
-| INMP441-style I2S microphone | Audio input / energy measurement | Driver implemented |
-| 7.4V 2S LiPo battery | Servo and electronics power source | Proposal hardware |
-| LM2596 buck converter | Regulated low-voltage supply | Proposal hardware |
-| ESP32-CAM / IMU | Future perception and stability extensions | Proposal/future work |
+| Component | Qty | Role | Status | Reference |
+|-----------|----:|------|--------|-----------|
+| 3D-printed body, coxa, femur, and tibia parts | 1 set | Mechanical structure for the quadruped | Meshes are included in `src/mesh` | [Mesh files](src/mesh), [Assembly](ASSEMBLY.md) |
+| DMS15 270-degree servos | 12 | Three actuated joints per leg | Supported by servo calibration code | [DMS15 servo reference](https://www.aideepen.com/products/dms15-15kg-digital-servo-180-angel-degrees-270-angel-degrees-rotation-servo-for-robot-flight-control-rc-helicopter) |
+| Servo horns / servo drivers | 12 | Mechanical connection between servos and printed links | Required for leg assembly | Usually included with servos; see [Assembly](ASSEMBLY.md) |
+| PCA9685 16-channel PWM driver | 1 | Generates stable PWM for all servos over I2C | Used by ESP32 firmware | [Adafruit PCA9685 guide](https://learn.adafruit.com/16-channel-pwm-servo-driver?view=all) |
+| ESP32-DEVKITM-1 / ESP32 dev board | 1 | Main embedded controller for firmware, WiFi, sensors, and motion control | PlatformIO target is `esp32dev` | [Espressif ESP32-DevKitM-1](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitm-1/index.html) |
+| HC-SR04 ultrasonic sensor | 1-2 | Front obstacle distance sensing | Driver implemented | [HC-SR04 reference](https://www.iemrobotics.com/products/ultrasonic-distance-sensor-module-hc-sr04) |
+| INMP441 I2S microphone module | 1 | Audio input for speech/energy sensing | Driver implemented | [INMP441 datasheet](https://product.tdk.com/system/files/dam/doc/product/sw_piezo/mic/mems-mic/data_sheet/inmp441.pdf) |
+| 7.4V 2S LiPo battery with XT60 | 1 | Servo and electronics power source | Hardware design | [Swaytronic 2S LiPo XT60 reference](https://www.swaytronic.ch/en/SWAYTRONIC-LiPo-2S-7.4V-2200mAh-60C-120C-XT60) |
+| LM2596 DC-DC buck converter | 1 | Steps battery voltage down for ESP32 and low-voltage electronics | Hardware design | [LM2596 module reference](https://www.beemong.com/product/lm2596-lm2576-dc-dc-buck-converter-module-12v-24v-to-5v-step-down-power-supply-3a-max-output-voltage-regulator-board) |
+| XT60 connectors | 2 | High-current battery connection | Required for power wiring | [XT60 connector reference](https://www.sparkfun.com/products/10474) |
+| KCD1 rocker switch | 1 | Main power switch | Required for safe power control | [KCD1 switch reference](https://www.phaseda.com/switch/KCD1.htm) |
+| M3 screws, M2.5 screws, bearings, linkage hardware, wiring, and heat-shrink | As needed | Mechanical fastening and electrical assembly | Required for final build | See [Assembly](ASSEMBLY.md) |
+| TPU feet / rubber pads | 4 | Foot traction and impact reduction | Recommended | See [Assembly](ASSEMBLY.md) |
+| ESP32-CAM | 1 optional | Future camera streaming and vision-based features | Future work | [ESP32-CAM reference](https://www.olimex.com/Products/IoT/ESP32/ESP32-CAM/) |
+| MPU6050 IMU | 1 optional | Future orientation and acceleration feedback | Future work | [MPU6050 product reference](https://www.adafruit.com/product/3886) |
+
+### Additional Materials Needed
+
+These are not part of the main electronics list, but they are needed for assembly, wiring, and testing:
+
+- PLA/PETG filament for rigid printed body and leg parts
+- TPU filament or rubber pads for feet
+- M3 screws for most printed-part connections
+- M2.5 screws for coxa servo mounting
+- M3x20 and M3x35 screws for leg assembly
+- Ball bearings for tibia joints
+- Servo horns / servo arms compatible with the selected servos
+- Jumper wires, thicker power wires for servo current, and I2C wiring
+- Solder, heat-shrink tubing, electrical tape, and cable ties
+- Velcro or mounting tape for the LiPo battery
+- Multimeter for checking polarity, buck-converter output, and continuity
+- LiPo-safe charger and LiPo-safe storage bag
+- USB cable for flashing and monitoring the ESP32
+
+### Assembly Overview
+
+[Full step-by-step assembly guide here](ASSEMBLY.md)
+
+Pluto is built around a custom 3D-printed quadruped body with four modular legs. Each leg has three servo-driven joints: coxa, femur, and tibia. Assembly is done by printing the CAD parts, building each leg, mounting the servos and electronics in the body, wiring the power and sensor systems, and then testing basic firmware commands before attempting full gaits.
+
+Assembly phases:
+
+- **3D-printed parts** - Print the body, coxa, femur, tibia, linkage, and sensor/battery mounting parts
+- **Leg assembly** - Build each coxa/femur/tibia chain with servos, horns, screws, bearings, and TPU/rubber feet
+- **Body assembly** - Mount coxa servos, PCA9685, buck converter, ESP32, ultrasonic sensor, microphone, and LiPo
+- **Wiring** - Follow the circuit diagram, connect power rails, I2C, servo channels, and sensor lines
+- **Final checks** - Route cables, verify polarity and voltage, flash firmware, and test simple movements
+
+[Complete Assembly Instructions](ASSEMBLY.md)
+
+### Wiring & Electrical
+
+[Full wiring explanation here](WIRING_ELECTRICAL.md)
+
+Electrical diagram:
+
+![Electrical Circuit](images/circuit.png)
+
+**Important Wiring Notes**
+
+- **Common ground**: The LiPo/servo ground, PCA9685 ground, ESP32 ground, buck converter ground, and sensor grounds must be connected together.
+- **Servo power vs logic power**: The servos draw much higher current than the ESP32 and sensors. Use the LiPo/power rail for servo power and the buck converter for low-voltage electronics.
+- **Buck converter check**: Adjust and measure the LM2596 output with a multimeter before connecting it to the ESP32 or sensors.
+- **PCA9685 wiring**: Connect SDA/SCL between the ESP32 and PCA9685, and make sure the PCA9685 has both logic power and servo power.
+- **Ultrasonic sensor**: Check the HC-SR04 voltage level before connecting ECHO to an ESP32 GPIO. If the module outputs 5V, use a voltage divider or level shifter.
+- **High-current wiring**: Use thick wires for the LiPo, XT60, rocker switch, servo power rail, and PCA9685 servo power input.
+
+[Detailed Wiring & Soldering Guide](WIRING_ELECTRICAL.md)
+
+### CAD Files
+
+You can explore the available STL files directly in [src/mesh](src/mesh).
+
+Current CAD/mesh files:
+
+- [body.stl](src/mesh/body.stl)
+- [coxa.stl](src/mesh/coxa.stl)
+- [Femur.stl](src/mesh/Femur.stl)
+- [tibia.stl](src/mesh/tibia.stl)
+
+These files are used for both 3D printing and the PyBullet simulation model.
+
+[CAD files overview](CAD_FILES.md)
+
+Before implementing hardware changes, check [Ongoing Works & Next Steps](ONGOING_WORK.md) for known hardware limitations and recommended improvements.
 
 ### Mechanical Concept
 
@@ -275,22 +427,200 @@ Pluto uses four symmetric legs attached to a central body. Each leg is modeled a
 2. **Femur**: upper-leg pitch
 3. **Tibia**: lower-leg pitch
 
-The proposal emphasizes keeping mass near the body, maintaining a centered center of mass, and using modular 3D-printed parts so legs and mounts can be modified without redesigning the whole robot.
+The mechanical design keeps mass near the body, maintains a centered center of mass, and uses modular 3D-printed parts so legs and mounts can be modified without redesigning the whole robot.
 
 ### Power and Safety Notes
 
-The proposal estimates a robot mass around 1.5-2.3 kg and highlights that multiple loaded servos can draw high current. The power system therefore needs careful wiring, secure connectors, and a regulator sized for the electronics. Battery safety is part of the ongoing documentation work in [ONGOING_WORK.md](ONGOING_WORK.md).
+The robot mass is estimated around 1.5-2.3 kg, and multiple loaded servos can draw high current. The power system therefore needs careful wiring, secure connectors, and a regulator sized for the electronics. 
 
 ---
 
 ## System Architecture
 
+The computational load is divided between the physical ESP32 robot controller and the Python control hub running on the user's computer.
+
+- **ESP32 Robot Controller**: Low-level motion control, servo actuation, sensor reads, UDP packet handling, and behavior execution
+- **Python Control Hub**: User interface, keyboard/gamepad input, speech commands, PyBullet simulation, and UDP command generation
+- **Shared Communication Layer**: Compact packet/message protocol mirrored in C++ and Python
+
+The ESP32 uses FreeRTOS for the UDP network task while the main loop keeps motion updates, serial commands, sensor polling, and message dispatch moving. The Python side uses NiceGUI for the web UI, background threads for speech and UDP receive/heartbeat work, and a separate PyBullet process for simulation.
+
+**Rationale:**
+
+- **Real-time control**: Servo updates and gait generation stay on the ESP32 close to the hardware.
+- **Usability**: The computer handles heavier UI, speech, and simulation work.
+- **Modularity**: Motion, communication, sensing, input, and simulation are split into focused modules.
+- **Safety**: The firmware can stop or stand the robot even if the desktop controller disconnects.
+- **Reuse**: The shared packet format keeps Python and C++ behavior aligned.
+
+Detailed component documentation:
+
+- [Controller UI documentation](src/control/README.md)
+- [ESP32 firmware documentation](src/esp/README.md)
+- [Communication protocol documentation](src/comm/README.md)
+- [Software overview](SOFTWARE_OVERVIEW.md)
+
+### Architecture Diagram
+
+```text
++----------------------------------------------------------+
+| Python Control Hub (computer)                            |
+| src/control/main.py                                      |
+|                                                          |
+| - NiceGUI home, simulation, and controller pages          |
+| - Keyboard/gamepad movement input                        |
+| - Vosk speech commands                                   |
+| - PyBullet simulation process                            |
+| - UDP session, heartbeat, packet packing/unpacking        |
++-----------------------------+----------------------------+
+                              |
+                              | WiFi / UDP port 4242
+                              v
++----------------------------------------------------------+
+| ESP32 Robot Controller                                   |
+| src/esp/main.cpp                                         |
+|                                                          |
+| - 20 ms gait/motion update loop                          |
+| - PCA9685 12-servo output                                |
+| - Inverse kinematics and gait generation                  |
+| - Ultrasonic and microphone sensor hooks                  |
+| - FreeRTOS UDP server task and message queues             |
++-----------------------------+----------------------------+
+                              |
+                              v
++----------------------------------------------------------+
+| Hardware Layer                                            |
+|                                                          |
+| - Four 3-DOF legs: coxa, femur, tibia                     |
+| - DMS15 servos, PCA9685, ESP32, LiPo power                |
+| - HC-SR04 ultrasonic sensor and INMP441 microphone        |
++----------------------------------------------------------+
+```
+
+### ESP32 Robot Controller
+
+[Full ESP32 firmware documentation](src/esp/README.md)
+
+**Primary mission:** execute reliable low-level robot control on the physical quadruped.
+
+**Core responsibilities:**
+
+- Initialize WiFi, PCA9685, ultrasonic sensing, microphone sensing, and gait state
+- Drive all 12 joints through calibrated `LegJoint` objects
+- Convert IK outputs into constrained PWM pulses
+- Update gait motion every 20 ms in the main firmware loop
+- Accept UDP commands through a FreeRTOS network task
+- Queue inbound and outbound messages without blocking motion control
+- Handle serial commands for early testing, gait selection, speed changes, and servo trimming
+
+**Key components:**
+
+- `src/esp/main.cpp`: firmware entry point and top-level message dispatch
+- `src/esp/legs/leg_data.h`: per-joint raw PWM and angle calibration
+- `src/esp/legs/leg_joint.h`: calibrated servo output abstraction
+- `src/esp/legs/leg.h`: 3-joint leg abstraction
+- `src/esp/motion/ik_solver.cpp`: embedded inverse kinematics
+- `src/esp/motion/gait.cpp`: walk, trot, gallop, and turn gait generation
+- `src/esp/server/server.cpp`: UDP session, CRC, acknowledgement, and queues
+- `src/esp/sensors/ultrasonic.h`: interrupt-based ultrasonic distance readings
+- `src/esp/sensors/microphone.h`: I2S microphone sampling and energy measurement
+
+**Operating frequency:**
+
+- Motion/gait update: 50 Hz, every 20 ms
+- Ultrasonic polling template: every 500 ms
+- UDP server task delay: 5 ms between network iterations
+- Serial monitor baud rate: 115200
+
+### Python Control Hub
+
+[Full Controller UI documentation](src/control/README.md)
+
+**Primary mission:** provide the operator-facing interface, simulation mode, speech commands, and UDP command transport.
+
+**Core responsibilities:**
+
+- Serve the NiceGUI app from `src/control/main.py`
+- Provide navigation between home, simulation, and controller pages
+- Read keyboard and gamepad input through `InputManager`
+- Start and stop the PyBullet process through `PyBulletMotionController`
+- Recognize supported Vosk commands such as `pluto sit`, `pluto stop`, and `pluto give paw`
+- Maintain a UDP session with the ESP32 using heartbeats and background receive handling
+- Pack and unpack messages in sync with the C++ firmware protocol
+
+**Key components:**
+
+- `src/control/main.py`: app entry point
+- `src/control/pluto_menu/simulation.py`: PyBullet UI controls
+- `src/control/pluto_menu/controller.py`: keyboard/gamepad controller page
+- `src/control/pluto_input/input_manager.py`: normalized movement vectors
+- `src/control/pluto_speech/speech.py`: Vosk speech worker
+- `src/control/pluto_server/message.py`: Python packet/message definitions
+- `src/control/pluto_server/server.py`: UDP controller client
+- `src/control/gait.py`: Python gait definitions for simulation
+- `src/control/sim_motion.py`: PyBullet simulation process control
+
+### Simulation Layer
+
+**Primary mission:** allow gait and movement experiments before running commands on physical hardware.
+
+**Core responsibilities:**
+
+- Load Pluto's STL meshes from `src/mesh`
+- Build a quadruped model in PyBullet
+- Replay Python gait definitions
+- Test basic forward, backward, turning, and stop commands from the UI
+
+**Current limitation:** the simulator is useful for control experiments, but it is not yet a full-fidelity model of the physical robot's mass, friction, joint limits, or servo dynamics.
+
+### Communication Architecture
+
+The Python controller and ESP32 firmware communicate over WiFi using UDP on port `4242`.
+
+[Full communication protocol documentation](src/comm/README.md)
+
+**Protocol:** custom packet-based binary protocol with CRC validation, session tokens, sequence numbers, timestamps, and fixed-size messages.
+
+**Data flow:**
+
+| Direction | Message Type | Content |
+|-----------|--------------|---------|
+| Python -> ESP32 | `MOVE_BY` | Direction vector for movement control |
+| Python -> ESP32 | `MOVE_STOP_FOR` | Stop/stand command with duration semantics |
+| Python -> ESP32 | `BEHAVIOR_*` | High-level commands such as sit, give paw, and lie down |
+| Python -> ESP32 | `INFO_REQUEST_*` | Heartbeat and sensor requests |
+| ESP32 -> Python | `INFO_ACKNOWLEDGE` | Packet acknowledgement |
+| ESP32 -> Python | `SENSOR_DISTANCE` | Ultrasonic distance reading |
+
+**Shared definitions:**
+
+- `src/comm/message.h`: C++ packet and message definitions
+- `src/control/pluto_server/message.py`: Python mirror of the same protocol
+- `SOFTWARE_WIFI.md`: WiFi setup and binary packet notes
+
+### Shared Mechanisms
+
+- **Session management**: Python requests a session token; ESP32 rejects stale or invalid packets.
+- **CRC checks**: Packets are validated before messages are queued.
+- **Sequence numbers**: Repeated or old packets are ignored by the firmware.
+- **Message queues**: The ESP32 network task queues inbound and outbound messages for the main control loop.
+- **Heartbeats**: Python sends periodic keep-alive messages to prevent session timeout.
+- **Compile-time feature flags**: `PLUTO_ENABLE_WIFI`, `PLUTO_ENABLE_ULTRASONIC`, and `PLUTO_ENABLE_MICROPHONE` enable major firmware features.
+
 ### Repository Structure
 
 ```text
 2026sp-pluto/
+|-- ASSEMBLY.md
+|-- CAD_FILES.md
+|-- HARDWARE_OVERVIEW.md
 |-- README.md
 |-- ONGOING_WORK.md
+|-- SOFTWARE_OVERVIEW.md
+|-- SOFTWARE_SENSORS.md
+|-- SOFTWARE_WIFI.md
+|-- TROUBLESHOOTING.md
+|-- WIRING_ELECTRICAL.md
 |-- platformio.ini
 |-- requirements.txt
 |-- run.sh / run.bat
@@ -322,78 +652,6 @@ The proposal estimates a robot mass around 1.5-2.3 kg and highlights that multip
         |-- Femur.stl
         `-- tibia.stl
 ```
-
-### Python Control Hub
-
-The Python side is responsible for user interaction and desktop simulation.
-
-**Main responsibilities:**
-
-- Serve the NiceGUI app from `src/control/main.py`
-- Provide navigation between home, simulation, and controller pages
-- Read keyboard and gamepad input through `InputManager`
-- Start and stop the PyBullet process through `PyBulletMotionController`
-- Recognize a small Vosk grammar: `pluto sit`, `pluto stop`, and `pluto give paw`
-- Pack and unpack UDP messages in sync with the C++ firmware protocol
-
-**Important modules:**
-
-- `src/control/main.py`: app entry point
-- `src/control/pluto_menu/simulation.py`: PyBullet UI controls
-- `src/control/pluto_menu/controller.py`: keyboard/gamepad controller page
-- `src/control/pluto_input/input_manager.py`: normalized movement vectors
-- `src/control/pluto_speech/speech.py`: Vosk speech worker
-- `src/control/pluto_server/message.py`: Python packet/message definitions
-- `src/control/pluto_server/server.py`: UDP controller client
-
-### ESP32 Firmware
-
-The ESP32 side is responsible for real-time robot control.
-
-**Main responsibilities:**
-
-- Initialize WiFi, PCA9685, ultrasonic sensing, microphone sensing, and gait state
-- Drive all 12 joints through calibrated `LegJoint` objects
-- Convert IK outputs into constrained PWM pulses
-- Update gait motion at a regular loop interval
-- Accept UDP commands through a FreeRTOS network task
-- Queue inbound and outbound messages without blocking the motion loop
-
-**Important modules:**
-
-- `src/esp/main.cpp`: firmware entry point and top-level message dispatch
-- `src/esp/legs/leg_data.h`: per-joint raw PWM and angle calibration
-- `src/esp/legs/leg_joint.h`: calibrated servo output abstraction
-- `src/esp/legs/leg.h`: 3-joint leg abstraction
-- `src/esp/motion/ik_solver.cpp`: embedded inverse kinematics
-- `src/esp/motion/gait.cpp`: walk, trot, gallop, and turn gait generation
-- `src/esp/server/server.cpp`: UDP session, CRC, acknowledgement, and queues
-- `src/esp/sensors/ultrasonic.h`: interrupt-based ultrasonic distance readings
-- `src/esp/sensors/microphone.h`: I2S microphone sampling and energy measurement
-
-### Shared Communication Protocol
-
-The protocol is intentionally small so it can run on an embedded target and be mirrored in Python.
-
-**Packet envelope:**
-
-- `crc32`: validates the packet contents
-- `session_token`: distinguishes active controller sessions
-- `sequence_number`: rejects old or repeated packets
-- `timestamp`: sender clock in milliseconds
-- `message_count`: number of valid messages
-- `messages`: up to 64 fixed-size messages
-
-**Message families:**
-
-| Family | Purpose |
-|--------|---------|
-| `KIND_INFO` | Heartbeats, sensor requests, acknowledgements |
-| `KIND_MOVE` | Control leases, stop commands, movement vectors |
-| `KIND_SENSOR` | Distance and microphone-related feedback |
-| `KIND_BEHAVIOR` | High-level behaviors such as sit, give paw, and lie down |
-
-The C++ definition is in `src/comm/message.h`; the Python mirror is in `src/control/pluto_server/message.py`. These files should stay synchronized.
 
 ---
 
@@ -531,19 +789,54 @@ Verify these against the actual wiring before flashing.
 
 ## Documentation Index
 
-### Main Documents
+### Core System Documentation
 
-- [Main README](README.md)
-- [Ongoing Works & Next Steps](ONGOING_WORK.md)
-- Project proposal: `../Project Proposal.pdf`
+**Main System:**
 
-### Subsystem Documents
+- [Main README](README.md) - This document
+- [Software Overview](SOFTWARE_OVERVIEW.md) - High-level map of the implemented software
+- [Archives](ARCHIVES.md) - Notes for preserving previous prototypes and tests
+- [Ongoing Works & Next Steps](ONGOING_WORK.md) - Active work, limitations, planned enhancements, and future research directions
 
-- [Control README](src/control/README.md)
-- [ESP README](src/esp/README.md)
-- [Communication README](src/comm/README.md)
+**Robot Subsystems:**
 
-### Key Source Files
+- [ESP32 Firmware](src/esp/README.md) - Robot-side motion control, servo output, sensors, and UDP server
+- [Controller UI](src/control/README.md) - Python control hub, NiceGUI pages, simulation, and speech command worker
+- [Communication Protocol](src/comm/README.md) - Shared message format used by C++ and Python
+
+### Software Documentation
+
+- [ESP32 Firmware](src/esp/README.md)
+- [Controller UI](src/control/README.md)
+- [Communication Protocol](src/comm/README.md)
+- [WiFi Protocol](SOFTWARE_WIFI.md)
+- [Software Sensors](SOFTWARE_SENSORS.md)
+
+### Hardware Documentation
+
+**Assembly & Build:**
+
+- [Hardware Overview](HARDWARE_OVERVIEW.md)
+- [Complete Assembly Guide](ASSEMBLY.md)
+- [Wiring & Circuit Details](WIRING_ELECTRICAL.md)
+- [CAD Files](CAD_FILES.md)
+
+### Configuration & Setup
+
+- [Quick Start](#quick-start)
+- [Software Setup](#software-setup)
+- [Configuration & Tuning](#configuration--tuning)
+- [WiFi Protocol Setup](SOFTWARE_WIFI.md)
+
+### Debugging & Development Tools
+
+- [First-Time Troubleshooting Guide](TROUBLESHOOTING.md)
+- [Archives](ARCHIVES.md)
+- [PlatformIO Firmware Environment](#platformio-firmware-environment)
+- [Servo Calibration](#servo-calibration)
+- [Sensor Pins](#sensor-pins)
+
+### Shared Utilities And Key Source Files
 
 - [Python UI entry point](src/control/main.py)
 - [Simulation controller](src/control/sim_motion.py)
@@ -556,11 +849,98 @@ Verify these against the actual wiring before flashing.
 
 ---
 
+## Archives
+
+The purpose of an archive area is to save previous work and keep track of tests that are no longer part of the active implementation.
+
+This repository does not currently include a dedicated `archives/` directory. Earlier work is mainly preserved through Git history, current source files, and the notes in [Ongoing Works & Next Steps](ONGOING_WORK.md). If older prototypes are added back for reference, they should be placed under an `archives/` directory with a short README explaining what was tested, why it was replaced, and whether it still runs.
+
+Recommended archive categories:
+
+- **ESP32 experiments** - old gait tests, servo calibration sketches, sensor bring-up code, and behavior prototypes
+- **Control UI experiments** - early NiceGUI pages, keyboard/gamepad tests, and speech command prototypes
+- **Simulation experiments** - PyBullet model tests, gait playback experiments, and old mesh-loading attempts
+- **Communication experiments** - older UDP packet formats, handshake tests, and protocol debugging scripts
+
+Some archived tests may stop compiling as message definitions, include paths, or hardware assumptions evolve. Keep them for reference, but treat the active implementation in `src/esp`, `src/control`, and `src/comm` as the source of truth.
+
+See [Archives](ARCHIVES.md) for the suggested archive structure.
+
+---
+
+## Development & Debugging Tools
+
+During development, Pluto uses lightweight debugging tools rather than a separate profiling framework.
+
+Current tools and practices:
+
+- **Serial monitor**: Used for firmware startup logs, gait selection, speed changes, and servo trimming through `pio device monitor -b 115200`.
+- **PlatformIO builds and uploads**: Used to compile and flash the ESP32 firmware.
+- **NiceGUI controller UI**: Used to inspect controller mode, simulation mode, and input state.
+- **PyBullet simulation**: Used to test gait timing and directional behavior before hardware trials.
+- **UDP acknowledgements and heartbeats**: Used to verify controller-to-robot communication.
+- **Troubleshooting guide**: Documents first-time setup failures, WiFi issues, power problems, and sensor checks.
+
+Planned debugging improvements:
+
+- Add a telemetry panel for connection state, latest distance reading, gait mode, speed, and acknowledgements.
+- Add more structured serial logs around behavior execution and UDP message handling.
+- Add repeatable hardware-in-the-loop tests for servo calibration, gait safety, and sensor readings.
+- Add profiling or timing logs if gait updates or network handling become unreliable.
+
+See [First-Time Troubleshooting](TROUBLESHOOTING.md) for setup and debugging steps.
+
+---
+
+## Ongoing Works & Next Steps
+
+Pluto continues to evolve beyond the CS-358 course timeline. The current codebase provides the main building blocks for locomotion, simulation, sensing, and communication, but several parts still need physical tuning and integration.
+
+Current focus:
+
+- **Hardware gait validation**: Test walk, trot, gallop, and turn gaits on the physical robot.
+- **Servo calibration**: Refine PWM limits, starting pulses, inversion flags, and angle ranges for each joint.
+- **Controller-to-robot integration**: Finish wiring keyboard/gamepad movement vectors to live `MOVE_BY` UDP messages.
+- **Behavior implementation**: Replace placeholder sit, give paw, and lie down handlers with calibrated motion sequences.
+- **Sensor-driven reactions**: Use ultrasonic readings to stop, slow down, or recover near obstacles.
+
+Known issues to address:
+
+- Some ESP32 behavior handlers are still placeholders.
+- Movement vectors are computed in the UI but still need full physical robot integration.
+- Gait constants need final physical measurement and tuning.
+- The PyBullet simulator is not yet a high-fidelity model of the real robot.
+- Camera, IMU stabilization, and higher-level autonomy remain future work.
+
+See [Ongoing Works & Next Steps](ONGOING_WORK.md) for the full list.
+
+---
+
 ## Credits
 
 ### Project Team
 
 Pluto was developed by Serhat Botan, Alexis Cazal, Neha Chakraborty, Myriam Lahoud, Sam Lee, Raphael Dib Nehme, and Mariya Rakytyanska as part of EPFL's Making Intelligent Things course.
+
+### Use of AI Tools in Development
+
+This project documentation and parts of the development workflow were supported by AI-powered tools in accordance with EPFL academic integrity guidelines.
+
+AI assistance was used for:
+
+- structuring documentation and improving technical writing
+- debugging guidance and code review suggestions
+- identifying edge cases in setup, communication, and hardware integration notes
+- summarizing implementation details from the codebase
+
+AI assistance was not used to replace:
+
+- project goals or engineering decision-making
+- hardware assembly, wiring, or physical testing
+- experimental validation on the real robot
+- team ownership of the system design and implementation
+
+All AI-assisted content should be reviewed and validated by the project team before submission or hardware use.
 
 ### Technical Inspiration
 
@@ -577,6 +957,13 @@ Pluto was developed by Serhat Botan, Alexis Cazal, Neha Chakraborty, Myriam Laho
 - PyBullet for simulation
 - Vosk and sounddevice for speech input
 
+### Hardware Credits
+
+- SpotMicro and related open-source quadruped projects for mechanical and locomotion inspiration
+- Existing quadruped robotics tutorials for reference designs and gait concepts
+- Adafruit documentation for PCA9685 servo-driver integration
+- PyBullet examples and community projects for simulation references
+
 ---
 
 ## Conclusion
@@ -584,3 +971,7 @@ Pluto was developed by Serhat Botan, Alexis Cazal, Neha Chakraborty, Myriam Laho
 Pluto demonstrates a practical path from a 3D-printed quadruped concept to a working robotics software platform. The project already includes the key layers needed for legged robotics development: calibrated low-level actuation, inverse kinematics, gait generation, simulation, command transport, and early sensing/interaction hooks.
 
 The current system is not the final version of the robot. It is a foundation for continued tuning and experimentation, especially around gait stability, behavior execution, sensor-driven reactions, and higher-level autonomy. Its modular structure is intended to make those next steps approachable for future development.
+
+### Questions, Issues, Or Feedback
+
+For technical support or setup issues, check [First-Time Troubleshooting](TROUBLESHOOTING.md) first. For implementation details, use the [Documentation Index](#documentation-index) to find the relevant subsystem documentation.
