@@ -5,7 +5,7 @@
 #include <motion/ik_solver.h>
 
 namespace pluto::motion
-{ 
+{
   namespace
   {
     constexpr float COXA_LENGTH  = 7.00F;
@@ -14,9 +14,9 @@ namespace pluto::motion
 
     constexpr float FOOT_Z_STAND = -23.0F; // standing height
 
-    constexpr float SHIFT_END = 0.25F;
-    constexpr float LIFT_END  = 0.50F;   
-    constexpr float STEP_END  = 0.75F;
+    constexpr float SHIFT_END                = 0.25F;
+    constexpr float LIFT_END                 = 0.50F;
+    constexpr float STEP_END                 = 0.75F;
     constexpr float PHASE_QUANTIZATION_STEPS = 10.0F;
     constexpr float FOOT_X_QUANTIZATION_STEP = 0.25F;
     constexpr float FOOT_Z_QUANTIZATION_STEP = 0.25F;
@@ -24,30 +24,30 @@ namespace pluto::motion
     constexpr float STRIDE = 1.80F;
     constexpr float LIFT   = 3.20F;
 
-    constexpr float FOOT_Y_STANCE          = 7.00F;
-    constexpr float WALK_REAR_LEG_EXTEND_Z = 0.00F;
-    constexpr float WALK_FRONT_STRIDE_SCALE = 0.82F;
-    constexpr float WALK_REAR_STRIDE_SCALE  = 0.82F;
-    constexpr float WALK_FRONT_SWING_DROP_Z = 0.00F;
-    constexpr float WALK_FRONT_LEAN_DROP_Z  = 0.00F;
-    constexpr float WALK_REAR_LEAN_RISE_Z   = 0.00F;
-    constexpr float WALK_REAR_X_BIAS         = 0.00F;
-    constexpr float WALK_LF_EXTRA_DROP_Z    = 0.00F;
+    constexpr float FOOT_Y_STANCE               = 7.00F;
+    constexpr float WALK_REAR_LEG_EXTEND_Z      = 0.00F;
+    constexpr float WALK_FRONT_STRIDE_SCALE     = 0.82F;
+    constexpr float WALK_REAR_STRIDE_SCALE      = 0.82F;
+    constexpr float WALK_FRONT_SWING_DROP_Z     = 0.00F;
+    constexpr float WALK_FRONT_LEAN_DROP_Z      = 0.00F;
+    constexpr float WALK_REAR_LEAN_RISE_Z       = 0.00F;
+    constexpr float WALK_REAR_X_BIAS            = 0.00F;
+    constexpr float WALK_LF_EXTRA_DROP_Z        = 0.00F;
     constexpr int32_t WALK_REAR_TIBIA_EXTEND_MD = 0;
-    constexpr int32_t WALK_LF_FEMUR_FLAT_MD = 30000;
-    constexpr int32_t WALK_RF_FEMUR_FLAT_MD = 0;
-    constexpr float BOW_FRONT_DROP         = 5.00F;
-    constexpr float BOW_REAR_RISE          = 2.00F;
-    constexpr float BOW_FRONT_BACK         = 1.50F;
-    constexpr float BOW_PERIOD             = 2.00F;
+    constexpr int32_t WALK_LF_FEMUR_FLAT_MD     = 30000;
+    constexpr int32_t WALK_RF_FEMUR_FLAT_MD     = 0;
+    constexpr float BOW_FRONT_DROP              = 5.00F;
+    constexpr float BOW_REAR_RISE               = 2.00F;
+    constexpr float BOW_FRONT_BACK              = 1.50F;
+    constexpr float BOW_PERIOD                  = 2.00F;
 
-    constexpr float PAW_REST_X             = 1.20F;
-    constexpr float PAW_REST_Z             = -16.20F;
-    constexpr float PAW_PEAK_X             = 2.60F;
-    constexpr float PAW_PEAK_Z             = -15.20F;
-    constexpr float PAW_PERIOD             = 1.40F;
-    constexpr float PAW_SHIFT_Y            = 1.60F;
-    constexpr float PAW_REAR_SUPPORT_DROP_Z = 1.80F;
+    constexpr float PAW_REST_X               = 1.20F;
+    constexpr float PAW_REST_Z               = -16.20F;
+    constexpr float PAW_PEAK_X               = 2.60F;
+    constexpr float PAW_PEAK_Z               = -15.20F;
+    constexpr float PAW_PERIOD               = 1.40F;
+    constexpr float PAW_SHIFT_Y              = 1.60F;
+    constexpr float PAW_REAR_SUPPORT_DROP_Z  = 1.80F;
     constexpr float PAW_FRONT_SUPPORT_BACK_X = -1.00F;
 
     constexpr bool is_right_side(LegSide side) noexcept
@@ -98,7 +98,9 @@ namespace pluto::motion
 
     bool is_airborne(float phase) noexcept
     {
-      return phase >= SHIFT_END && phase < STEP_END; // add multiplier to where the angles is fed (like 2) whenevern it should be higher
+      return phase >= SHIFT_END
+             && phase
+                    < STEP_END; // add multiplier to where the angles is fed (like 2) whenevern it should be higher
     }
 
     float side_stance_y(LegSide side) noexcept
@@ -106,46 +108,40 @@ namespace pluto::motion
       return is_right_side(side) ? -FOOT_Y_STANCE : FOOT_Y_STANCE;
     }
 
-    FootTarget foot_from_phase(float phase, float forward_scale, float foot_y) noexcept
+    FootTarget foot_from_phase(
+        float phase, float forward_scale, float foot_y, float stride, float lift,
+        float z_stand) noexcept
     {
       if (phase < SHIFT_END)
       {
         const float t = phase / SHIFT_END;
-        return {
-            (STRIDE * smoothstep(t)) * forward_scale,
-            foot_y,
-            FOOT_Z_STAND};
+        return {(stride * smoothstep(t)) * forward_scale, foot_y, z_stand};
       }
 
       if (phase < LIFT_END)
       {
         const float t = (phase - SHIFT_END) / (LIFT_END - SHIFT_END);
         return {
-            STRIDE * forward_scale,
-            foot_y,
-            FOOT_Z_STAND + LIFT * sinf(0.5F * PI * t)};
+            stride * forward_scale, foot_y, z_stand + lift * sinf(0.5F * PI * t)};
       }
 
       if (phase < STEP_END)
       {
         const float t = (phase - LIFT_END) / (STEP_END - LIFT_END);
         return {
-            (STRIDE - 2.0F * STRIDE * smoothstep(t)) * forward_scale,
-            foot_y,
-            FOOT_Z_STAND + LIFT * cosf(0.5F * PI * t)};
+            (stride - 2.0F * stride * smoothstep(t)) * forward_scale, foot_y,
+            z_stand + lift * cosf(0.5F * PI * t)};
       }
 
       const float t = (phase - STEP_END) / (1.0F - STEP_END);
-      return {
-          (-STRIDE * (1.0F - smoothstep(t))) * forward_scale,
-          foot_y,
-          FOOT_Z_STAND};
+      return {(-stride * (1.0F - smoothstep(t))) * forward_scale, foot_y, z_stand};
     }
 
     JointAnglesMd solve_leg(FootTarget foot, LegSide side) noexcept
     {
       const float signed_coxa = is_right_side(side) ? -COXA_LENGTH : COXA_LENGTH;
-      return to_millidegrees(solve_ik(foot, signed_coxa, FEMUR_LENGTH, TIBIA_LENGTH));
+      return to_millidegrees(
+          solve_ik(foot, signed_coxa, FEMUR_LENGTH, TIBIA_LENGTH));
     }
 
     constexpr const char* leg_name(LegSide side) noexcept
@@ -175,9 +171,9 @@ namespace pluto::motion
 
       return config.angle_min_md
              + static_cast<int32_t>(
-                   static_cast<int64_t>(normalized_raw - config.raw_min)
-                   * static_cast<int64_t>(config.angle_max_md - config.angle_min_md)
-                   / static_cast<int64_t>(config.raw_max - config.raw_min));
+                 static_cast<int64_t>(normalized_raw - config.raw_min)
+                 * static_cast<int64_t>(config.angle_max_md - config.angle_min_md)
+                 / static_cast<int64_t>(config.raw_max - config.raw_min));
     }
 
     JointAnglesMd standing_servo_angles_md(LegSide side) noexcept
@@ -199,8 +195,7 @@ namespace pluto::motion
       const auto servo = standing_servo_angles_md(side);
       const auto ik    = standing_ik_angles_md(side);
       return {
-          servo.coxa_md - ik.coxa_md,
-          servo.femur_md - ik.femur_md,
+          servo.coxa_md - ik.coxa_md, servo.femur_md - ik.femur_md,
           servo.tibia_md - ik.tibia_md};
     }
 
@@ -214,16 +209,25 @@ namespace pluto::motion
     }
   } // namespace
 
-  void GaitController::set_gait(GaitKind gait) noexcept { _gait = gait; }
+  void GaitController::set_gait(GaitKind gait) noexcept
+  {
+    _gait = gait;
+  }
 
-  void GaitController::set_motion(MotionCommand motion) noexcept { _motion = motion; }
+  void GaitController::set_motion(MotionCommand motion) noexcept
+  {
+    _motion = motion;
+  }
 
-  void GaitController::set_speed(float speed) noexcept { _speed = constrain(speed, 0.0F, 1.0F); }
+  void GaitController::set_speed(float speed) noexcept
+  {
+    _speed = constrain(speed, 0.0F, 1.0F);
+  }
 
   void GaitController::set_walk_manual_phase(bool enabled) noexcept
   {
     _walk_manual_phase_enabled = enabled;
-    _walk_manual_stage = 0;
+    _walk_manual_stage         = 0;
   }
 
   void GaitController::next_walk_manual_stage() noexcept
@@ -244,7 +248,8 @@ namespace pluto::motion
     }
   }
 
-  void GaitController::update(std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept
+  void GaitController::update(
+      std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept
   {
     if (_motion == MotionCommand::IDLE || _speed <= 0.0F)
     {
@@ -347,7 +352,8 @@ namespace pluto::motion
     return 0.0F;
   }
 
-  float GaitController::phase_for(LegSide side, float time_s, float period) const noexcept
+  float GaitController::phase_for(
+      LegSide side, float time_s, float period) const noexcept
   {
     if (!(_gait == GaitKind::WALK && _walk_manual_phase_enabled))
     {
@@ -370,21 +376,32 @@ namespace pluto::motion
       std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept
   {
     const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
-    const float turn_flip = (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
+    const float turn_flip =
+        (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
     const float period = period_seconds();
-    const float phase = quantize_phase(phase_for(side, time_s, period));
+    const float phase  = quantize_phase(phase_for(side, time_s, period));
     const bool current_leg_airborne = is_airborne(phase);
 
     float leg_stride_scale = 1.0F;
     if (_gait == GaitKind::WALK)
     {
-      leg_stride_scale = is_front_side(side) ? WALK_FRONT_STRIDE_SCALE : WALK_REAR_STRIDE_SCALE;
+      leg_stride_scale =
+          is_front_side(side) ? WALK_FRONT_STRIDE_SCALE : WALK_REAR_STRIDE_SCALE;
+    }
+
+    float current_stride  = STRIDE;
+    float current_lift    = LIFT;
+    float current_z_stand = FOOT_Z_STAND;
+
+    if (_gait == GaitKind::TROT && !is_front_side(side))
+    {
+      current_stride *= 0.70F; // Limits Femur forward/backward sweep
+      current_lift *= 0.50F;   // Limits Tibia upward compression
     }
 
     auto foot = foot_from_phase(
-        phase,
-        direction * turn_flip * _speed * leg_stride_scale,
-        side_stance_y(side));
+        phase, direction * turn_flip * _speed * leg_stride_scale,
+        side_stance_y(side), current_stride, current_lift, current_z_stand);
 
     if (_gait == GaitKind::WALK && !is_front_side(side))
     {
@@ -437,7 +454,7 @@ namespace pluto::motion
     const auto servo_angles = apply_standing_offsets(angles, side);
 
     static uint32_t last_print = 0;
-    static bool log_cycle = false;
+    static bool log_cycle      = false;
     if (side == LegSide::TOP_LEFT)
     {
       log_cycle = millis() - last_print > 500;
@@ -451,18 +468,10 @@ namespace pluto::motion
       const auto offsets = standing_angle_offsets_md(side);
       Serial.printf(
           "%s foot=(%.2f,%.2f,%.2f) ik=(%d,%d,%d) off=(%d,%d,%d) servo=(%d,%d,%d)\n",
-          leg_name(side),
-          foot.x,
-          foot.y,
-          foot.z,
-          angles.coxa_md / 1000,
-          angles.femur_md / 1000,
-          angles.tibia_md / 1000,
-          offsets.coxa_md / 1000,
-          offsets.femur_md / 1000,
-          offsets.tibia_md / 1000,
-          servo_angles.coxa_md / 1000,
-          servo_angles.femur_md / 1000,
+          leg_name(side), foot.x, foot.y, foot.z, angles.coxa_md / 1000,
+          angles.femur_md / 1000, angles.tibia_md / 1000, offsets.coxa_md / 1000,
+          offsets.femur_md / 1000, offsets.tibia_md / 1000,
+          servo_angles.coxa_md / 1000, servo_angles.femur_md / 1000,
           servo_angles.tibia_md / 1000);
       if (side == LegSide::BOTTOM_RIGHT)
       {
@@ -474,7 +483,8 @@ namespace pluto::motion
         servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
   }
 
-  void GaitController::write_bow(std::array<Leg, 4>& legs, float time_s) const noexcept
+  void GaitController::write_bow(
+      std::array<Leg, 4>& legs, float time_s) const noexcept
   {
     const float phase = normalized_phase(time_s, BOW_PERIOD, 0.0F);
     const float pose  = sinf(phase * PI);
@@ -495,27 +505,28 @@ namespace pluto::motion
       }
 
       const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
-      legs[i].write_angles(servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
+      legs[i].write_angles(
+          servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
   }
 
-  void GaitController::write_paw(std::array<Leg, 4>& legs, float time_s) const noexcept
+  void GaitController::write_paw(
+      std::array<Leg, 4>& legs, float time_s) const noexcept
   {
     constexpr LegSide paw_side = LegSide::TOP_RIGHT;
-    const float phase = normalized_phase(time_s, PAW_PERIOD, 0.0F);
-    const float shift_up = smoothstep(fminf(1.0F, phase / 0.30F));
-    const float shift_down = smoothstep(fmaxf(0.0F, (phase - 0.85F) / 0.15F));
-    const float shift_weight = shift_up * (1.0F - shift_down);
-    const float wave = 0.5F - 0.5F * cosf(2.0F * PI * phase);
-    const float swing_scale = shift_weight;
-    const float away_from_paw = is_right_side(paw_side) ? 1.0F : -1.0F;
+    const float phase          = normalized_phase(time_s, PAW_PERIOD, 0.0F);
+    const float shift_up       = smoothstep(fminf(1.0F, phase / 0.30F));
+    const float shift_down     = smoothstep(fmaxf(0.0F, (phase - 0.85F) / 0.15F));
+    const float shift_weight   = shift_up * (1.0F - shift_down);
+    const float wave           = 0.5F - 0.5F * cosf(2.0F * PI * phase);
+    const float swing_scale    = shift_weight;
+    const float away_from_paw  = is_right_side(paw_side) ? 1.0F : -1.0F;
 
     for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
     {
       const auto side = static_cast<LegSide>(i);
       FootTarget foot = {
-          0.0F,
-          side_stance_y(side) + away_from_paw * PAW_SHIFT_Y * shift_weight,
+          0.0F, side_stance_y(side) + away_from_paw * PAW_SHIFT_Y * shift_weight,
           FOOT_Z_STAND};
 
       if (side == paw_side)
@@ -533,7 +544,8 @@ namespace pluto::motion
       }
 
       const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
-      legs[i].write_angles(servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
+      legs[i].write_angles(
+          servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
   }
 } // namespace pluto::motion
