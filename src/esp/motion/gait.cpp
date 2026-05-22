@@ -393,7 +393,7 @@ namespace pluto::motion
     float current_lift    = LIFT;
     float current_z_stand = FOOT_Z_STAND;
 
-    if (_gait == GaitKind::TROT && !is_front_side(side))
+    if (_gait == GaitKind::TROT) //  && !is_front_side(side)
     {
       current_stride *= 0.70F; // Limits Femur forward/backward sweep
       current_lift *= 0.50F;   // Limits Tibia upward compression
