@@ -12,7 +12,7 @@ namespace pluto::motion
     constexpr float FEMUR_LENGTH = 12.00F;
     constexpr float TIBIA_LENGTH = 13.50F;
 
-    constexpr float FOOT_Z_STAND = -22.0F; // standing height
+    constexpr float FOOT_Z_STAND = -23.0F; // standing height
 
     constexpr float SHIFT_END = 0.25F;
     constexpr float LIFT_END  = 0.50F;   
@@ -25,13 +25,13 @@ namespace pluto::motion
     constexpr float LIFT   = 3.20F;
 
     constexpr float FOOT_Y_STANCE          = 7.00F;
-    constexpr float WALK_REAR_LEG_EXTEND_Z = 1.10F;
+    constexpr float WALK_REAR_LEG_EXTEND_Z = 0.00F;
     constexpr float WALK_FRONT_STRIDE_SCALE = 0.82F;
-    constexpr float WALK_REAR_STRIDE_SCALE  = 2.10F;
+    constexpr float WALK_REAR_STRIDE_SCALE  = 0.82F;
     constexpr float WALK_FRONT_SWING_DROP_Z = 0.00F;
     constexpr float WALK_FRONT_LEAN_DROP_Z  = 0.00F;
-    constexpr float WALK_REAR_LEAN_RISE_Z   = 0.50F;
-    constexpr float WALK_REAR_X_BIAS         = 0.60F;
+    constexpr float WALK_REAR_LEAN_RISE_Z   = 0.00F;
+    constexpr float WALK_REAR_X_BIAS         = 0.00F;
     constexpr float WALK_LF_EXTRA_DROP_Z    = 0.00F;
     constexpr int32_t WALK_REAR_TIBIA_EXTEND_MD = 0;
     constexpr int32_t WALK_LF_FEMUR_FLAT_MD = 30000;
