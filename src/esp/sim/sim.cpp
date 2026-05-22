@@ -1,12 +1,12 @@
 #include <mujoco/mujoco.h>
 #include <GLFW/glfw3.h>
-#include <Adafruit_PWMServoDriver.h>
 
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <array>
 
+#include <MockPWMServoDriver.h>
 #include <legs/leg.h>
 #include <motion/gait.h>
 
@@ -49,19 +49,6 @@ void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods)
             gait.set_gait(pluto::motion::GaitKind::GALLOP);
             std::cout << "Gait: gallop" << std::endl;
             break;
-        case GLFW_KEY_R:
-            std::cout << "Reset current leg joint" << std::endl;
-            break;
-        case GLFW_KEY_L:
-            current_side = pluto::next_leg_side(current_side);
-            break;
-        case GLFW_KEY_N:
-            current_joint = pluto::next_leg_joint_type(current_joint);
-            break;
-        case GLFW_KEY_EQUAL:
-            break;
-        case GLFW_KEY_MINUS:
-            break;
     }
 }
 
@@ -98,7 +85,7 @@ int main() {
     // --------------------------------------
     // Initialize legs and gait
     // --------------------------------------
-    Adafruit_PWMServoDriver PWM = Adafruit_PWMServoDriver();
+    MockPWMServoDriver PWM; // 
     std::array<pluto::Leg, 4> legs = {
         pluto::Leg{PWM, pluto::LegSide::TOP_LEFT},
         pluto::Leg{PWM, pluto::LegSide::TOP_RIGHT},
