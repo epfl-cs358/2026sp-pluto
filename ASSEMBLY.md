@@ -5,12 +5,7 @@ Follow these steps to assemble Pluto :
 Print the parts present in the Fusion file. 
 
 ## 2. Assemble electrical circuit 
-Solder the cables according to the following diagram : 
-
-![Circuit Diagram](/images/circuit.png)
-
-Use thick cables for the connection going from the protection board to the buck converter
-Make sure the cables are long enough by putting 
+Read the full wiring guide [here](WIRING_ELECTRICAL.md)
 
 ## 3. Assemble legs 
 Before starting, make sure to 3D-print all required parts from the CAD files.
@@ -74,15 +69,14 @@ Once the COXA, FEMUR, and TIBIA are assembled individually, connect them togethe
 - Screw the multiplexer onto the body 
 - Screw the buck converter onto the body 
 ![Buck Converter](/images/buckConverter.jpg)
-- Screw the protection board holder onto the body and carefully slide the protection board inside
 - Slide the ultrasonic sensor into its holder and screw it into the body 
+- Slide the protection board into its holder and screw it into the body 
 - Put velcro on the bottom of the body and the LIPO and attach it
 ![Lipo](/images/lipoProt.jpg)
-- Slide microphone into its holder in the body
+- If desired, slide microphone into its holder in the body
 - Slide the ESP into the body
 ![ESP](/images/esp.jpg) 
 
 ## 5. Plug everything in and run the code 
-- Plug all cables into corresponding locations according to the electronic diagram
-- Connect ESP 
-- Run the code according to the README.md instructions 
+- Plug all cables into corresponding locations according to the electronic diagram 
+- Follow the [Software instructions](SOFTWARE_OVERVIEW.md)
