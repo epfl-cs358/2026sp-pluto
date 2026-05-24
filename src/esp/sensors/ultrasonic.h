@@ -90,6 +90,16 @@ namespace pluto
         return -1.0f;
       return (pulse_time * SOUND_SPEED) / 2.0f;
     }
+
+    /// @brief Reads a distance in cm. 
+    /// @param limit_cm Minimum allowed distance in cm. 
+    /// @return true if the robot is too close to an obstacle.
+    bool too_close(float limit_cm = 20.0F) const noexcept
+    {
+      const float distance_cm = read_end();
+
+      return distance_cm > 0.0F && distance_cm < limit_cm;
+    }
   };
 
   template<uint8_t T, uint8_t E>

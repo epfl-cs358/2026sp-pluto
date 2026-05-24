@@ -12,6 +12,7 @@ namespace pluto
     TaskHandle_t dma_task            = nullptr;
     volatile bool is_listening       = false;
     volatile uint32_t current_energy = 0;
+    volatile uint32_t last_clap_ms   = 0; 
   };
 
   template<
@@ -128,6 +129,27 @@ namespace pluto
     /// @brief Returns the current energy
     /// @return Current energy
     uint32_t current_energy() const noexcept { return state.current_energy; }
+
+    /// @brief Detects a finger clap using the microphone energy 
+    /// @param now_ms Current time from millis()
+    /// @param threshold Energy threshold to detect a clap
+    /// @param cooldown_ms Minimum time between two claps
+    /// @return true id a clap is detected
+    bool clap_detected( 
+      uint32_t now_ms, 
+      uint32_t threshold = 250000,
+      uint32_t cooldown_ms = 800) const noexcept
+    {
+      const uint32_t energy = current_energy(); 
+
+      if (energy > threshold && now_ms - state.last_clap_ms > cooldown_ms)
+      {
+        state.last_clap_ms = now_ms;
+        return true; 
+      }
+
+      return false;
+    }
   };
 
   template<uint8_t S, uint8_t W, uint8_t D, i2s_port_t P>

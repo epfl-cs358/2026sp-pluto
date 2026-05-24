@@ -52,6 +52,83 @@ pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
 pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
 #endif
 
+static bool robot_walking = false; 
+void stop_robot(const char* reason)
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::IDLE); 
+  GAIT.stand(LEGS);
+  robot_walking = false; 
+
+  Serial.print("STOP: "); 
+  Serial.println(reason);
+}
+
+void start_robot()
+{
+  GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_speed(0.65F); 
+  GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
+  robot_walking = true;
+
+  Serial.println("START: robot walking");
+}
+
+void update_microphone_control(uint32_t now)
+{
+#ifdef PLUTO_ENABLE_MICROPHONE
+  Serial.print("Mic energy: ");
+  Serial.println(SENSOR_MICROPHONE.current_energy());
+
+  if (SENSOR_MICROPHONE.clap_detected(now))
+  {
+    if (robot_walking)
+    {
+      stop_robot("clap detected");
+    }
+    else 
+    {
+      start_robot();
+    }
+  }
+#endif
+}
+
+static constexpr float WALL_STOP_DISTANCE_CM = 20.0F; 
+static constexpr uint32_t ULTRASONIC_PERIOD_MS = 150;
+static constexpr uint32_t ULTRASONIC_WAIT_MS = 10; 
+
+void update_ultrasonic_control(uint32_t now)
+{
+#ifdef PLUTO_ENABLE_ULTRASONIC
+  static bool ultrasonic_pending = false; 
+  static uint32_t ultrasonic_begin_ms = 0;
+  static uint32_t last_ultrasonic_ms = 0;
+  
+  if (!ultrasonic_pending && now - last_ultrasonic_ms >= ULTRASONIC_PERIOD_MS)
+  {
+    SENSOR_ULTRASONIC.read_begin();
+    ultrasonic_pending = true; 
+    ultrasonic_begin_ms = now; 
+  }
+
+  if (ultrasonic_pending && now - ultrasonic_begin_ms >= ULTRASONIC_WAIT_MS)
+  {
+    ultrasonic_pending = false; 
+    last_ultrasonic_ms = now; 
+
+    float distance_cm = SENSOR_ULTRASONIC.read_end(); 
+
+    Serial.print("Distance: ");
+    Serial.println(distance_cm);
+  
+    if (GAIT.motion() == pluto::motion::MotionCommand::FORWARD && distance_cm > 0.0F && distance_cm < WALL_STOP_DISTANCE_CM)
+    {
+      stop_robot("wall too close"); 
+    }
+  } 
+#endif
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -84,41 +161,17 @@ void setup()
 
 void loop()
 {
-  static uint32_t last_motion_ms      = 0;
-  static uint32_t last_sensor_ms      = 0;
-  static bool ultrasonic_pending      = false;
-  static uint32_t ultrasonic_begin_ms = 0;
+  static uint32_t last_motion_ms = 0;
 
   const uint32_t now = millis();
 
-  if (now - last_motion_ms >= 40)
+  update_microphone_control(now);
+  update_ultrasonic_control(now);
+
+  if (now - last_motion_ms >= 20)
   {
     GAIT.update(LEGS, now);
     last_motion_ms = now;
-  }
-
-#ifdef PLUTO_ENABLE_ULTRASONIC
-  if (!ultrasonic_pending && now - last_sensor_ms >= 500)
-  {
-    SENSOR_ULTRASONIC.read_begin();
-    ultrasonic_pending  = true;
-    ultrasonic_begin_ms = now;
-  }
-#endif
-
-  if (ultrasonic_pending && now - ultrasonic_begin_ms >= 10)
-  {
-#ifdef PLUTO_ENABLE_MICROPHONE
-    // Serial.print("Current Energy: ");
-    // Serial.println(SENSOR_MICROPHONE.current_energy());
-#endif
-
-#ifdef PLUTO_ENABLE_ULTRASONIC
-    // Serial.print("Current Distance: ");
-    // Serial.println(SENSOR_ULTRASONIC.read_end());
-    ultrasonic_pending = false;
-    last_sensor_ms     = now;
-#endif
   }
 
   if (Serial.available() > 0)
@@ -131,10 +184,12 @@ void loop()
     {
     case 'f':
       GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
+      robot_walking = true; 
       Serial.println("Motion: forward/turning right");
       break;
     case 'b':
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
+      robot_walking = true; 
       Serial.println("Motion: backward/turning left");
       break;
     case 'o':
@@ -148,6 +203,7 @@ void loop()
     case 's':
       GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
       GAIT.stand(LEGS);
+      robot_walking = false;
       Serial.println("Motion: stop/stand");
       break;
     case '1':
@@ -252,6 +308,7 @@ void loop()
       case MessageMoveKind::MOVE_STOP_FOR:
         GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
         GAIT.stand(LEGS);
+        robot_walking = false; 
         Serial.println("Command: Stop and Stand");
         break;
 

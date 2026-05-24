@@ -52,6 +52,7 @@ if __name__ in {"__main__", "__mp_main__"}:
 
     IP_OF_ESP = ""
     CONTROLLER = PlutoController(IP_OF_ESP)
+    app.extra["PLUTO_CONTROLLER"] = CONTROLLER
     app.on_startup(
         lambda: threading.Thread(
             target=start_speech_engine, args=(CONTROLLER,), daemon=True
