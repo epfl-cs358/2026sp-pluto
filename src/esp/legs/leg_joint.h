@@ -41,24 +41,13 @@ namespace pluto
       _current = constrain(pulse, _config.raw_min, _config.raw_max);
       _pwm->setPWM(_channel, 0, _current);
     }
-    /// @brief Sets the joint position using a logical angle in millidegrees.
-    /// @param millidegrees The target angle in millidegrees, mapped to the PWM range.
+    /// @brief Sets the joint position using the calibrated joint angle in millidegrees.
+    /// @param millidegrees The target calibrated angle in millidegrees, mapped to the PWM range.
     void write_angle(int32_t millidegrees) noexcept
     {
-      millidegrees = constrain(millidegrees, _config.angle_min_md, _config.angle_max_md);
-
-      // Linear mapping: P = MIN + (A - Amin) * (Pmax - Pmin) / (Amax - Amin)
-      uint16_t pulse = _config.raw_min
-                       + static_cast<uint16_t>(
-                             static_cast<int64_t>(millidegrees - _config.angle_min_md)
-                             * static_cast<int64_t>(_config.raw_max - _config.raw_min)
-                             / static_cast<int64_t>(_config.angle_max_md - _config.angle_min_md));
-      
-      if (_config.inverted) {
-        pulse = _config.raw_max - (pulse - _config.raw_min);
-      }                       
-      
-      write_raw(pulse);
+      const int32_t calibrated_md =
+          constrain(millidegrees, _config.angle_min_md, _config.angle_max_md);
+      write_raw(angle_to_raw(calibrated_md));
     }
     /// @brief Sets the joint to its starting position
     void write_starting() noexcept { write_raw(_config.raw_start); }
@@ -71,18 +60,45 @@ namespace pluto
     /// @brief Gets the last written raw PWM pulse width.
     /// @return The 12-bit PWM value.
     uint16_t current_raw() const noexcept { return _current; }
-    /// @brief Calculates the current logical angle based on the last written pulse.
+    /// @brief Calculates the current calibrated angle based on the last written pulse.
     /// @return The current angle in millidegrees.
     int32_t current_angle() const noexcept
     {
-      return _config.angle_min_md
-             + static_cast<int32_t>(
-              (_current - _config.raw_min) 
-              * (_config.angle_max_md - _config.angle_min_md))
-              / (_config.raw_max - _config.raw_min);
+      return raw_to_angle(_current);
     }
   
   private:
+    uint16_t angle_to_raw(int32_t millidegrees) const noexcept
+    {
+      uint16_t pulse = _config.raw_min
+                       + static_cast<uint16_t>(
+                             static_cast<int64_t>(millidegrees - _config.angle_min_md)
+                             * static_cast<int64_t>(_config.raw_max - _config.raw_min)
+                             / static_cast<int64_t>(_config.angle_max_md - _config.angle_min_md));
+
+      if (_config.inverted)
+      {
+        pulse = _config.raw_max - (pulse - _config.raw_min);
+      }
+
+      return pulse;
+    }
+
+    int32_t raw_to_angle(uint16_t raw) const noexcept
+    {
+      uint16_t normalized_raw = raw;
+      if (_config.inverted)
+      {
+        normalized_raw = _config.raw_max - (raw - _config.raw_min);
+      }
+
+      return _config.angle_min_md
+             + static_cast<int32_t>(
+                   static_cast<int64_t>(normalized_raw - _config.raw_min)
+                   * static_cast<int64_t>(_config.angle_max_md - _config.angle_min_md)
+                   / static_cast<int64_t>(_config.raw_max - _config.raw_min));
+    }
+
     /// @brief Pointer to the servo driver.
     /// @warning Must outlive the current class.
     Adafruit_PWMServoDriver* _pwm;

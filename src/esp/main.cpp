@@ -1,4 +1,4 @@
-#define PLUTO_ENABLE_WIFI
+// #define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
 #define PLUTO_ENABLE_MICROPHONE
 
@@ -155,7 +155,7 @@ void setup()
   GAIT.stand(LEGS);
   Serial.println("Pluto motion ready");
   Serial.println(
-      "Commands: f forward, b backward, s stop, 1 walk, 2 trot, 3 gallop, +/- trim "
+      "Commands: f forward, b backward, o bow, k paw, u walk-manual, m next-stage, j next-leg, s stop, 1 walk, 2 trot, 3 gallop, +/- trim "
       "selected joint");
 }
 
@@ -192,6 +192,14 @@ void loop()
       robot_walking = true; 
       Serial.println("Motion: backward/turning left");
       break;
+    case 'o':
+      GAIT.set_motion(pluto::motion::MotionCommand::BOW);
+      Serial.println("Motion: bow");
+      break;
+    case 'k':
+      GAIT.set_motion(pluto::motion::MotionCommand::PAW);
+      Serial.println("Motion: paw");
+      break;
     case 's':
       GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
       GAIT.stand(LEGS);
@@ -209,6 +217,21 @@ void loop()
     case '3':
       GAIT.set_gait(pluto::motion::GaitKind::GALLOP);
       Serial.println("Gait: gallop");
+      break;
+    case 'u':
+      GAIT.set_walk_manual_phase(!GAIT.walk_manual_phase_enabled());
+      Serial.print("Walk manual phase: ");
+      Serial.println(GAIT.walk_manual_phase_enabled() ? "ON" : "OFF");
+      break;
+    case 'm':
+      GAIT.next_walk_manual_stage();
+      Serial.print("Walk manual stage: ");
+      Serial.println(GAIT.walk_manual_stage());
+      break;
+    case 'j':
+      GAIT.next_walk_manual_leg();
+      Serial.print("Walk manual leg: ");
+      Serial.println(pluto::str_leg_side(GAIT.walk_manual_leg()));
       break;
     case '0':
       GAIT.set_speed(0.0F);
