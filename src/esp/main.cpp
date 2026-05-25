@@ -44,7 +44,7 @@ pluto::motion::GaitController GAIT;
 
 #ifdef PLUTO_ENABLE_ULTRASONIC
 /// @brief Ultrasonic sensor
-pluto::SensorUltraSonic<21, 22> SENSOR_ULTRASONIC;
+pluto::SensorUltraSonic<5, 18> SENSOR_ULTRASONIC;
 #endif
 
 #ifdef PLUTO_ENABLE_MICROPHONE
@@ -73,14 +73,30 @@ void start_robot()
   Serial.println("START: robot walking");
 }
 
+static constexpr uint32_t CLAP_THRESHOLD = 2000000;
+static constexpr uint32_t CLAP_COOLDOWN_MS = 800;
+static constexpr uint32_t MICROPHONE_PRINT_PRIOD_MS = 150; 
+
 void update_microphone_control(uint32_t now)
 {
 #ifdef PLUTO_ENABLE_MICROPHONE
-  Serial.print("Mic energy: ");
-  Serial.println(SENSOR_MICROPHONE.current_energy());
+  static uint32_t last_microphone_print_ms = 0; 
+  static uint32_t last_clap_ms = 0; 
 
-  if (SENSOR_MICROPHONE.clap_detected(now))
+  uint32_t mic_energy = SENSOR_MICROPHONE.current_energy(); 
+
+  if (now - last_microphone_print_ms >= MICROPHONE_PRINT_PRIOD_MS)
   {
+    last_microphone_print_ms = now; 
+
+    Serial.print("Mic energy: ");
+    Serial.println(mic_energy);
+  }
+
+  if (mic_energy >= CLAP_THRESHOLD && now - last_clap_ms >= CLAP_COOLDOWN_MS)
+  {
+    last_clap_ms = now; 
+    
     if (robot_walking)
     {
       stop_robot("clap detected");
@@ -118,8 +134,8 @@ void update_ultrasonic_control(uint32_t now)
 
     float distance_cm = SENSOR_ULTRASONIC.read_end(); 
 
-    Serial.print("Distance: ");
-    Serial.println(distance_cm);
+    // Serial.print("Distance: ");
+    // Serial.println(distance_cm);
   
     if (GAIT.motion() == pluto::motion::MotionCommand::FORWARD && distance_cm > 0.0F && distance_cm < WALL_STOP_DISTANCE_CM)
     {

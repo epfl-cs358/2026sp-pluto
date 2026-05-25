@@ -94,7 +94,7 @@ namespace pluto
     /// @brief Reads a distance in cm. 
     /// @param limit_cm Minimum allowed distance in cm. 
     /// @return true if the robot is too close to an obstacle.
-    bool too_close(float limit_cm = 20.0F) const noexcept
+    bool too_close(float limit_cm) const noexcept
     {
       const float distance_cm = read_end();
 
