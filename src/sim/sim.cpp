@@ -7,8 +7,8 @@
 #include <array>
 
 #include <MockPWMServoDriver.h>
-#include <legs/leg.h>
-#include <motion/gait.h>
+#include <esp/legs/leg.h>
+#include <esp/motion/gait.h>
 
 std::array<std::string, 12> actuator_names = {
     "tl_coxa_motor","tl_femur_motor","tl_tibia_motor",
@@ -125,7 +125,12 @@ int main() {
             }
         }
 
-        mj_step(m, d);
+        double simstart = d->time;
+
+        while (d->time - simstart < 1.0 / 60.0)
+        {
+            mj_step(m, d);
+        }
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
