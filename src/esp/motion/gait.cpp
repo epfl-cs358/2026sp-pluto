@@ -25,17 +25,9 @@ namespace pluto::motion
     constexpr float LIFT   = 3.20F;
 
     constexpr float FOOT_Y_STANCE               = 7.00F;
-    constexpr float WALK_REAR_LEG_EXTEND_Z      = 0.00F;
     constexpr float WALK_FRONT_STRIDE_SCALE     = 0.82F;
     constexpr float WALK_REAR_STRIDE_SCALE      = 0.82F;
-    constexpr float WALK_FRONT_SWING_DROP_Z     = 0.00F;
-    constexpr float WALK_FRONT_LEAN_DROP_Z      = 0.00F;
-    constexpr float WALK_REAR_LEAN_RISE_Z       = 0.00F;
-    constexpr float WALK_REAR_X_BIAS            = 0.00F;
-    constexpr float WALK_LF_EXTRA_DROP_Z        = 0.00F;
-    constexpr int32_t WALK_REAR_TIBIA_EXTEND_MD = 0;
     constexpr int32_t WALK_LF_FEMUR_FLAT_MD     = 30000;
-    constexpr int32_t WALK_RF_FEMUR_FLAT_MD     = 0;
     constexpr float BOW_FRONT_DROP              = 5.00F;
     constexpr float BOW_REAR_RISE               = 2.00F;
     constexpr float BOW_FRONT_BACK              = 1.50F;
@@ -94,13 +86,6 @@ namespace pluto::motion
     float smoothstep(float t) noexcept
     {
       return t * t * (3.0F - 2.0F * t);
-    }
-
-    bool is_airborne(float phase) noexcept
-    {
-      return phase >= SHIFT_END
-             && phase
-                    < STEP_END; // add multiplier to where the angles is fed (like 2) whenevern it should be higher
     }
 
     float side_stance_y(LegSide side) noexcept
@@ -380,8 +365,6 @@ namespace pluto::motion
         (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
     const float period = period_seconds();
     const float phase  = quantize_phase(phase_for(side, time_s, period));
-    const bool current_leg_airborne = is_airborne(phase);
-
     float leg_stride_scale = 1.0F;
     if (_gait == GaitKind::WALK)
     {
@@ -403,36 +386,6 @@ namespace pluto::motion
         phase, direction * turn_flip * _speed * leg_stride_scale,
         side_stance_y(side), current_stride, current_lift, current_z_stand);
 
-    if (_gait == GaitKind::WALK && !is_front_side(side))
-    {
-      foot.x += WALK_REAR_X_BIAS;
-    }
-
-    if (_gait == GaitKind::WALK && !is_front_side(side))
-    {
-      foot.z -= WALK_REAR_LEG_EXTEND_Z;
-    }
-
-    if (_gait == GaitKind::WALK)
-    {
-      if (is_front_side(side))
-      {
-        foot.z -= WALK_FRONT_LEAN_DROP_Z;
-        if (side == LegSide::TOP_LEFT)
-        {
-          foot.z += WALK_LF_EXTRA_DROP_Z;
-        }
-        if (current_leg_airborne)
-        {
-          foot.z -= WALK_FRONT_SWING_DROP_Z;
-        }
-      }
-      else
-      {
-        foot.z += WALK_REAR_LEAN_RISE_Z;
-      }
-    }
-
     foot.x = quantize_step(foot.x, FOOT_X_QUANTIZATION_STEP);
     foot.z = quantize_step(foot.z, FOOT_Z_QUANTIZATION_STEP);
 
@@ -441,16 +394,6 @@ namespace pluto::motion
     {
       angles.femur_md -= WALK_LF_FEMUR_FLAT_MD;
     }
-    if (_gait == GaitKind::WALK && side == LegSide::TOP_RIGHT)
-    {
-      angles.femur_md += WALK_RF_FEMUR_FLAT_MD;
-    }
-
-    if (_gait == GaitKind::WALK && !is_front_side(side))
-    {
-      angles.tibia_md += WALK_REAR_TIBIA_EXTEND_MD;
-    }
-
     const auto servo_angles = apply_standing_offsets(angles, side);
 
     static uint32_t last_print = 0;
