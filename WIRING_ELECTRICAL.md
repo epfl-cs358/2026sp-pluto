@@ -6,7 +6,7 @@ This page summarizes Pluto's wiring and electrical setup. For the physical assem
 
 ![Circuit Diagram](images/circuit.png)
 
-Use this diagram as the source of truth for the current wiring layout.
+Use this diagram as the reference for the current wiring layout, then verify every connection against the actual hardware before powering the robot.
 
 ## Power Path
 
@@ -28,21 +28,22 @@ Important checks:
 - Use thick wires for high-current servo power.
 - Confirm LiPo polarity before plugging in the battery.
 - Adjust and verify the LM2596 output voltage with a multimeter before connecting the ESP32.
-- Connect all grounds together: LiPo/servo ground, PCA9685 ground, ESP32 ground, and sensor ground.
+- Connect all grounds together: LiPo/servo ground, PCA9685 ground, ESP32 ground, buck converter ground, and sensor ground.
 - Do not test full gaits until standing poses and single-leg motion are stable.
 
 ## ESP32 Connections
 
-The ESP32 is the main controller. It handles WiFi, sensor reads, and communication with the PCA9685 servo driver.
+The ESP32 is the main controller. It handles firmware execution, sensor reads, serial debugging, optional WiFi, and communication with the PCA9685 servo driver.
 
 Check these before powering the full robot:
 
 - ESP32 is connected over USB for flashing and serial monitoring.
 - ESP32 receives a safe regulated voltage from the buck converter when running from battery.
 - ESP32 and PCA9685 share I2C SDA/SCL and common ground.
-- WiFi credentials are configured in `src/esp/main.cpp`.
+- Sensor pins match the templates in `src/esp/main.cpp`.
+- WiFi credentials are configured in `src/esp/main.cpp` only if `PLUTO_ENABLE_WIFI` is enabled.
 
-## PCA9685 And Servo Wiring
+## PCA9685 and Servo Wiring
 
 The PCA9685 drives all 12 servos.
 
@@ -56,15 +57,17 @@ The PCA9685 drives all 12 servos.
 
 Current sensor notes:
 
-- Ultrasonic sensor: HC-SR04, mounted at the front of the robot.
+- Ultrasonic sensor: HC-SR04-style sensor, mounted at the front of the robot.
 - Microphone: INMP441 I2S microphone, mounted near the top-middle of the body.
 
 Current firmware pin templates:
 
-- Ultrasonic sensor: `SensorUltraSonic<21, 22>`
+- Ultrasonic sensor: `SensorUltraSonic<5, 18>`
 - Microphone: `SensorMicrophone<26, 25, 33>`
 
-See [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) for software-side sensor notes.
+If the ultrasonic ECHO line outputs 5V, use a voltage divider or level shifter before connecting it to an ESP32 GPIO.
+
+See [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) for software-side sensor behavior.
 
 ## First Power-Up Checklist
 
