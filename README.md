@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 Pluto
+# 🐶 Pluto
 
 **A compact 12-DOF quadruped robot with ESP32 gait control, calibrated servo actuation, sensor reactions, controller-side speech commands, and simulation assets.**
 
