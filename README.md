@@ -1151,7 +1151,6 @@ Pluto was developed as part of EPFL's **CS-358 Making Intelligent Things** cours
 <td align="center">Sam Lee</td>
 <td align="center">Raphael Dib Nehme</td>
 <td align="center">Mariya Rakytyanska</td>
-<td align="center">EPFL CS-358</td>
 </tr>
 </table>
 
@@ -1165,7 +1164,6 @@ Pluto was developed as part of EPFL's **CS-358 Making Intelligent Things** cours
 
 AI tools were used to support:
 
-- Documentation structure and technical writing.
 - Debugging guidance and code review suggestions.
 - Edge-case review for setup, communication, and hardware integration notes.
 - Summaries of implementation details from the codebase.
