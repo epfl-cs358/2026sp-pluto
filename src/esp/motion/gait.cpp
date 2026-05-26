@@ -417,9 +417,27 @@ namespace pluto::motion
   void GaitController::write_leg(
       std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept
   {
-    const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
-    const float turn_flip =
-        (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
+    const bool explicit_right_turn = _motion == MotionCommand::RIGHT;
+    const bool explicit_left_turn  = _motion == MotionCommand::LEFT;
+
+    float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
+    float turn_flip = 1.0F;
+
+    if (explicit_right_turn)
+    {
+      direction = 1.0F;
+      turn_flip = is_right_side(side) ? -1.0F : 1.0F;
+    }
+    else if (explicit_left_turn)
+    {
+      direction = 1.0F;
+      turn_flip = is_right_side(side) ? 1.0F : -1.0F;
+    }
+    else if (_gait == GaitKind::TURN)
+    {
+      turn_flip = is_right_side(side) ? -1.0F : 1.0F;
+    }
+
     const float period = period_seconds();
     const float phase  = quantize_phase(phase_for(side, time_s, period));
     float leg_stride_scale = 1.0F;

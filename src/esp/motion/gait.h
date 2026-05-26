@@ -20,13 +20,12 @@ namespace pluto::motion
     IDLE = 0,
 
     FORWARD = 1,
-    RIGHT = FORWARD,
-
     BACKWARD = 2,
-    LEFT = BACKWARD,
+    LEFT = 3,
+    RIGHT = 4,
 
-    BOW = 3,
-    PAW = 4,
+    BOW = 5,
+    PAW = 6,
   };
 
   class GaitController

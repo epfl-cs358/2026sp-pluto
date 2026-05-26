@@ -220,12 +220,22 @@ void loop()
     case 'f':
       GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
       robot_walking = true; 
-      Serial.println("Motion: forward/turning right");
+      Serial.println("Motion: forward");
       break;
     case 'b':
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
       robot_walking = true; 
-      Serial.println("Motion: backward/turning left");
+      Serial.println("Motion: backward");
+      break;
+    case 'q':
+      GAIT.set_motion(pluto::motion::MotionCommand::LEFT);
+      robot_walking = true;
+      Serial.println("Motion: turn left");
+      break;
+    case 'e':
+      GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
+      robot_walking = true;
+      Serial.println("Motion: turn right");
       break;
     case 'o':
       GAIT.set_motion(pluto::motion::MotionCommand::BOW);
