@@ -79,7 +79,7 @@ static constexpr uint32_t MICROPHONE_CHECK_PERIOD_MS = 50;
 static constexpr uint32_t MICROPHONE_PRINT_PERIOD_MS = 1000; 
 
 void update_microphone_control(uint32_t now)
-{
+{git 
 #ifdef PLUTO_ENABLE_MICROPHONE
   static uint32_t last_microphone_check_ms = 0; 
   static uint32_t last_microphone_print_ms = 0; 
