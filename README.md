@@ -61,6 +61,10 @@ Binary packet/message definitions shared by C++ firmware and Python control code
 
 High-level map of the implemented firmware, controller, communication, simulation, and sensor layers.
 
+### [Simulation Notes](SIMULATION.md)
+
+Current PyBullet and MuJoCo simulation paths, mesh usage, known mismatch, and how the simulation code relates to the firmware gait controller.
+
 ### [Troubleshooting Guide](TROUBLESHOOTING.md)
 
 First-time setup issues, build problems, power checks, WiFi debugging, sensor checks, and firmware notes.
@@ -590,7 +594,7 @@ PlatformIO is configured with:
 - `src_dir = src/esp`
 - `include_dir = src/`
 - `build_dir = .build/`
-- `build_src_filter` excluding `src/esp/sim/**` from firmware builds.
+- `build_src_filter` excludes only paths under the firmware source root; `src/sim` is outside `src/esp` and is not part of the ESP32 firmware build.
 
 Firmware dependencies:
 
@@ -605,6 +609,8 @@ Pluto has two simulation-facing paths:
 - MuJoCo C++ bridge under `src/sim`, using `src/mesh/pluto.xml` and the current per-leg STL files.
 
 The C++ bridge reuses the embedded gait controller with `MockPWMServoDriver`, then maps the 12 resulting joint angles to MuJoCo actuators.
+
+The Python PyBullet path is older and still expects generic `coxa.stl`, `femur.stl`, and `tibia.stl` visual meshes. The repository's current mesh set is per-leg, so the PyBullet visualization path needs an update before it fully matches the current CAD assets. See [SIMULATION.md](SIMULATION.md).
 
 ---
 
@@ -748,6 +754,7 @@ Verify pins and thresholds against the actual wiring before physical gait tests.
 - [Communication Protocol](src/comm/README.md)
 - [WiFi Protocol](SOFTWARE_WIFI.md)
 - [Software Sensors](SOFTWARE_SENSORS.md)
+- [Simulation Notes](SIMULATION.md)
 
 ### Key Source Files
 

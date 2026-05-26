@@ -12,7 +12,7 @@ Use an archive folder for work that is useful historically but should not be par
 - old inverse-kinematics prototypes
 - temporary servo calibration sketches
 - sensor bring-up tests
-- older PyBullet experiments
+- older PyBullet or MuJoCo experiments
 - communication protocol experiments that were replaced by the current UDP packet format
 - hardware test scripts that require outdated wiring or assumptions
 
@@ -47,4 +47,5 @@ At the moment, first-time validation is documented through:
 - [README.md](README.md): quick start, firmware flashing, and setup flow
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md): first-time setup issues
 - [ONGOING_WORK.md](ONGOING_WORK.md): known limitations and planned improvements
+- [SIMULATION.md](SIMULATION.md): current simulation split and known limitations
 - [src/esp/main.cpp](src/esp/main.cpp): serial commands for early gait and servo testing

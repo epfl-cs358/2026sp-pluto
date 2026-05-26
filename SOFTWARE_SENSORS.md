@@ -1,14 +1,79 @@
-## Sensors:
-Pluto is currently equipped with 2 sensors:
-- ultrasonic sensor (HC-SR04, on the front of the robot), measuring the distances to the obstacles,
-- microphone (INMP441, top middle of the body), for speech recognition.
+# Software Sensors
 
-## Ultrasonic Sensor:
-An abstraction for the ultrasonic sensor exists in `src/esp/sensors/ultrasonic.h`. The abstaction is non-blocking (done by using hardware interrupts): `read_begin()` issues the pulse to trigger the sensor, `read_end()` collects the data when ready.
+Pluto currently has two firmware sensor abstractions: an ultrasonic distance sensor and an INMP441 I2S microphone.
 
-The maximum effective range is limited by the maximum wait time (ULTRASONIC_WAIT_TIME), and is by default `85.75 cm`.
+## Current Firmware Defaults
 
-## Microphone:
-An abstraction for the microphone sensor exists in `src/esp/sensors/microphone.h`. The microphone communicates with the ESP using [I2S](https://en.wikipedia.org/wiki/I2S). The abstraction has `current_energy()` that returns a dimensionless relative indicator of signal amplitude: this was to be used to enable the speech recognition engine when sounds of sufficient amplitudes are detected.
+Sensor support is enabled in [src/esp/main.cpp](src/esp/main.cpp):
 
-The current ESP code does not have a speech recognition engine. When enabling the WiFi server (TODO: insert link to section!), the ESP heats up quite a lot. To avoid damaging it, we decided to replace the on-chip speech recognition with on-controller speech recognition (thus using the microphone of the controller computer), sending to the ESP the matching command to execute. Using a more powerfull ESP, and one that better supports machine-learning workflow could circumvent this limitation.
+```cpp
+#define PLUTO_ENABLE_ULTRASONIC
+#define PLUTO_ENABLE_MICROPHONE
+```
+
+Current pin templates:
+
+- Ultrasonic sensor: `SensorUltraSonic<5, 18>`
+- Microphone: `SensorMicrophone<26, 25, 33>`
+
+Verify these pins against the physical wiring before flashing or powering the robot.
+
+## Ultrasonic Sensor
+
+The ultrasonic abstraction is implemented in:
+
+```text
+src/esp/sensors/ultrasonic.h
+```
+
+It is designed around a non-blocking read pattern:
+
+- `read_begin()` sends the trigger pulse.
+- `read_end()` collects the measured pulse duration and converts it to distance.
+
+The current firmware starts a read every 150 ms and checks the result roughly 10 ms later. If the robot is moving forward and the measured distance is positive and below 20 cm, `stop_robot("wall too close")` is called.
+
+The sensor is intended for simple front obstacle detection, not full mapping or SLAM.
+
+## Microphone
+
+The microphone abstraction is implemented in:
+
+```text
+src/esp/sensors/microphone.h
+```
+
+It uses I2S and exposes:
+
+```cpp
+current_energy()
+```
+
+This returns a dimensionless relative audio energy value. In the current firmware, that energy is printed periodically and used as a clap detector:
+
+- Clap threshold: `2000000`
+- Clap cooldown: `800 ms`
+- Behavior: if the robot is walking, a clap stops it; otherwise a clap starts walking.
+
+## Speech Recognition
+
+The ESP32 firmware does not run speech recognition. Spoken commands are handled on the controller computer by Vosk in:
+
+```text
+src/control/pluto_speech/speech.py
+```
+
+Currently supported phrases include:
+
+- `pluto sit`
+- `pluto stop`
+- `pluto give paw`
+
+The controller converts recognized phrases into shared protocol messages and sends them to the ESP32 when connected.
+
+## Related Documentation
+
+- [Wiring & Electrical](WIRING_ELECTRICAL.md)
+- [ESP32 Firmware](src/esp/README.md)
+- [Python Controller](src/control/README.md)
+- [Troubleshooting](TROUBLESHOOTING.md)

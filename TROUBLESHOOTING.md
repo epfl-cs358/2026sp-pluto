@@ -1,6 +1,6 @@
 # First-Time Troubleshooting
 
-Use this guide when Pluto does not start cleanly the first time. Start with the section that matches the symptom.
+Use this guide when Pluto does not start cleanly. Start with the section that matches the symptom.
 
 ## Controller UI Does Not Start
 
@@ -54,12 +54,23 @@ run.bat --port 8081
 
 Then open `http://localhost:8081`.
 
-## PyBullet Simulation Does Not Open
+## Simulation Does Not Open
+
+### PyBullet UI
 
 - Make sure you are running on a machine with a desktop display.
-- If running over SSH or a headless environment, PyBullet GUI mode may not open.
+- If running over SSH or in a headless environment, PyBullet GUI mode may not open.
 - Check that `pybullet` installed successfully in `.venv`.
-- Try `--reinstall` if the package installation looks incomplete.
+- Try `bash run.sh --reinstall` if the package installation looks incomplete.
+- Current limitation: `src/control/sim_motion.py` still references old generic visual mesh files. See [SIMULATION.md](SIMULATION.md).
+
+### MuJoCo Bridge
+
+- Check that `mujoco` and `glfw` installed successfully.
+- Confirm that [src/mesh/pluto.xml](src/mesh/pluto.xml) can find the STL files in `src/mesh`.
+- The C++ MuJoCo bridge under `src/sim` is separate from the ESP32 PlatformIO firmware build.
+
+See [SIMULATION.md](SIMULATION.md).
 
 ## ESP32 Firmware Does Not Build Or Upload
 
@@ -105,11 +116,16 @@ If the monitor still shows nothing, check the USB cable, board selection, and wh
 
 ## Robot Does Not Connect Over WiFi
 
-- Confirm the WiFi network is added in `src/esp/main.cpp` with `PLUTO_SERVER.addAP(<WIFI_NAME>, <WIFI_PASSWORD>)`.
-- Confirm the computer and ESP32 are on the same network.
-- Check the ESP32 serial monitor for connection logs.
-- Set the ESP32 IP address in `src/control/main.py` where `PlutoController(IP_OF_ESP)` is created.
-- Make sure UDP port `4242` is not blocked by the network or firewall.
+WiFi is implemented but disabled by default in `src/esp/main.cpp`.
+
+Check:
+
+- `#define PLUTO_ENABLE_WIFI` is enabled.
+- The WiFi network is added in `setup()` with `PLUTO_SERVER.addAP(<WIFI_NAME>, <WIFI_PASSWORD>)`.
+- The computer and ESP32 are on the same network.
+- The ESP32 serial monitor shows WiFi startup activity.
+- `IP_OF_ESP` is set in `src/control/main.py`.
+- UDP port `4242` is not blocked by the network or firewall.
 
 For packet details, see [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 
@@ -120,6 +136,7 @@ For packet details, see [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 - Confirm the LiPo is charged and the rocker switch is on.
 - Check that the servos are connected to the expected PCA9685 channels.
 - Use the serial monitor to test simple firmware commands before trying full walking.
+- Check `src/esp/legs/leg_data.h` for calibration limits and starting pulses.
 
 Do not continue testing if a servo stalls, overheats, chatters heavily, or pulls the robot into a mechanically blocked position.
 
@@ -131,30 +148,37 @@ This is often a power issue.
 - Verify the buck converter output before connecting sensitive electronics.
 - Use thick enough wires for servo power.
 - Confirm XT60 and switch connections are secure.
+- Confirm all grounds are connected together.
 - Avoid testing full gaits until single-leg and standing poses are stable.
 
 ## Sensors Do Not Respond
 
 - Check the sensor wiring against [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md).
 - Verify the firmware pin templates:
-  - Ultrasonic sensor: `SensorUltraSonic<21, 22>`
+  - Ultrasonic sensor: `SensorUltraSonic<5, 18>`
   - Microphone: `SensorMicrophone<26, 25, 33>`
 - Confirm the sensors share ground with the ESP32.
 - Use serial output to inspect raw readings before relying on reactive behavior.
+- If the ultrasonic ECHO line is 5V, use a voltage divider or level shifter.
 
 ## Speech Commands Do Not Work
+
+Speech recognition runs on the controller computer, not on the ESP32.
 
 - Make sure a microphone is connected and allowed by the operating system.
 - Check that `sounddevice` and `vosk` installed correctly.
 - Run the controller from a normal desktop session, not a restricted terminal.
+- Connect to the robot before expecting speech commands to be sent.
 - Speak one of the supported commands clearly, such as `pluto stop`, `pluto sit`, or `pluto give paw`.
 
 ## Still Stuck
 
 Check these docs next:
 
-- [README.md](README.md) for the main setup flow
-- [ASSEMBLY.md](ASSEMBLY.md) for wiring and mechanical assembly
-- [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md) for UDP communication
-- [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) for sensor setup
-- [ONGOING_WORK.md](ONGOING_WORK.md) for known limitations and future work
+- [README.md](README.md)
+- [ASSEMBLY.md](ASSEMBLY.md)
+- [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md)
+- [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md)
+- [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md)
+- [SIMULATION.md](SIMULATION.md)
+- [ONGOING_WORK.md](ONGOING_WORK.md)
