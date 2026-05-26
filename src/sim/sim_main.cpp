@@ -6,9 +6,8 @@
 #include <thread>
 #include <array>
 
-#include <MockPWMServoDriver.h>
-#include <esp/legs/leg.h>
-#include <esp/motion/gait.h>
+#include <sim/sim_leg.h>
+#include <sim/sim_gait.h>
 
 std::array<std::string, 12> actuator_names = {
     "tl_coxa_motor","tl_femur_motor","tl_tibia_motor",
@@ -17,43 +16,43 @@ std::array<std::string, 12> actuator_names = {
     "br_coxa_motor","br_femur_motor","br_tibia_motor"
 };
 
-pluto::motion::GaitController gait;
-pluto::LegJointType current_joint   = pluto::LegJointType::COXA;
-pluto::LegSide current_side         = pluto::LegSide::TOP_LEFT;
+pluto::sim::GaitController gait;
+pluto::sim::LegJointType current_joint   = pluto::sim::LegJointType::COXA;
+pluto::LegSide current_side              = pluto::LegSide::TOP_LEFT;
 
 void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS) return;
 
     switch(key) {
         case GLFW_KEY_F:
-            gait.set_motion(pluto::motion::MotionCommand::FORWARD);
+            gait.set_motion(pluto::sim::MotionCommand::FORWARD);
             std::cout << "Motion: forward" << std::endl;
             break;
         case GLFW_KEY_B:
-            gait.set_motion(pluto::motion::MotionCommand::BACKWARD);
+            gait.set_motion(pluto::sim::MotionCommand::BACKWARD);
             std::cout << "Motion: backward" << std::endl;
             break;
         case GLFW_KEY_S:
-            gait.set_motion(pluto::motion::MotionCommand::IDLE);
+            gait.set_motion(pluto::sim::MotionCommand::IDLE);
             std::cout << "Motion: stop" << std::endl;
             break;
         case GLFW_KEY_1:
-            gait.set_gait(pluto::motion::GaitKind::WALK);
+            gait.set_gait(pluto::sim::GaitKind::WALK);
             std::cout << "Gait: walk" << std::endl;
             break;
         case GLFW_KEY_2:
-            gait.set_gait(pluto::motion::GaitKind::TROT);
+            gait.set_gait(pluto::sim::GaitKind::TROT);
             std::cout << "Gait: trot" << std::endl;
             break;
         case GLFW_KEY_3:
-            gait.set_gait(pluto::motion::GaitKind::GALLOP);
+            gait.set_gait(pluto::sim::GaitKind::GALLOP);
             std::cout << "Gait: gallop" << std::endl;
             break;
     }
 }
 
 int main() {
-    const char* model_path = "../../mesh/pluto.xml";
+    const char* model_path = "../mesh/pluto.xml";
     char error[1000] = "Could not load model";
     mjModel* m = mj_loadXML(model_path, nullptr, error, 1000);
     if (!m) {
@@ -86,11 +85,11 @@ int main() {
     // Initialize legs and gait
     // --------------------------------------
     MockPWMServoDriver PWM; // 
-    std::array<pluto::Leg, 4> legs = {
-        pluto::Leg{PWM, pluto::LegSide::TOP_LEFT},
-        pluto::Leg{PWM, pluto::LegSide::TOP_RIGHT},
-        pluto::Leg{PWM, pluto::LegSide::BOTTOM_LEFT},
-        pluto::Leg{PWM, pluto::LegSide::BOTTOM_RIGHT}
+    std::array<pluto::sim::Leg, 4> legs = {
+        pluto::sim::Leg{PWM, pluto::LegSide::TOP_LEFT},
+        pluto::sim::Leg{PWM, pluto::LegSide::TOP_RIGHT},
+        pluto::sim::Leg{PWM, pluto::LegSide::BOTTOM_LEFT},
+        pluto::sim::Leg{PWM, pluto::LegSide::BOTTOM_RIGHT}
     };
     gait.stand(legs);
 
@@ -117,7 +116,7 @@ int main() {
         int idx = 0;
         for (auto side : {pluto::LegSide::TOP_LEFT, pluto::LegSide::TOP_RIGHT,
                           pluto::LegSide::BOTTOM_LEFT, pluto::LegSide::BOTTOM_RIGHT}) {
-            for (auto joint : {pluto::LegJointType::COXA, pluto::LegJointType::FEMUR, pluto::LegJointType::TIBIA}) {
+            for (auto joint : {pluto::sim::LegJointType::COXA, pluto::sim::LegJointType::FEMUR, pluto::sim::LegJointType::TIBIA}) {
                 int32_t md = legs[(uint8_t)side][(uint8_t)joint].current_angle();
                 double rad = md * (M_PI / 180000.0);
                 d->ctrl[actuator_indices[idx]] = rad;

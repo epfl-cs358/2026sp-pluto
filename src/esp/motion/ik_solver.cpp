@@ -1,6 +1,6 @@
 #include <motion/ik_solver.h>
 
-#include <Arduino.h>
+#include <algorithm>
 #include <cmath>
 
 namespace pluto::motion
@@ -29,7 +29,7 @@ namespace pluto::motion
       FootTarget foot, float coxa_length, float femur_length, float tibia_length) noexcept
   {
     const float c_squared = foot.y * foot.y + foot.z * foot.z;
-    const float d_squared = max(0.0F, c_squared - coxa_length * coxa_length);
+    const float d_squared = std::max(0.0F, c_squared - coxa_length * coxa_length);
     const float d         = sqrtf(d_squared);
 
     const float coxa_angle = atan2f(foot.y, -foot.z) + atan2f(-coxa_length, d);
