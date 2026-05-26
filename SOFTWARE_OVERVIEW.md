@@ -80,7 +80,6 @@ See [Simulation Notes](SIMULATION.md).
 - Better gait stability and interpolation.
 - Live WiFi control validation on hardware.
 - More complete behavior sequences.
-- IMU-based stabilization.
 - Higher-fidelity simulation.
 - Autonomous obstacle avoidance.
 
