@@ -11,6 +11,8 @@
 ![Simulation](https://img.shields.io/badge/Simulation-PyBullet%20%2B%20MuJoCo-lightgrey)
 ![Course](https://img.shields.io/badge/EPFL-CS--358-red)
 
+</div>
+
 > **Current status:** Pluto has the main robot platform in place: ESP32 firmware, gait code, servo calibration hooks, ultrasonic and microphone reactions, a Python controller, shared UDP messages, updated per-leg meshes, and a MuJoCo model. Final physical gait tuning and some behavior sequences still need validation on the real robot.
 
 > **Live demo:** Demo media can be added here once final robot videos are available.
