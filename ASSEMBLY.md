@@ -22,18 +22,18 @@ Each leg requires:
 ### Step 1: Assemble the TIBIA
 - Take the two 3D-printed TIBIA parts.
 - Insert a ball bearing between both parts.
+- Align the pieces and screw them together.
+- Glue the TPU foot to the lower end of the TIBIA assembly.
 <img width="1200" height="1600" alt="WhatsApp Image 2026-05-26 at 14 35 37 (2)" src="https://github.com/user-attachments/assets/5c1d1c69-fc43-4d7c-b345-83be95ee043b" />
 <img width="1200" height="1600" alt="WhatsApp Image 2026-05-26 at 14 35 37 (3)" src="https://github.com/user-attachments/assets/d6e00f19-be81-4896-a018-c532c6961204" />
 <img width="1600" height="1200" alt="WhatsApp Image 2026-05-26 at 14 35 38" src="https://github.com/user-attachments/assets/1ceb050d-0b98-4518-9f59-d70ab6b6df12" />
-- Align the pieces and screw them together.
-- Glue the TPU foot to the lower end of the TIBIA assembly.
 
 ### Step 2: Assemble the FEMUR
 - Take the three FEMUR parts: Inner part, Spacer, Outer part
 - Place the servo between the FEMUR sides.
 - Stack (“empile”) the three parts together around the servo.
-<img width="1200" height="1600" alt="WhatsApp Image 2026-05-26 at 14 35 36 (1)" src="https://github.com/user-attachments/assets/275714d3-8c09-4059-b844-c13d53d6eaf3" />
 - Add two adjacent screws to reinforce the structure and improve stability.
+<img width="1200" height="1600" alt="WhatsApp Image 2026-05-26 at 14 35 36 (1)" src="https://github.com/user-attachments/assets/275714d3-8c09-4059-b844-c13d53d6eaf3" />
 <img width="1600" height="1200" alt="WhatsApp Image 2026-05-26 at 14 35 37 (1)" src="https://github.com/user-attachments/assets/2ba8f411-c47c-49eb-b998-4faf3ca9ae12" />
 
 ### Step 3: Assemble the COXA
