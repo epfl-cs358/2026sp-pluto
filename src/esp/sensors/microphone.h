@@ -24,13 +24,15 @@ namespace pluto
 
     // 16kHz, mono
     static constexpr int SAMPLE_RATE = 16000;
-    static constexpr int DMA_BUF_LEN = 256;
+    static constexpr int DMA_BUF_LEN = 512;
 
     // An 8KB ring buffer holds about 250ms of 16-bit audio.
     static constexpr int RING_BUF_SIZE = 1024 * 8;
 
     static void IRAM_ATTR dma_reader_task(void* arg)
     {
+      (void)arg;
+
       int32_t sample_buffer[DMA_BUF_LEN];
       size_t bytes_read = 0;
 
@@ -39,6 +41,7 @@ namespace pluto
         // block until I2S has data
         i2s_read(
             PORT, sample_buffer, sizeof(sample_buffer), &bytes_read, portMAX_DELAY);
+
         int samples_read = bytes_read / sizeof(int32_t);
 
         if (samples_read <= 0)
@@ -46,7 +49,7 @@ namespace pluto
           continue;
         }
 
-        // downsample inplace...
+        // downsample inplace
         int16_t* in_place_samples = (int16_t*)sample_buffer;
         uint64_t sum_of_squares   = 0;
 
@@ -60,11 +63,14 @@ namespace pluto
 
         state.current_energy = sum_of_squares / samples_read;
 
-        // wait max 10 ticks if full, then drop data.
+        // wait max 10 ticks if full, then drop data
         xRingbufferSend(
-            state.ring_buffer, in_place_samples, samples_read * sizeof(int16_t),
+            state.ring_buffer,
+            in_place_samples,
+            samples_read * sizeof(int16_t),
             pdMS_TO_TICKS(10));
       }
+
       vTaskDelete(NULL);
     }
 
@@ -75,7 +81,9 @@ namespace pluto
     {
       state.ring_buffer = xRingbufferCreate(RING_BUF_SIZE, RINGBUF_TYPE_BYTEBUF);
       if (!state.ring_buffer)
+      {
         return false;
+      }
 
       i2s_config_t i2s_config = {
           .mode                 = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
@@ -95,48 +103,53 @@ namespace pluto
           .data_in_num  = SD_PIN};
 
       if (i2s_driver_install(PORT, &i2s_config, 0, NULL) != ESP_OK)
+      {
         return false;
+      }
+
       if (i2s_set_pin(PORT, &pin_config) != ESP_OK)
+      {
         return false;
+      }
 
       state.is_listening = true;
 
       xTaskCreatePinnedToCore(
-          dma_reader_task, "mic_dma_task", 2048, NULL, configMAX_PRIORITIES - 1,
+          dma_reader_task,
+          "mic_dma_task",
+          4096,
+          NULL,
+          1,
           &state.dma_task,
-          0 // Core 0 TODO: check me?
-      );
+          0
+        );
 
       return true;
     }
 
-    /// @brief Non-blocking read.
-    /// Pulls a requested amount of audio out of the ring buffer.
-    /// @param out_buffer The output buffer to write to
-    /// @param requested_bytes The number of bytes to read
-    /// @returns The number of bytes successfully retrieved
     size_t read_frame(int16_t* out_buffer, size_t requested_bytes) const noexcept
     {
       size_t bytes_received = 0;
 
-      // non-blocking request
       void* data = xRingbufferReceive(state.ring_buffer, &bytes_received, 0);
+
       if (data)
       {
         size_t bytes_to_copy =
             (bytes_received < requested_bytes) ? bytes_received : requested_bytes;
+
         memcpy(out_buffer, data, bytes_to_copy);
         vRingbufferReturnItem(state.ring_buffer, data);
+
         return bytes_to_copy;
       }
+
       return 0;
     }
 
-    /// @brief Returns the current energy
-    /// @return Current energy
     uint32_t current_energy() const noexcept
-    { 
-      return state.current_energy; 
+    {
+      return state.current_energy;
     }
   };
 

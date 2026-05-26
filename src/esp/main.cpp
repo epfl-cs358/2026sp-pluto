@@ -72,42 +72,61 @@ void start_robot()
 
   Serial.println("START: robot walking");
 }
-
-static constexpr uint32_t CLAP_THRESHOLD = 2000000;
+/**
+static constexpr uint32_t CLAP_THRESHOLD = 15000000000;
 static constexpr uint32_t CLAP_COOLDOWN_MS = 800;
-static constexpr uint32_t MICROPHONE_PRINT_PRIOD_MS = 150; 
+static constexpr uint32_t MICROPHONE_CHECK_PERIOD_MS = 50;
+static constexpr uint32_t MICROPHONE_PRINT_PERIOD_MS = 1000; 
 
 void update_microphone_control(uint32_t now)
 {
 #ifdef PLUTO_ENABLE_MICROPHONE
+  static uint32_t last_microphone_check_ms = 0; 
   static uint32_t last_microphone_print_ms = 0; 
   static uint32_t last_clap_ms = 0; 
+  static bool was_above_threshold = false; 
+
+  if (now - last_microphone_check_ms < MICROPHONE_CHECK_PERIOD_MS){
+    return; 
+  }
+
+  last_microphone_check_ms = now; 
 
   uint32_t mic_energy = SENSOR_MICROPHONE.current_energy(); 
 
-  if (now - last_microphone_print_ms >= MICROPHONE_PRINT_PRIOD_MS)
+  if (now - last_microphone_print_ms >= MICROPHONE_PRINT_PERIOD_MS)
   {
     last_microphone_print_ms = now; 
 
-    Serial.print("Mic energy: ");
-    Serial.println(mic_energy);
+    // Serial.print("Mic energy: ");
+    // Serial.println(mic_energy);
   }
 
-  if (mic_energy >= CLAP_THRESHOLD && now - last_clap_ms >= CLAP_COOLDOWN_MS)
+  bool above_threshold = mic_energy >= CLAP_THRESHOLD; 
+
+  if (above_threshold && !was_above_threshold && now - last_clap_ms >= CLAP_COOLDOWN_MS)
   {
     last_clap_ms = now; 
+
+    Serial.print("CLAP DETECTED | Energy: "); 
+    Serial.println(mic_energy); 
     
     if (robot_walking)
     {
+      Serial.println("CLAP ACTION stop robot");
       stop_robot("clap detected");
     }
     else 
     {
+      Serial.println("CLAP start robot"); 
       start_robot();
     }
   }
+
+  was_above_threshold = above_threshold; 
 #endif
 }
+*/
 
 static constexpr float WALL_STOP_DISTANCE_CM = 20.0F; 
 static constexpr uint32_t ULTRASONIC_PERIOD_MS = 150;
@@ -181,7 +200,7 @@ void loop()
 
   const uint32_t now = millis();
 
-  update_microphone_control(now);
+  // update_microphone_control(now);
   update_ultrasonic_control(now);
 
   if (now - last_motion_ms >= 20)
