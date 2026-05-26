@@ -1,8 +1,8 @@
-# First-Time Troubleshooting
+# 🛠️ First-Time Troubleshooting
 
 Use this guide when Pluto does not start cleanly. Start with the section that matches the symptom.
 
-## Debugging Rule For A New Build
+## 🛠️ Debugging Rule For A New Build
 
 When building from scratch, debug in this order:
 
@@ -19,9 +19,9 @@ When building from scratch, debug in this order:
 
 Do not debug gait behavior before power, wiring, and calibration are known to be correct.
 
-## Controller UI Does Not Start
+## 🎛️ Controller UI Does Not Start
 
-### Python 3.13 Not Found
+### 📌 Python 3.13 Not Found
 
 The run scripts require Python 3.13.
 
@@ -39,7 +39,7 @@ py -3.13 --version
 
 If Python 3.13 is missing, install it from <https://www.python.org/downloads/> and run the script again.
 
-### Dependencies Did Not Install Correctly
+### 📦 Dependencies Did Not Install Correctly
 
 Force a clean reinstall:
 
@@ -55,7 +55,7 @@ run.bat --reinstall
 
 This recreates `.venv` and reinstalls `requirements.txt`.
 
-### Port 8090 Is Already In Use
+### 📌 Port 8090 Is Already In Use
 
 Run the UI on another port:
 
@@ -71,9 +71,9 @@ run.bat --port 8081
 
 Then open `http://localhost:8081`.
 
-## Simulation Does Not Open
+## 🎮 Simulation Does Not Open
 
-### PyBullet UI
+### 🎮 PyBullet UI
 
 - Make sure you are running on a machine with a desktop display.
 - If running over SSH or in a headless environment, PyBullet GUI mode may not open.
@@ -81,17 +81,17 @@ Then open `http://localhost:8081`.
 - Try `bash run.sh --reinstall` if the package installation looks incomplete.
 - Current limitation: `src/control/sim_motion.py` still references old generic visual mesh files. See [SIMULATION.md](SIMULATION.md).
 
-### MuJoCo Bridge
+### 🎮 MuJoCo Bridge
 
 - Check that `mujoco` and `glfw` installed successfully.
-- Confirm that [src/mesh/pluto.xml](src/mesh/pluto.xml) can find the STL files in `src/mesh`.
-- The C++ MuJoCo bridge under `src/sim` is separate from the ESP32 PlatformIO firmware build.
+- Confirm that [src/sim/sim_mesh/pluto.xml](src/sim/sim_mesh/pluto.xml) can find the STL files in `src/sim/sim_mesh`.
+- The C++ MuJoCo bridge under `src/sim` is built with the top-level `CMakeLists.txt`, not the ESP32 PlatformIO firmware build.
 
 See [SIMULATION.md](SIMULATION.md).
 
-## ESP32 Firmware Does Not Build Or Upload
+## 🧠 ESP32 Firmware Does Not Build Or Upload
 
-### PlatformIO Is Missing
+### 📌 PlatformIO Is Missing
 
 Install PlatformIO Core or use the PlatformIO VS Code extension.
 
@@ -101,7 +101,7 @@ Check:
 pio --version
 ```
 
-### Upload Port Is Not Detected
+### 📌 Upload Port Is Not Detected
 
 List connected devices:
 
@@ -121,7 +121,7 @@ On Windows, the port usually looks like `COM3`, `COM4`, etc.
 pio run -t upload --upload-port COM3
 ```
 
-### Serial Monitor Shows Nothing
+### ⌨️ Serial Monitor Shows Nothing
 
 Use the configured baud rate:
 
@@ -131,7 +131,7 @@ pio device monitor -b 115200
 
 If the monitor still shows nothing, check the USB cable, board selection, and whether the ESP32 is powered.
 
-## Robot Does Not Connect Over WiFi
+## 📶 Robot Does Not Connect Over WiFi
 
 WiFi is implemented but disabled by default in `src/esp/main.cpp`.
 
@@ -146,7 +146,7 @@ Check:
 
 For packet details, see [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 
-## Hardware Powers On But Servos Do Not Move
+## 🔩 Hardware Powers On But Servos Do Not Move
 
 - Verify the PCA9685 is powered and connected to the ESP32 I2C lines.
 - Check that servo power and logic ground share a common ground.
@@ -157,7 +157,7 @@ For packet details, see [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 
 Do not continue testing if a servo stalls, overheats, chatters heavily, or pulls the robot into a mechanically blocked position.
 
-## Robot Resets Or Behaves Unstable
+## 📌 Robot Resets Or Behaves Unstable
 
 This is often a power issue.
 
@@ -168,7 +168,7 @@ This is often a power issue.
 - Confirm all grounds are connected together.
 - Avoid testing full gaits until single-leg and standing poses are stable.
 
-## Sensors Do Not Respond
+## 📡 Sensors Do Not Respond
 
 - Check the sensor wiring against [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md).
 - Verify the firmware pin templates:
@@ -178,7 +178,7 @@ This is often a power issue.
 - Use serial output to inspect raw readings before relying on reactive behavior.
 - If the ultrasonic ECHO line is 5V, use a voltage divider or level shifter.
 
-## Speech Commands Do Not Work
+## 🗣️ Speech Commands Do Not Work
 
 Speech recognition runs on the controller computer, not on the ESP32.
 
@@ -188,7 +188,7 @@ Speech recognition runs on the controller computer, not on the ESP32.
 - Connect to the robot before expecting speech commands to be sent.
 - Speak one of the supported commands clearly, such as `pluto stop`, `pluto sit`, or `pluto give paw`.
 
-## Still Stuck
+## 🆘 Still Stuck
 
 Check these docs next:
 

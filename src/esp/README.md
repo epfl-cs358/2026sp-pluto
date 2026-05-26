@@ -1,8 +1,8 @@
-# ESP32 Firmware
+# 🧠 ESP32 Firmware
 
 This directory contains Pluto's robot-side firmware.
 
-## Entry Point
+## 🚪 Entry Point
 
 ```text
 src/esp/main.cpp
@@ -10,7 +10,7 @@ src/esp/main.cpp
 
 PlatformIO is configured with `src_dir = src/esp`, so this directory is the firmware source root.
 
-## Main Modules
+## 🧩 Main Modules
 
 | Module | Purpose |
 | --- | --- |
@@ -24,7 +24,7 @@ PlatformIO is configured with `src_dir = src/esp`, so this directory is the firm
 | `sensors/microphone.h` | INMP441 I2S microphone abstraction |
 | `server/server.cpp` | Optional UDP server, sessions, CRC validation, acknowledgements, and queues |
 
-## Firmware Execution Flow
+## 🧠 Firmware Execution Flow
 
 This is the order in which the firmware operates:
 
@@ -40,7 +40,7 @@ This is the order in which the firmware operates:
 
 Understanding this flow is important before adding new behavior. Long blocking code in `loop()` can make gait updates irregular.
 
-## Leg and Servo Mapping
+## 🎚️ Leg and Servo Mapping
 
 Each leg uses four PCA9685 channel slots. The current firmware uses the first three slots for coxa, femur, and tibia:
 
@@ -53,7 +53,7 @@ Each leg uses four PCA9685 channel slots. The current firmware uses the first th
 
 This mapping comes from `Leg::CHANNEL_STEPS_PER_SIDE = 4` in `legs/leg.h`.
 
-## Servo Calibration Workflow
+## 🎚️ Servo Calibration Workflow
 
 Calibration lives in:
 
@@ -85,7 +85,7 @@ Recommended calibration sequence:
 
 Do not run full gait commands until all 12 joints have safe limits.
 
-## Feature Flags
+## 🚩 Feature Flags
 
 Current defaults in `main.cpp`:
 
@@ -97,7 +97,7 @@ Current defaults in `main.cpp`:
 
 That means ultrasonic and microphone support are enabled by default, while WiFi/UDP control must be explicitly enabled.
 
-## Timing
+## 📌 Timing
 
 - Gait update: every 20 ms.
 - Ultrasonic cycle: every 150 ms.
@@ -106,7 +106,7 @@ That means ultrasonic and microphone support are enabled by default, while WiFi/
 - Clap cooldown: 800 ms.
 - Serial baud rate: 115200.
 
-## Sensors
+## 📡 Sensors
 
 Current templates in `main.cpp`:
 
@@ -117,7 +117,7 @@ Forward motion stops if ultrasonic distance is between 0 and 20 cm.
 
 A microphone energy spike above the clap threshold toggles walking on/off.
 
-## Serial Commands
+## ⌨️ Serial Commands
 
 Use:
 
@@ -149,7 +149,7 @@ pio device monitor -b 115200
 | `R` | Reset all joints on selected leg |
 | `p` | Print selected leg, joint, and pulse |
 
-## WiFi/UDP
+## 📶 WiFi/UDP
 
 When `PLUTO_ENABLE_WIFI` is enabled, the firmware creates:
 
@@ -165,7 +165,7 @@ PLUTO_SERVER.addAP("<WIFI_NAME>", "<WIFI_PASSWORD>");
 
 See [WiFi Protocol](../../SOFTWARE_WIFI.md) and [Shared Communication Protocol](../comm/README.md).
 
-## Build and Upload
+## 📌 Build and Upload
 
 From the repository root:
 
@@ -175,7 +175,7 @@ pio run -t upload
 pio device monitor -b 115200
 ```
 
-## Adding New Firmware Behavior
+## 🧠 Adding New Firmware Behavior
 
 To add a new robot behavior:
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-# Pluto
+# 🚀 Pluto
 
 **A compact 12-DOF quadruped robot with ESP32 gait control, calibrated servo actuation, sensor reactions, controller-side speech commands, and simulation assets.**
 
@@ -19,41 +19,41 @@
 
 ---
 
-## Quick Navigation
+## 🧭 Quick Navigation
 
 <table>
 <tr>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="ASSEMBLY.md"><strong>Build Pluto</strong></a><br>
 Assembly steps, leg construction, body integration, and final checks.
 </td>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="WIRING_ELECTRICAL.md"><strong>Wire Pluto</strong></a><br>
 Power path, common ground, PCA9685, sensors, and safety checks.
 </td>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="src/esp/README.md"><strong>ESP32 Firmware</strong></a><br>
 Gaits, IK, servos, sensors, serial commands, and optional WiFi.
 </td>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="src/control/README.md"><strong>Controller UI</strong></a><br>
 NiceGUI, keyboard/gamepad input, speech commands, and telemetry.
 </td>
 </tr>
 <tr>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="CAD_FILES.md"><strong>Meshes</strong></a><br>
 Current STL inventory and MuJoCo mesh usage.
 </td>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="src/comm/README.md"><strong>Protocol</strong></a><br>
 Shared C++/Python UDP packet and message format.
 </td>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="SIMULATION.md"><strong>Simulation</strong></a><br>
 PyBullet UI path, MuJoCo bridge, and current limitations.
 </td>
-<td width="25%" align="center">
+<td width="25%" align="center" valign="top">
 <a href="TROUBLESHOOTING.md"><strong>Troubleshooting</strong></a><br>
 First-time setup, firmware, power, sensors, and WiFi issues.
 </td>
@@ -62,11 +62,11 @@ First-time setup, firmware, power, sensors, and WiFi issues.
 
 ---
 
-## Table of Contents
+## 📚 Table of Contents
 
 <table>
 <tr>
-<td width="33%">
+<td width="33%" valign="top">
 
 - [Project Context](#project-context)
 - [What Pluto Can Do](#what-pluto-can-do)
@@ -74,7 +74,7 @@ First-time setup, firmware, power, sensors, and WiFi issues.
 - [Quick Start](#quick-start)
 
 </td>
-<td width="33%">
+<td width="33%" valign="top">
 
 - [System Architecture](#system-architecture)
 - [Hardware Overview](#hardware-overview)
@@ -82,7 +82,7 @@ First-time setup, firmware, power, sensors, and WiFi issues.
 - [Simulation](#simulation)
 
 </td>
-<td width="33%">
+<td width="33%" valign="top">
 
 - [Configuration and Tuning](#configuration-and-tuning)
 - [Repository Structure](#repository-structure)
@@ -95,22 +95,22 @@ First-time setup, firmware, power, sensors, and WiFi issues.
 
 ---
 
-## Project Context
+## 🧠 Project Context
 
 <table>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
-### Vision
+### 🎯 Vision
 
 Pluto is designed as a reusable quadruped robotics platform rather than a single-purpose demo. The goal is to make a small robot that can stand, walk, trot, gallop, react to simple sensor events, and accept commands through serial, WiFi, UI controls, and speech.
 
 The same concepts appear across the firmware, controller, and simulation code: leg geometry, foot targets, inverse kinematics, gait phases, calibrated servo limits, and compact command messages.
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
-### Course Context
+### 🎓 Course Context
 
 Pluto was developed as part of **CS-358 Making Intelligent Things** at **EPFL**.
 
@@ -120,7 +120,7 @@ The repository documents both the final implementation and the current work-in-p
 </tr>
 </table>
 
-### Main Implementation Layers
+### 🧱 Main Implementation Layers
 
 | Layer | Role |
 | --- | --- |
@@ -131,13 +131,13 @@ The repository documents both the final implementation and the current work-in-p
 
 ---
 
-## What Pluto Can Do
+## 🚀 What Pluto Can Do
 
 <table>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
-### Robot Side
+### 🤖 Robot Side
 
 - Drive 12 servo joints through a PCA9685 PWM driver.
 - Use per-joint calibration for coxa, femur, and tibia angles.
@@ -149,9 +149,9 @@ The repository documents both the final implementation and the current work-in-p
 - Optionally receive UDP commands when WiFi support is enabled.
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
-### Computer Side
+### 💻 Computer Side
 
 - Launch a NiceGUI control hub.
 - Use keyboard and browser gamepad input.
@@ -168,7 +168,7 @@ The repository documents both the final implementation and the current work-in-p
 
 ---
 
-## Current Status
+## 📌 Current Status
 
 | Area | Status | Notes |
 | --- | --- | --- |
@@ -184,9 +184,9 @@ The repository documents both the final implementation and the current work-in-p
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
-### 1. Install Requirements
+### 📦 1. Install Requirements
 
 For the Python controller:
 
@@ -206,7 +206,7 @@ For the physical robot:
 - Buck converter output checked with a multimeter
 - Servo calibration checked before full gait tests
 
-### 2. Run the Controller
+### ▶️ 2. Run the Controller
 
 macOS/Linux:
 
@@ -242,7 +242,7 @@ pip install -r requirements.txt
 python src/control/main.py --port 8090
 ```
 
-### 3. Build and Flash the ESP32
+### 🔌 3. Build and Flash the ESP32
 
 ```bash
 pio run
@@ -264,7 +264,7 @@ Expected startup behavior:
 - Pluto enters a stand pose.
 - The serial monitor prints available commands.
 
-### 4. Enable WiFi Control
+### 📶 4. Enable WiFi Control
 
 WiFi support exists but is disabled by default in `src/esp/main.cpp`.
 
@@ -285,7 +285,7 @@ See [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 
 ---
 
-## Build Pluto From Scratch
+## 🚀 Build Pluto From Scratch
 
 This is the recommended order for a new team starting with only the repository, parts, and a 3D printer.
 
@@ -305,7 +305,7 @@ This is the recommended order for a new team starting with only the repository, 
 
 For a new team, the most important rule is to validate one subsystem at a time. Do not test full-body walking before power, calibration, and single-joint behavior are understood.
 
-### From Zero To First Motion
+### 🧰 From Zero To First Motion
 
 This section is written as a handoff guide for a team that did not build the original robot. It repeats some information from the detailed docs so the README can be used as a complete starting point.
 
@@ -503,7 +503,7 @@ The controller should be treated as a convenience layer, not the first debugging
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 ```text
 +---------------------------------------------------------+
@@ -527,9 +527,9 @@ The controller should be treated as a convenience layer, not the first debugging
 
 <table>
 <tr>
-<td width="33%">
+<td width="33%" valign="top">
 
-### Control Layer
+### 🎛️ Control Layer
 
 Runs on the user's computer.
 
@@ -541,9 +541,9 @@ Runs on the user's computer.
 - simulation controls
 
 </td>
-<td width="33%">
+<td width="33%" valign="top">
 
-### Robot Layer
+### 🤖 Robot Layer
 
 Runs on the ESP32.
 
@@ -556,9 +556,9 @@ Runs on the ESP32.
 - optional UDP server
 
 </td>
-<td width="33%">
+<td width="33%" valign="top">
 
-### Shared Layer
+### 🔁 Shared Layer
 
 Keeps both sides aligned.
 
@@ -573,7 +573,7 @@ Keeps both sides aligned.
 </tr>
 </table>
 
-### Why The System Is Split This Way
+### 💡 Why The System Is Split This Way
 
 | Design choice | Reason |
 | --- | --- |
@@ -584,7 +584,7 @@ Keeps both sides aligned.
 
 ---
 
-## Hardware Overview
+## 🔩 Hardware Overview
 
 | Component | Qty | Role |
 | --- | ---: | --- |
@@ -599,7 +599,7 @@ Keeps both sides aligned.
 | KCD1 rocker switch | 1 | Main power switching |
 | Screws, bearings, servo horns, wiring | As needed | Mechanical and electrical assembly |
 
-### Additional Materials
+### 🧰 Additional Materials
 
 - PLA/PETG filament for rigid printed parts.
 - TPU filament or rubber pads for feet.
@@ -610,7 +610,7 @@ Keeps both sides aligned.
 - Multimeter for voltage, polarity, and continuity checks.
 - LiPo-safe charger and LiPo-safe storage bag.
 
-### Current Mesh Set
+### 🧱 Current Mesh Set
 
 The current physical 3D-printing CAD/STL files live in `src/3D printing mesh/`, grouped by leg:
 
@@ -624,16 +624,16 @@ src/3D printing mesh/
 
 The simulation meshes live separately in `src/sim/sim_mesh/` and include `body.stl`, per-leg coxa/femur/tibia STL files, and `pluto.xml`. See [CAD_FILES.md](CAD_FILES.md).
 
-### Build Flow
+### 🔄 Build Flow
 
 <table>
 <tr>
-<td align="center"><strong>1</strong><br>Print parts</td>
-<td align="center"><strong>2</strong><br>Assemble legs</td>
-<td align="center"><strong>3</strong><br>Mount electronics</td>
-<td align="center"><strong>4</strong><br>Wire power and sensors</td>
-<td align="center"><strong>5</strong><br>Flash firmware</td>
-<td align="center"><strong>6</strong><br>Calibrate servos</td>
+<td align="center" valign="top"><strong>1</strong><br>Print parts</td>
+<td align="center" valign="top"><strong>2</strong><br>Assemble legs</td>
+<td align="center" valign="top"><strong>3</strong><br>Mount electronics</td>
+<td align="center" valign="top"><strong>4</strong><br>Wire power and sensors</td>
+<td align="center" valign="top"><strong>5</strong><br>Flash firmware</td>
+<td align="center" valign="top"><strong>6</strong><br>Calibrate servos</td>
 </tr>
 </table>
 
@@ -644,7 +644,7 @@ Detailed hardware docs:
 - [HARDWARE_OVERVIEW.md](HARDWARE_OVERVIEW.md)
 - [CAD_FILES.md](CAD_FILES.md)
 
-### Electrical Safety Notes
+### ⚠️ Electrical Safety Notes
 
 | Topic | Note |
 | --- | --- |
@@ -657,7 +657,7 @@ Detailed hardware docs:
 
 ---
 
-## Software Overview
+## 💻 Software Overview
 
 For a new team, read the code in this order:
 
@@ -674,7 +674,7 @@ For a new team, read the code in this order:
 | 9 | `src/control/pluto_menu/controller.py` | Converts UI input into movement and behavior messages |
 | 10 | `src/control/sim_motion.py` and `src/sim/sim_main.cpp` | Shows the current simulation paths and their limitations |
 
-### Firmware
+### 🧠 Firmware
 
 PlatformIO environment:
 
@@ -710,7 +710,7 @@ Important firmware files:
 | `src/esp/sensors/microphone.h` | I2S microphone abstraction |
 | `src/esp/server/server.cpp` | optional UDP server |
 
-### Controller
+### 🎛️ Controller
 
 Python dependencies:
 
@@ -751,7 +751,7 @@ Current speech grammar:
 - `pluto stop`
 - `pluto give paw`
 
-### Communication
+### 🔁 Communication
 
 The shared UDP packet contains:
 
@@ -792,7 +792,7 @@ Useful references:
 
 ---
 
-## Simulation
+## 🎮 Simulation
 
 | Path | Files | Current state |
 | --- | --- | --- |
@@ -807,9 +807,9 @@ See [SIMULATION.md](SIMULATION.md).
 
 ---
 
-## Configuration and Tuning
+## ⚙️ Configuration and Tuning
 
-### Firmware Feature Flags
+### 🧠 Firmware Feature Flags
 
 Current defaults in `src/esp/main.cpp`:
 
@@ -825,7 +825,7 @@ Current defaults in `src/esp/main.cpp`:
 | Ultrasonic | On | Stops forward motion when wall distance is below threshold |
 | Microphone | Compiled on, control inactive | `SensorMicrophone<26, 25, 33>` is initialized, but the clap-control update call is commented out |
 
-### Sensor Pins and Thresholds
+### 📍 Sensor Pins and Thresholds
 
 | Item | Current value |
 | --- | --- |
@@ -846,7 +846,7 @@ Operating timing:
 | Microphone energy print cycle | 1000 ms in the commented clap-control block |
 | Serial monitor baud | 115200 |
 
-### Servo Calibration
+### 🎚️ Servo Calibration
 
 Servo calibration lives in:
 
@@ -865,7 +865,7 @@ Each joint has:
 
 Tune these values on the physical robot before running full gaits.
 
-### Gait and IK Parameters
+### 📐 Gait and IK Parameters
 
 Embedded gait code lives in:
 
@@ -892,7 +892,7 @@ Tune these areas carefully:
 - Per-leg symmetry.
 - Bow and paw target poses.
 
-### Serial Commands
+### ⌨️ Serial Commands
 
 Use:
 
@@ -928,7 +928,7 @@ pio device monitor -b 115200
 
 ---
 
-## Repository Structure
+## 🗂️ Repository Structure
 
 ```text
 2026sp-pluto/
@@ -959,13 +959,13 @@ pio device monitor -b 115200
 
 ---
 
-## Known Limitations
+## ⚠️ Known Limitations
 
 <table>
 <tr>
-<td width="50%">
+<td width="50%" valign="top">
 
-### Hardware and Motion
+### 🔩 Hardware and Motion
 
 - Physical gait validation is still needed.
 - Servo calibration needs final tuning.
@@ -973,9 +973,9 @@ pio device monitor -b 115200
 - Behavior sequences need calibration.
 
 </td>
-<td width="50%">
+<td width="50%" valign="top">
 
-### Software and Simulation
+### 💻 Software and Simulation
 
 - WiFi is disabled by default.
 - Controller IP is currently hard-coded.
@@ -991,7 +991,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 
 ---
 
-## Detailed Technical Reference
+## 🔬 Detailed Technical Reference
 
 <details>
 <summary><strong>Technical vocabulary</strong></summary>
@@ -1143,31 +1143,31 @@ Known issues:
 
 ---
 
-## Project Team
+## 👥 Project Team
 
 Pluto was developed as part of EPFL's **CS-358 Making Intelligent Things** course by:
 
 <table>
 <tr>
-<td align="center">Serhat Botan</td>
-<td align="center">Alexis Cazal</td>
-<td align="center">Neha Chakraborty</td>
-<td align="center">Myriam Lahoud</td>
+<td align="center" valign="top">Serhat Botan</td>
+<td align="center" valign="top">Alexis Cazal</td>
+<td align="center" valign="top">Neha Chakraborty</td>
+<td align="center" valign="top">Myriam Lahoud</td>
 </tr>
 <tr>
-<td align="center">Sam Lee</td>
-<td align="center">Raphael Dib Nehme</td>
-<td align="center">Mariya Rakytyanska</td>
+<td align="center" valign="top">Sam Lee</td>
+<td align="center" valign="top">Raphael Dib Nehme</td>
+<td align="center" valign="top">Mariya Rakytyanska</td>
 </tr>
 </table>
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - EPFL course staff, TAs, and coaches.
 - Open-source quadruped projects, including SpotMicro-style robots.
 - Arduino, PlatformIO, FreeRTOS, Adafruit, NiceGUI, PyBullet, MuJoCo, GLFW, Vosk, and sounddevice documentation and examples.
 
-## Use of AI Tools
+## 🤖 Use of AI Tools
 
 AI tools were used to support:
 
@@ -1185,6 +1185,6 @@ AI assistance was not used to replace:
 
 ---
 
-## Closing Notes
+## ✅ Closing Notes
 
 Pluto is a working foundation for a small quadruped robotics platform. The repository already contains low-level actuation, IK, gait generation, sensing hooks, controller-side interaction, command transport, and simulation assets. The next major step is careful physical tuning: servo calibration, gait stability, behavior sequences, and validation on the real robot.

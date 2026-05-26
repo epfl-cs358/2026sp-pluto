@@ -1,10 +1,10 @@
-# Archives
+# 🗄️ Archives
 
 This repository does not currently contain a dedicated `archives/` directory.
 
 The purpose of a future archive directory would be to preserve previous prototypes, tests, and implementations that are no longer part of the active Pluto codebase, while keeping them available for reference.
 
-## What Should Be Archived
+## 📌 What Should Be Archived
 
 Use an archive folder for work that is useful historically but should not be part of the active runtime path:
 
@@ -16,7 +16,7 @@ Use an archive folder for work that is useful historically but should not be par
 - communication protocol experiments that were replaced by the current UDP packet format
 - hardware test scripts that require outdated wiring or assumptions
 
-## Suggested Structure
+## 🗂️ Suggested Structure
 
 If archives are added later, use a structure like:
 
@@ -40,7 +40,7 @@ Each archived subdirectory should include a short `README.md` explaining:
 - whether it still runs
 - which current implementation replaced it
 
-## Current Active Test References
+## 🧪 Current Active Test References
 
 At the moment, first-time validation is documented through:
 

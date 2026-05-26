@@ -1,8 +1,8 @@
-# Python Controller
+# 🎛️ Python Controller
 
 This directory contains Pluto's computer-side control stack.
 
-## Entry Point
+## 🚪 Entry Point
 
 ```text
 src/control/main.py
@@ -16,7 +16,7 @@ Current routes:
 - `/sim`: simulation controls.
 - `/controller`: robot command center.
 
-## Main Modules
+## 🧩 Main Modules
 
 | Module | Purpose |
 | --- | --- |
@@ -29,7 +29,7 @@ Current routes:
 | `pluto_speech/speech.py` | Vosk speech recognition worker |
 | `gait.py`, `robot_config.py`, `sim_motion.py` | Python simulation and gait support |
 
-## Controller Execution Flow
+## 🎛️ Controller Execution Flow
 
 The control application starts in `main.py`:
 
@@ -51,7 +51,7 @@ The `/controller` page then:
 7. Sends behavior and stop messages from the quick-action buttons.
 8. Reads acknowledgement and sensor messages into the telemetry log.
 
-## Running
+## ▶️ Running
 
 Use the project-level scripts:
 
@@ -67,7 +67,7 @@ run.bat
 
 By default the scripts launch the UI on port `8090`.
 
-## Robot Connection
+## 📶 Robot Connection
 
 The ESP32 IP address is currently set in `main.py`:
 
@@ -80,7 +80,7 @@ Set this to the ESP32 address before using live WiFi control.
 
 WiFi must also be enabled in the ESP32 firmware with `PLUTO_ENABLE_WIFI`.
 
-## New-Team Setup Checklist
+## 👥 New-Team Setup Checklist
 
 1. Run `bash run.sh` or `run.bat`.
 2. Confirm the home page opens.
@@ -94,7 +94,7 @@ WiFi must also be enabled in the ESP32 firmware with `PLUTO_ENABLE_WIFI`.
 10. Send `Stop All` before sending movement.
 11. Watch the telemetry log for `INFO_ACK` messages.
 
-## Controller Page
+## 🎛️ Controller Page
 
 `pluto_menu/controller.py` supports:
 
@@ -105,7 +105,7 @@ WiFi must also be enabled in the ESP32 firmware with `PLUTO_ENABLE_WIFI`.
 - Quick action buttons for sit, give paw, and stop.
 - Telemetry log for acknowledgements and distance messages.
 
-## Speech Commands
+## 🗣️ Speech Commands
 
 Speech recognition runs on the controller computer with Vosk and `sounddevice`.
 
@@ -117,7 +117,7 @@ Current grammar:
 
 Recognized phrases are converted into shared protocol messages.
 
-## Adding A New UI Command
+## ➕ Adding A New UI Command
 
 To add a new button or command:
 
@@ -128,7 +128,7 @@ To add a new button or command:
 5. Add firmware handling in `src/esp/main.cpp`.
 6. Test that the UI sends the packet before connecting servos.
 
-## Simulation Page
+## 🎮 Simulation Page
 
 The `/sim` page opens the Python PyBullet path. It is useful for UI-level simulation testing, but the visual mesh references still need to be updated to match the current per-leg STL files.
 

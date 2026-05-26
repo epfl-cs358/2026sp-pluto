@@ -1,4 +1,4 @@
-# WiFi Protocol
+# 🔁 WiFi Protocol
 
 Pluto's controller and ESP32 firmware can communicate over WiFi using UDP on port `4242`.
 
@@ -10,9 +10,9 @@ WiFi support is implemented in the codebase, but it is currently disabled by def
 
 Enable that flag before expecting the ESP32 to connect to WiFi or receive controller messages.
 
-## Configuration
+## ⚙️ Configuration
 
-### ESP32 Access Points
+### 📌 ESP32 Access Points
 
 When `PLUTO_ENABLE_WIFI` is enabled, configure access points in `setup()`:
 
@@ -22,7 +22,7 @@ PLUTO_SERVER.addAP("<WIFI_NAME>", "<WIFI_PASSWORD>");
 
 Multiple calls are allowed. The ESP32 uses `WiFiMulti` and tries available configured networks.
 
-### Python Target Address
+### 📌 Python Target Address
 
 The Python controller is constructed in [src/control/main.py](src/control/main.py):
 
@@ -33,7 +33,7 @@ CONTROLLER = PlutoController(IP_OF_ESP)
 
 Set `IP_OF_ESP` to the ESP32's network address before testing physical WiFi control.
 
-## WiFi Bring-Up From Scratch
+## 🧰 WiFi Bring-Up From Scratch
 
 Only enable WiFi after serial control and servo safety are working.
 
@@ -52,7 +52,7 @@ Only enable WiFi after serial control and servo safety are working.
 
 If connection fails, debug network reachability before debugging gait code.
 
-## Session Flow
+## 🔐 Session Flow
 
 The Python controller performs a UDP handshake before sending normal messages:
 
@@ -65,7 +65,7 @@ The Python controller performs a UDP handshake before sending normal messages:
 
 The ESP32 session times out after 10 seconds without valid packets.
 
-## Packet Format
+## 📦 Packet Format
 
 The packet format is defined in:
 
@@ -85,7 +85,7 @@ Each UDP packet contains:
 
 Minimum packet size is 17 bytes. Maximum packet size is 529 bytes.
 
-## Message Format
+## ✉️ Message Format
 
 Each message is exactly 8 bytes:
 
@@ -119,14 +119,14 @@ Implemented message examples:
 - `INFO_ACKNOWLEDGE`: acknowledges a sequence number.
 - `SENSOR_DISTANCE`: carries ultrasonic distance in millimeters.
 
-## Current Limitations
+## ⚠️ Current Limitations
 
 - WiFi is disabled by default in firmware.
 - Some behavior handlers on the ESP32 still print placeholders instead of complete calibrated sequences.
 - `MOVE_BY` is received by firmware, but final mapping from vector values to all physical motion cases still needs validation.
 - The Python controller IP is currently a hard-coded placeholder rather than a UI setting.
 
-## Debugging Checklist
+## ✅ Debugging Checklist
 
 If WiFi does not work:
 
@@ -139,7 +139,7 @@ If WiFi does not work:
 - Confirm the ESP32 receives packets by adding temporary serial logs if needed.
 - Confirm `message.h` and `message.py` still agree.
 
-## Related Documentation
+## 📚 Related Documentation
 
 - [Shared Communication Protocol](src/comm/README.md)
 - [Python Controller](src/control/README.md)

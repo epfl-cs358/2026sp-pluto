@@ -1,8 +1,8 @@
-# Software Sensors
+# 💻 Software Sensors
 
 Pluto currently has two firmware sensor abstractions: an ultrasonic distance sensor and an INMP441 I2S microphone.
 
-## Current Firmware Defaults
+## 🧠 Current Firmware Defaults
 
 Sensor support is enabled in [src/esp/main.cpp](src/esp/main.cpp):
 
@@ -18,7 +18,7 @@ Current pin templates:
 
 Verify these pins against the physical wiring before flashing or powering the robot.
 
-## Sensor Bring-Up From Scratch
+## 🧰 Sensor Bring-Up From Scratch
 
 Bring up sensors after the ESP32, PCA9685, and basic servo tests work.
 
@@ -31,7 +31,7 @@ Bring up sensors after the ESP32, PCA9685, and basic servo tests work.
 7. Clap near the microphone and confirm walking toggles only once per cooldown period.
 8. If sensor behavior is unstable, test one sensor at a time by disabling the other feature flag.
 
-## Ultrasonic Sensor
+## 📏 Ultrasonic Sensor
 
 The ultrasonic abstraction is implemented in:
 
@@ -48,7 +48,7 @@ The current firmware starts a read every 150 ms and checks the result roughly 10
 
 The sensor is intended for simple front obstacle detection.
 
-### Ultrasonic Integration Notes
+### 📝 Ultrasonic Integration Notes
 
 - The firmware does not block while waiting for the ultrasonic echo.
 - `read_begin()` starts the measurement.
@@ -58,7 +58,7 @@ The sensor is intended for simple front obstacle detection.
 
 This sensor is a safety and interaction feature, not a full mapping sensor.
 
-## Microphone
+## 🎙️ Microphone
 
 The microphone abstraction is implemented in:
 
@@ -78,14 +78,14 @@ This returns a dimensionless relative audio energy value. In the current firmwar
 - Clap cooldown: `800 ms`
 - Behavior: if the robot is walking, a clap stops it; otherwise a clap starts walking.
 
-### Microphone Integration Notes
+### 📝 Microphone Integration Notes
 
 - The ESP32 microphone code measures energy, not full speech.
 - Speech recognition is intentionally handled by the controller computer.
 - The clap threshold is empirical and should be tuned in the real environment.
 - If the robot starts or stops accidentally, increase the threshold or add filtering.
 
-## Speech Recognition
+## 🗣️ Speech Recognition
 
 The ESP32 firmware does not run speech recognition. Spoken commands are handled on the controller computer by Vosk in:
 
@@ -101,7 +101,7 @@ Currently supported phrases include:
 
 The controller converts recognized phrases into shared protocol messages and sends them to the ESP32 when connected.
 
-## Related Documentation
+## 📚 Related Documentation
 
 - [Wiring & Electrical](WIRING_ELECTRICAL.md)
 - [ESP32 Firmware](src/esp/README.md)

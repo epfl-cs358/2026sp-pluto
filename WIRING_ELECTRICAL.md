@@ -1,14 +1,14 @@
-# Wiring & Electrical
+# 🔌 Wiring & Electrical
 
 This page summarizes Pluto's wiring and electrical setup. For the physical assembly sequence, see [Assembly Instructions](ASSEMBLY.md).
 
-## Circuit Diagram
+## 🔌 Circuit Diagram
 
 ![Circuit Diagram](images/circuit.png)
 
 Use this diagram as the reference for the current wiring layout, then verify every connection against the actual hardware before powering the robot.
 
-## Power Path
+## 🔋 Power Path
 
 Pluto uses a 7.4V 2S LiPo battery as the main power source.
 
@@ -31,7 +31,7 @@ Important checks:
 - Connect all grounds together: LiPo/servo ground, PCA9685 ground, ESP32 ground, buck converter ground, and sensor ground.
 - Do not test full gaits until standing poses and single-leg motion are stable.
 
-## Wiring Order From Scratch
+## 🧰 Wiring Order From Scratch
 
 Wire the robot in this order. Each step should be verified before continuing:
 
@@ -48,7 +48,7 @@ Wire the robot in this order. Each step should be verified before continuing:
 
 If a later step fails, disconnect power and return to the last verified step.
 
-## ESP32 Connections
+## 📶 ESP32 Connections
 
 The ESP32 is the main controller. It handles firmware execution, sensor reads, serial debugging, optional WiFi, and communication with the PCA9685 servo driver.
 
@@ -60,7 +60,7 @@ Check these before powering the full robot:
 - Sensor pins match the templates in `src/esp/main.cpp`.
 - WiFi credentials are configured in `src/esp/main.cpp` only if `PLUTO_ENABLE_WIFI` is enabled.
 
-## PCA9685 and Servo Wiring
+## 🔌 PCA9685 and Servo Wiring
 
 The PCA9685 drives all 12 servos.
 
@@ -70,7 +70,7 @@ The PCA9685 drives all 12 servos.
 - Connect each servo to the expected PCA9685 channel before calibration.
 - Check servo orientation mechanically before sending large movements.
 
-## Servo Channel Mapping
+## 🎚️ Servo Channel Mapping
 
 The firmware assigns channels from `src/esp/legs/leg.h`. Each leg uses four channel slots, but only the first three are used for coxa, femur, and tibia.
 
@@ -83,7 +83,7 @@ The firmware assigns channels from `src/esp/legs/leg.h`. Each leg uses four chan
 
 Before running gait commands, verify that each physical servo is plugged into the channel expected by this table. If a servo is on the wrong channel, the IK and gait code will move the wrong joint.
 
-## Sensors
+## 📡 Sensors
 
 Current sensor notes:
 
@@ -99,7 +99,7 @@ If the ultrasonic ECHO line outputs 5V, use a voltage divider or level shifter b
 
 See [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) for software-side sensor behavior.
 
-## Minimum Electrical Tests
+## 🧪 Minimum Electrical Tests
 
 Before full robot testing:
 
@@ -111,7 +111,7 @@ Before full robot testing:
 6. Test the ultrasonic sensor separately before relying on wall-stop behavior.
 7. Test microphone energy prints before relying on clap-toggle behavior.
 
-## First Power-Up Checklist
+## ✅ First Power-Up Checklist
 
 1. Inspect solder joints and connector polarity.
 2. Check for shorts with a multimeter.

@@ -1,8 +1,8 @@
-# Assembly Instructions
+# 🧩 Assembly Instructions
 
 Follow these steps to assemble Pluto. Read [Wiring & Electrical](WIRING_ELECTRICAL.md) before powering anything.
 
-## Build Philosophy
+## 🎯 Build Philosophy
 
 This guide assumes a future team is building Pluto from scratch. Build and test one layer at a time:
 
@@ -16,7 +16,7 @@ This guide assumes a future team is building Pluto from scratch. Build and test 
 
 Do not skip directly to walking. Most failures in quadruped builds come from reversed servo orientation, incorrect power wiring, missing common ground, or uncalibrated joint limits.
 
-## Required Inputs Before Starting
+## 📋 Required Inputs Before Starting
 
 | Item | Source |
 | --- | --- |
@@ -26,7 +26,7 @@ Do not skip directly to walking. Most failures in quadruped builds come from rev
 | Servo calibration file | `src/esp/legs/leg_data.h` |
 | Troubleshooting checklist | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 
-## Mechanical Orientation
+## 🧭 Mechanical Orientation
 
 The code uses four leg positions:
 
@@ -46,7 +46,7 @@ The mesh filenames use the same idea:
 
 Keep this orientation consistent while assembling, wiring, and calibrating. If a leg is physically swapped, the servo channel mapping and calibration values will no longer match the robot.
 
-## 1. Print Parts
+## 🖨️ 1. Print Parts
 
 Print the required body and leg parts from the current physical mesh set in [src/3D printing mesh](<src/3D printing mesh>). The active mesh inventory is documented in [CAD_FILES.md](CAD_FILES.md).
 
@@ -60,7 +60,7 @@ Current part groups:
 
 Print rigid body and leg parts in PLA or PETG. Use TPU or rubber pads for the feet if available.
 
-## 2. Prepare Electronics
+## ⚡ 2. Prepare Electronics
 
 Before installing electronics in the body:
 
@@ -72,7 +72,7 @@ Before installing electronics in the body:
 
 Full wiring guide: [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md)
 
-## 3. Assemble Legs
+## 🧩 3. Assemble Legs
 
 Each leg has three main sections:
 
@@ -88,7 +88,7 @@ Each leg requires:
 - Bearings and linkage hardware for the tibia mechanism.
 - TPU foot or rubber pad.
 
-### Step 1: Assemble the Tibia
+### 🧩 Step 1: Assemble the Tibia
 
 - Take the two tibia printed parts.
 - Insert a ball bearing between both parts.
@@ -101,7 +101,7 @@ Each leg requires:
   <img width="340" alt="Tibia assembly photo 3" src="https://github.com/user-attachments/assets/1ceb050d-0b98-4518-9f59-d70ab6b6df12">
 </p>
 
-### Step 2: Assemble the Femur
+### 🧩 Step 2: Assemble the Femur
 
 - Take the femur inner part, spacer, and outer part.
 - Place the servo between the femur sides.
@@ -113,14 +113,14 @@ Each leg requires:
   <img width="340" alt="Femur assembly photo 2" src="https://github.com/user-attachments/assets/2ba8f411-c47c-49eb-b998-4faf3ca9ae12">
 </p>
 
-### Step 3: Assemble the Coxa
+### 🧩 Step 3: Assemble the Coxa
 
 - Take the coxa printed part for the selected leg.
 - Insert the screw from the correct side for that leg's geometry.
 - Attach the coxa to the servo horn mounted on the body.
 - Mount the coxa servo and check that the open sections are aligned.
 
-### Step 4: Attach the Femur to the Coxa
+### 📌 Step 4: Attach the Femur to the Coxa
 
 - Take the assembled femur.
 - Align the highest hole on the femur outer part with the coxa servo horn.
@@ -130,7 +130,7 @@ Each leg requires:
   <img width="280" alt="Femur-to-coxa assembly photo" src="https://github.com/user-attachments/assets/7dc58764-0051-4da9-8161-94ccf5f3cd5d">
 </p>
 
-### Step 5: Attach the Tibia to the Femur
+### 📌 Step 5: Attach the Tibia to the Femur
 
 - Attach the printed linkage bar to the femur servo horn using the side with the single hole.
 - Connect the opposite side of the linkage bar to the upper tibia part.
@@ -142,7 +142,7 @@ Each leg requires:
   <img width="280" alt="Tibia-to-femur linkage photo" src="https://github.com/user-attachments/assets/0e9bcfb1-e1ee-40d8-9137-1f8b7ccbd079">
 </p>
 
-### Step 6: Repeat for All Legs
+### 📌 Step 6: Repeat for All Legs
 
 Repeat the previous steps for each leg. Check:
 
@@ -157,7 +157,7 @@ Repeat the previous steps for each leg. Check:
   <img width="260" alt="Leg assembly photo 2" src="https://github.com/user-attachments/assets/0a05987a-258b-4da1-b0e4-094438c27b35">
 </p>
 
-## 4. Assemble the Body
+## 🧩 4. Assemble the Body
 
 Use M3 screws unless a part requires a different size. Coxa servos use M2.5 screws.
 
@@ -179,7 +179,7 @@ Reference images:
   <img width="220" alt="ESP32 mounted in body" src="images/esp.jpg">
 </p>
 
-## 5. Wire and Test
+## 📌 5. Wire and Test
 
 1. Plug all cables according to [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md).
 2. Check polarity and continuity with a multimeter.
@@ -188,7 +188,7 @@ Reference images:
 5. Test stand, stop, and small trimming commands before walking.
 6. Tune servo calibration in `src/esp/legs/leg_data.h`.
 
-## Bring-Up Sequence After Assembly
+## 🧩 Bring-Up Sequence After Assembly
 
 Use this order after the robot is mechanically assembled:
 
@@ -203,7 +203,7 @@ Use this order after the robot is mechanically assembled:
 9. Update `src/esp/legs/leg_data.h` if a joint direction, start pulse, or safe range is wrong.
 10. Repeat for all joints before running walking commands.
 
-## Completion Checklist
+## ✅ Completion Checklist
 
 The hardware build is not complete until all checks pass:
 

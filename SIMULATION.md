@@ -1,15 +1,15 @@
-# Simulation Notes
+# 🎮 Simulation Notes
 
 Pluto currently has two simulation-facing paths. They are useful for development, but they are not yet a single polished, high-fidelity simulator.
 
-## Current Simulation Paths
+## 🎮 Current Simulation Paths
 
 | Path | Files | Status |
 | --- | --- | --- |
 | Python PyBullet UI | `src/control/pluto_menu/simulation.py`, `src/control/sim_motion.py`, `src/control/gait.py` | Integrated into the NiceGUI control hub, but the visual mesh loading still expects older generic mesh filenames |
 | MuJoCo C++ bridge | `CMakeLists.txt`, `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/sim/sim_mesh/pluto.xml` | Uses the current per-leg mesh set and simulation-side leg/gait abstractions based on the ESP concepts |
 
-## How A New Team Should Use Simulation
+## 🎮 How A New Team Should Use Simulation
 
 Use simulation to inspect concepts, not to prove that hardware walking is safe.
 
@@ -23,7 +23,7 @@ Recommended order:
 6. Treat simulation success as a sign to continue testing, not as proof that the physical robot is safe.
 7. Validate all physical movement slowly on the real robot with conservative calibration.
 
-## Python PyBullet Path
+## 🎮 Python PyBullet Path
 
 The `/sim` page in the NiceGUI app can open a PyBullet window and send basic motion commands through `PyBulletMotionController`.
 
@@ -46,7 +46,7 @@ Those files are not part of the current mesh set. The active repository now stor
 
 To update this path, replace the generic mesh references in `sim_motion.py` with the current per-leg STL files and verify the visual frame offsets for each leg.
 
-## MuJoCo Path
+## 🎮 MuJoCo Path
 
 The MuJoCo model is stored in:
 
@@ -75,7 +75,7 @@ CMakeLists.txt
 
 It constructs simulation-side `Leg` objects, runs a simulation-side `GaitController`, converts current joint angles to radians, and writes them to 12 MuJoCo actuators.
 
-### Build and Run the MuJoCo Bridge
+### ▶️ Build and Run the MuJoCo Bridge
 
 The MuJoCo bridge is built with the top-level `CMakeLists.txt`, not PlatformIO. MuJoCo must be downloaded separately, then CMake must be pointed at that local installation.
 
@@ -106,7 +106,7 @@ The bridge currently supports keyboard commands:
 | `2` | Trot gait |
 | `3` | Gallop gait |
 
-## Known Simulation Limitations
+## 🎮 Known Simulation Limitations
 
 - The simulation is not yet a validated physical twin of Pluto.
 - Mass, friction, joint constraints, servo torque, cable effects, and battery placement still need refinement.
@@ -115,7 +115,7 @@ The bridge currently supports keyboard commands:
 - The MuJoCo bridge is not part of the PlatformIO ESP32 firmware build.
 - The top-level `CMakeLists.txt` defines the MuJoCo executable and sets `PLUTO_MODEL_PATH` to `src/sim/sim_mesh/pluto.xml`.
 
-## Future Simulation Work
+## 🎮 Future Simulation Work
 
 For a future team, useful improvements would be:
 
@@ -125,7 +125,7 @@ For a future team, useful improvements would be:
 - Tune mass, friction, joint limits, and servo response against physical measurements.
 - Add screenshots or videos showing expected simulation output.
 
-## Related Documentation
+## 📚 Related Documentation
 
 - [Software Overview](SOFTWARE_OVERVIEW.md)
 - [CAD Files](CAD_FILES.md)

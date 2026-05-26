@@ -1,4 +1,4 @@
-# Shared Communication Protocol
+# 🔁 Shared Communication Protocol
 
 This directory contains the C++ protocol definitions shared by the ESP32 firmware and mirrored by the Python controller.
 
@@ -16,7 +16,7 @@ src/control/pluto_server/message.py
 
 These two files must stay in sync.
 
-## Packet Envelope
+## 📦 Packet Envelope
 
 `UDPPacket` contains:
 
@@ -29,7 +29,7 @@ These two files must stay in sync.
 
 Minimum packet size is 17 bytes. Maximum packet size is 529 bytes.
 
-## Session Lifecycle
+## 🔐 Session Lifecycle
 
 A new team should understand the session flow before debugging WiFi:
 
@@ -42,7 +42,7 @@ A new team should understand the session flow before debugging WiFi:
 7. ESP32 rejects packets with an invalid token or old sequence number.
 8. ESP32 clears the session after a timeout if no valid packets arrive.
 
-## Message Format
+## ✉️ Message Format
 
 Each `Message` is exactly 8 bytes:
 
@@ -58,7 +58,7 @@ Message families:
 - `KIND_SENSOR`
 - `KIND_BEHAVIOR`
 
-## Implemented Helpers
+## 🧰 Implemented Helpers
 
 `message.h` currently provides helpers for:
 
@@ -71,7 +71,7 @@ Message families:
 - `finalize_packet_crc`
 - `validate_packet`
 
-## Adding Or Changing A Message
+## ➕ Adding Or Changing A Message
 
 The protocol is shared by firmware and Python. When adding a message:
 
@@ -85,7 +85,7 @@ The protocol is shared by firmware and Python. When adding a message:
 
 Do not change the size of `Message` or `UDPPacket` without updating both languages and the documentation.
 
-## Related Documentation
+## 📚 Related Documentation
 
 - [WiFi Protocol](../../SOFTWARE_WIFI.md)
 - [ESP32 Firmware](../esp/README.md)

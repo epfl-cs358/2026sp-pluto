@@ -1,8 +1,8 @@
-# Software Overview
+# 💻 Software Overview
 
 Pluto's software is split into four active areas: ESP32 firmware, Python controller, shared communication protocol, and simulation support.
 
-## How To Read The Code From Scratch
+## 🧰 How To Read The Code From Scratch
 
 For a new team, read the code in this order:
 
@@ -25,7 +25,7 @@ For a new team, read the code in this order:
 
 Read this before changing behavior. Most software bugs in this project come from changing one side of a shared contract without updating the matching side.
 
-## Main Components
+## 📌 Main Components
 
 | Component | Location | Role |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ Read this before changing behavior. Most software bugs in this project come from
 | WiFi protocol notes | [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md) | Documents UDP connection setup, packet structure, batching, CRCs, and payload layout |
 | Sensor notes | [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) | Documents the ultrasonic distance sensor, INMP441 microphone, and current firmware behavior |
 
-## Firmware Layer
+## 🧠 Firmware Layer
 
 The ESP32 firmware handles time-sensitive robot behavior:
 
@@ -59,7 +59,7 @@ Current default feature flags in `src/esp/main.cpp`:
 
 See [ESP32 Firmware](src/esp/README.md).
 
-### Firmware Bring-Up Order
+### 🧠 Firmware Bring-Up Order
 
 Use this sequence when setting up a new robot:
 
@@ -71,7 +71,7 @@ Use this sequence when setting up a new robot:
 6. Test `1`, `2`, `3` gait selection without aggressive speeds.
 7. Enable WiFi only after serial control is safe.
 
-## Control Layer
+## 🎛️ Control Layer
 
 The Python control hub provides operator-facing tools:
 
@@ -87,7 +87,7 @@ The ESP32 IP address is currently a placeholder in `src/control/main.py` and mus
 
 See [Python Controller](src/control/README.md).
 
-### Controller Bring-Up Order
+### 🎛️ Controller Bring-Up Order
 
 Use this sequence when setting up the controller:
 
@@ -101,7 +101,7 @@ Use this sequence when setting up the controller:
 8. Test a small movement vector.
 9. Check telemetry for acknowledgements.
 
-## Communication Layer
+## 🔁 Communication Layer
 
 Python and C++ share a compact binary protocol. Commands are grouped into UDP packets with:
 
@@ -113,7 +113,7 @@ Python and C++ share a compact binary protocol. Commands are grouped into UDP pa
 
 See [Communication](src/comm/README.md) and [WiFi Protocol](SOFTWARE_WIFI.md).
 
-### Keeping Protocol Files In Sync
+### 🔁 Keeping Protocol Files In Sync
 
 Whenever a message family, kind, payload, or packet field changes:
 
@@ -123,7 +123,7 @@ Whenever a message family, kind, payload, or packet field changes:
 4. Test packing and unpacking on the Python side.
 5. Flash firmware and test one packet type at a time.
 
-## Simulation Layer
+## 🎮 Simulation Layer
 
 Pluto currently has two simulation-facing paths:
 
@@ -134,7 +134,7 @@ The MuJoCo model uses the current per-leg STL files. The Python PyBullet visual 
 
 See [Simulation Notes](SIMULATION.md).
 
-## Current Extension Points
+## 📌 Current Extension Points
 
 - Better gait stability and interpolation.
 - Live WiFi control validation on hardware.
