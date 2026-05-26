@@ -14,7 +14,7 @@ _RIGHT_LEGS = {"fr", "br"}
 class BaseGait:
     swing_ratio = 0.35
     stride = 0.6
-    lift = 0.5 # extra knee bending at mid-swing to lift a foot
+    lift = 1.2 # extra knee bending at mid-swing to lift a foot
 
     def __init__(self, period):
         self.period  = period

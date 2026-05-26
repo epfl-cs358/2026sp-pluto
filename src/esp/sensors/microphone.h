@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <driver/i2s.h>
 #include <freertos/ringbuf.h>
+#include <cstring>
 
 namespace pluto
 {
@@ -39,6 +40,12 @@ namespace pluto
         i2s_read(
             PORT, sample_buffer, sizeof(sample_buffer), &bytes_read, portMAX_DELAY);
         int samples_read = bytes_read / sizeof(int32_t);
+
+        if (samples_read <= 0)
+        {
+          continue;
+        }
+
         // downsample inplace...
         int16_t* in_place_samples = (int16_t*)sample_buffer;
         uint64_t sum_of_squares   = 0;
@@ -127,7 +134,10 @@ namespace pluto
 
     /// @brief Returns the current energy
     /// @return Current energy
-    uint32_t current_energy() const noexcept { return state.current_energy; }
+    uint32_t current_energy() const noexcept
+    { 
+      return state.current_energy; 
+    }
   };
 
   template<uint8_t S, uint8_t W, uint8_t D, i2s_port_t P>
