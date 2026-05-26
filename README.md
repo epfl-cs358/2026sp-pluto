@@ -1174,6 +1174,7 @@ AI assistance was not used to replace:
 - Hardware assembly, wiring, or physical testing.
 - Experimental validation on the real robot.
 - Team ownership of the system design and implementation.
+- Writing the instructions and README.
 
 ---
 

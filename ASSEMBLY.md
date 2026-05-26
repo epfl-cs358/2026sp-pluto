@@ -20,7 +20,7 @@ Do not skip directly to walking. Most failures in quadruped builds come from rev
 
 | Item | Source |
 | --- | --- |
-| Printed body and leg meshes | [CAD_FILES.md](CAD_FILES.md), `src/mesh/` |
+| Printed body and leg meshes | [CAD_FILES.md](CAD_FILES.md), `src/3D printing mesh/` |
 | Wiring plan | [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md) |
 | Firmware setup | [src/esp/README.md](src/esp/README.md) |
 | Servo calibration file | `src/esp/legs/leg_data.h` |
@@ -48,7 +48,7 @@ Keep this orientation consistent while assembling, wiring, and calibrating. If a
 
 ## 1. Print Parts
 
-Print the required body and leg parts from the current mesh set in [src/mesh](src/mesh). The active mesh inventory is documented in [CAD_FILES.md](CAD_FILES.md).
+Print the required body and leg parts from the current physical mesh set in [src/3D printing mesh](<src/3D printing mesh>). The active mesh inventory is documented in [CAD_FILES.md](CAD_FILES.md).
 
 Current part groups:
 
@@ -95,9 +95,11 @@ Each leg requires:
 - Align the pieces and screw them together.
 - Glue or fasten the TPU/rubber foot to the lower end.
 
-<img width="1200" height="1600" alt="Tibia assembly photo 1" src="https://github.com/user-attachments/assets/5c1d1c69-fc43-4d7c-b345-83be95ee043b" />
-<img width="1200" height="1600" alt="Tibia assembly photo 2" src="https://github.com/user-attachments/assets/d6e00f19-be81-4896-a018-c532c6961204" />
-<img width="1600" height="1200" alt="Tibia assembly photo 3" src="https://github.com/user-attachments/assets/1ceb050d-0b98-4518-9f59-d70ab6b6df12" />
+<p>
+  <img width="260" alt="Tibia assembly photo 1" src="https://github.com/user-attachments/assets/5c1d1c69-fc43-4d7c-b345-83be95ee043b">
+  <img width="260" alt="Tibia assembly photo 2" src="https://github.com/user-attachments/assets/d6e00f19-be81-4896-a018-c532c6961204">
+  <img width="340" alt="Tibia assembly photo 3" src="https://github.com/user-attachments/assets/1ceb050d-0b98-4518-9f59-d70ab6b6df12">
+</p>
 
 ### Step 2: Assemble the Femur
 
@@ -106,8 +108,10 @@ Each leg requires:
 - Stack the three parts around the servo.
 - Add adjacent screws to reinforce the structure and improve stability.
 
-<img width="1200" height="1600" alt="Femur assembly photo 1" src="https://github.com/user-attachments/assets/275714d3-8c09-4059-b844-c13d53d6eaf3" />
-<img width="1600" height="1200" alt="Femur assembly photo 2" src="https://github.com/user-attachments/assets/2ba8f411-c47c-49eb-b998-4faf3ca9ae12" />
+<p>
+  <img width="260" alt="Femur assembly photo 1" src="https://github.com/user-attachments/assets/275714d3-8c09-4059-b844-c13d53d6eaf3">
+  <img width="340" alt="Femur assembly photo 2" src="https://github.com/user-attachments/assets/2ba8f411-c47c-49eb-b998-4faf3ca9ae12">
+</p>
 
 ### Step 3: Assemble the Coxa
 
@@ -122,7 +126,9 @@ Each leg requires:
 - Align the highest hole on the femur outer part with the coxa servo horn.
 - Secure the connection using an M3x35 screw.
 
-<img width="1200" height="1600" alt="Femur-to-coxa assembly photo" src="https://github.com/user-attachments/assets/7dc58764-0051-4da9-8161-94ccf5f3cd5d" />
+<p>
+  <img width="280" alt="Femur-to-coxa assembly photo" src="https://github.com/user-attachments/assets/7dc58764-0051-4da9-8161-94ccf5f3cd5d">
+</p>
 
 ### Step 5: Attach the Tibia to the Femur
 
@@ -130,9 +136,11 @@ Each leg requires:
 - Connect the opposite side of the linkage bar to the upper tibia part.
 - Choose the linkage hole position based on the desired bend:
   - Holes closer to the center create a smaller bending angle.
-  - Holes farther away create a larger bending angle.
+- Holes farther away create a larger bending angle.
 
-<img width="1200" height="1600" alt="Tibia-to-femur linkage photo" src="https://github.com/user-attachments/assets/0e9bcfb1-e1ee-40d8-9137-1f8b7ccbd079" />
+<p>
+  <img width="280" alt="Tibia-to-femur linkage photo" src="https://github.com/user-attachments/assets/0e9bcfb1-e1ee-40d8-9137-1f8b7ccbd079">
+</p>
 
 ### Step 6: Repeat for All Legs
 
@@ -144,8 +152,10 @@ Repeat the previous steps for each leg. Check:
 - Correct linkage alignment.
 - No mechanical blocking across the expected range.
 
-<img width="1200" height="1600" alt="Leg assembly photo 1" src="https://github.com/user-attachments/assets/d05dc0d8-0eac-4b16-8236-bd71493f70c2" />
-<img width="1200" height="1600" alt="Leg assembly photo 2" src="https://github.com/user-attachments/assets/0a05987a-258b-4da1-b0e4-094438c27b35" />
+<p>
+  <img width="260" alt="Leg assembly photo 1" src="https://github.com/user-attachments/assets/d05dc0d8-0eac-4b16-8236-bd71493f70c2">
+  <img width="260" alt="Leg assembly photo 2" src="https://github.com/user-attachments/assets/0a05987a-258b-4da1-b0e4-094438c27b35">
+</p>
 
 ## 4. Assemble the Body
 
@@ -162,10 +172,12 @@ Use M3 screws unless a part requires a different size. Coxa servos use M2.5 scre
 
 Reference images:
 
-![Servo](images/servo.jpg)
-![Buck Converter](images/buckConverter.jpg)
-![LiPo Protection](images/lipoProt.jpg)
-![ESP32](images/esp.jpg)
+<p>
+  <img width="220" alt="Servo mounted in body" src="images/servo.jpg">
+  <img width="220" alt="Buck converter mounted in body" src="images/buckConverter.jpg">
+  <img width="220" alt="LiPo protection and battery mounting" src="images/lipoProt.jpg">
+  <img width="220" alt="ESP32 mounted in body" src="images/esp.jpg">
+</p>
 
 ## 5. Wire and Test
 
