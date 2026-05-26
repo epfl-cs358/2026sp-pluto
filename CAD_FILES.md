@@ -1,55 +1,97 @@
 # CAD Files
 
-This page lists the mesh assets currently available in the repository and how they are used by Pluto.
+This page documents the CAD/STL files used to physically print Pluto. The printable robot parts are stored separately from the simplified simulation meshes.
 
-## Current Mesh Directory
+## Physical 3D-Printing Files
 
-All current mesh and simulation model files are stored in [src/mesh](src/mesh).
+Use this folder for fabrication:
 
-| File | Purpose |
+```text
+src/3D printing mesh/
+```
+
+The folder is organized by physical leg position:
+
+| Folder | Purpose |
 | --- | --- |
-| [body.stl](src/mesh/body.stl) | Main robot body for electronics and leg mounting |
-| [tl_coxa.stl](src/mesh/tl_coxa.stl) | Top-left coxa segment |
-| [tl_femur.stl](src/mesh/tl_femur.stl) | Top-left femur segment |
-| [tl_tibia.stl](src/mesh/tl_tibia.stl) | Top-left tibia segment |
-| [tr_coxa.stl](src/mesh/tr_coxa.stl) | Top-right coxa segment |
-| [tr_femur.stl](src/mesh/tr_femur.stl) | Top-right femur segment |
-| [tr_tibia.stl](src/mesh/tr_tibia.stl) | Top-right tibia segment |
-| [bl_coxa.stl](src/mesh/bl_coxa.stl) | Bottom-left coxa segment |
-| [bl_femur.stl](src/mesh/bl_femur.stl) | Bottom-left femur segment |
-| [bl_tibia.stl](src/mesh/bl_tibia.stl) | Bottom-left tibia segment |
-| [br_coxa.stl](src/mesh/br_coxa.stl) | Bottom-right coxa segment |
-| [br_femur.stl](src/mesh/br_femur.stl) | Bottom-right femur segment |
-| [br_tibia.stl](src/mesh/br_tibia.stl) | Bottom-right tibia segment |
-| [pluto.xml](src/mesh/pluto.xml) | MuJoCo model that references the current STL files |
+| [Front Left](<src/3D printing mesh/Front Left>) | Printable parts for the front-left leg |
+| [Front Right](<src/3D printing mesh/Front Right>) | Printable parts for the front-right leg |
+| [Back Left](<src/3D printing mesh/Back Left>) | Printable parts for the back-left leg |
+| [Back Right](<src/3D printing mesh/Back Right>) | Printable parts for the back-right leg |
 
-The previous generic files `coxa.stl`, `Femur.stl`, and `tibia.stl` are no longer part of the active mesh set.
+Each leg folder contains the printable coxa, femur, tibia, spacer, and linkage/bar parts for that specific leg.
 
-## Naming Convention
+## Printable Parts By Leg
 
-- `tl`: top left
-- `tr`: top right
-- `bl`: bottom left
-- `br`: bottom right
+### Front Left
 
-The repository uses top/bottom naming in several mesh and firmware files. In the physical robot documentation, this corresponds to front/back placement depending on how the robot is oriented during assembly.
+- [Front Left COXA.stl](<src/3D printing mesh/Front Left/Front Left COXA.stl>)
+- [Front Left Inner FEMUR.stl](<src/3D printing mesh/Front Left/Front Left Inner FEMUR.stl>)
+- [Front Left Outer FEMUR.stl](<src/3D printing mesh/Front Left/Front Left Outer FEMUR.stl>)
+- [Front Left Spacer FEMUR.stl](<src/3D printing mesh/Front Left/Front Left Spacer FEMUR.stl>)
+- [Front Left TIBIA.stl](<src/3D printing mesh/Front Left/Front Left TIBIA.stl>)
+- [Front Left Inner Mirror TIBIA.stl](<src/3D printing mesh/Front Left/Front Left Inner Mirror TIBIA.stl>)
+- [Front Left Bar.stl](<src/3D printing mesh/Front Left/Front Left Bar.stl>)
+
+### Front Right
+
+- [Front Right COXA.stl](<src/3D printing mesh/Front Right/Front Right COXA.stl>)
+- [Front Right Inner FEMUR.stl](<src/3D printing mesh/Front Right/Front Right Inner FEMUR.stl>)
+- [Front Right Outer FEMUR.stl](<src/3D printing mesh/Front Right/Front Right Outer FEMUR.stl>)
+- [Front Right Spacer FEMUR.stl](<src/3D printing mesh/Front Right/Front Right Spacer FEMUR.stl>)
+- [Front Right Inner TIBIA.stl](<src/3D printing mesh/Front Right/Front Right Inner TIBIA.stl>)
+- [Front Right Inner Mirror TIBIA.stl](<src/3D printing mesh/Front Right/Front Right Inner Mirror TIBIA.stl>)
+- [Front Right Bar.stl](<src/3D printing mesh/Front Right/Front Right Bar.stl>)
+
+### Back Left
+
+- [Back Left COXA.stl](<src/3D printing mesh/Back Left/Back Left COXA.stl>)
+- [Back Left Inner FEMUR.stl](<src/3D printing mesh/Back Left/Back Left Inner FEMUR.stl>)
+- [Back Left Outer FEMUR.stl](<src/3D printing mesh/Back Left/Back Left Outer FEMUR.stl>)
+- [Back Left Spacer FEMUR.stl](<src/3D printing mesh/Back Left/Back Left Spacer FEMUR.stl>)
+- [Back Left Inner TIBIA.stl](<src/3D printing mesh/Back Left/Back Left Inner TIBIA.stl>)
+- [Back Left Inner Mirror TIBIA.stl](<src/3D printing mesh/Back Left/Back Left Inner Mirror TIBIA.stl>)
+- [Back Left Bar.stl](<src/3D printing mesh/Back Left/Back Left Bar.stl>)
+
+### Back Right
+
+- [Back Right COXA.stl](<src/3D printing mesh/Back Right/Back Right COXA.stl>)
+- [Back Right Inner FEMUR.stl](<src/3D printing mesh/Back Right/Back Right Inner FEMUR.stl>)
+- [Back Right Outer FEMUR.stl](<src/3D printing mesh/Back Right/Back Right Outer FEMUR.stl>)
+- [Back Right Spacer FEMUR.stl](<src/3D printing mesh/Back Right/Back Right Spacer FEMUR.stl>)
+- [Back Right Inner TIBIA.stl](<src/3D printing mesh/Back Right/Back Right Inner TIBIA.stl>)
+- [Back Right Inner Mirror TIBIA.stl](<src/3D printing mesh/Back Right/Back Right Inner Mirror TIBIA.stl>)
+- [Back Right Bar.stl](<src/3D printing mesh/Back Right/Back Right Bar.stl>)
 
 ## How To Use These Files From Scratch
 
-1. Start with `body.stl`; this defines where the electronics and coxa servos mount.
-2. Print exactly one full leg set first, for example `tl_coxa.stl`, `tl_femur.stl`, and `tl_tibia.stl`.
-3. Check servo fit, screw holes, bearing fit, and linkage movement on that one leg.
-4. Only then print the remaining leg-specific parts.
-5. Keep each printed part labelled by leg position. Do not mix top-left, top-right, bottom-left, and bottom-right parts.
-6. After assembly, verify that the physical leg position matches the firmware leg names in `src/esp/legs/leg_data.h`.
+1. Print one complete leg folder first, preferably the leg you will use for test fitting.
+2. Assemble that one leg before printing all remaining parts.
+3. Check servo fit, screw holes, bearing fit, spacer alignment, and linkage motion.
+4. Label every printed part by leg position immediately after printing.
+5. Do not mix front/back or left/right parts.
+6. After mechanical assembly, verify that the physical leg positions match the firmware leg names in `src/esp/legs/leg_data.h`.
 
-The mesh files and firmware calibration are connected: a part mounted on the wrong side can make a correct calibration file behave incorrectly.
+The printed parts and firmware calibration are connected. If a leg is mounted on the wrong side, the calibration values and servo channel mapping may no longer match the physical robot.
 
-## Simulation Usage
+## Simulation Meshes
 
-The MuJoCo model at [src/mesh/pluto.xml](src/mesh/pluto.xml) references the current per-leg STL files.
+Simulation-specific meshes are stored in:
 
-The older Python PyBullet path in `src/control/sim_motion.py` still expects generic `coxa.stl`, `femur.stl`, and `tibia.stl` visual meshes. That path needs to be updated before it fully matches the current CAD files.
+```text
+src/simulation mesh/
+```
+
+These files are not the primary physical printing files. They are simplified/organized for simulation use and include:
+
+- `body.stl`
+- `tl_coxa.stl`, `tl_femur.stl`, `tl_tibia.stl`
+- `tr_coxa.stl`, `tr_femur.stl`, `tr_tibia.stl`
+- `bl_coxa.stl`, `bl_femur.stl`, `bl_tibia.stl`
+- `br_coxa.stl`, `br_femur.stl`, `br_tibia.stl`
+- `pluto.xml`
+
+The MuJoCo model is [src/simulation mesh/pluto.xml](<src/simulation mesh/pluto.xml>).
 
 See [SIMULATION.md](SIMULATION.md) for the current simulation split.
 
@@ -57,13 +99,13 @@ See [SIMULATION.md](SIMULATION.md) for the current simulation split.
 
 - Print rigid structural parts in PLA or PETG.
 - Use TPU or rubber pads for the feet if available.
-- Print and inspect all leg parts before inserting servos.
-- Keep track of left/right and top/bottom orientation during assembly.
-- Check bearing fits, screw holes, and servo horn alignment before final assembly.
+- Print and inspect one full leg before printing the entire set.
+- Keep track of front/back and left/right orientation during assembly.
+- Check bearing fits, screw holes, servo horn alignment, and linkage movement before final assembly.
 
 ## Recommended Print Validation
 
-Before committing to a full set:
+Before committing to the full robot:
 
 - Confirm that the servo body fits without forcing the print.
 - Confirm that the servo horn can be mounted without rubbing.
