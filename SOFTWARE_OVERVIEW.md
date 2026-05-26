@@ -128,7 +128,7 @@ Whenever a message family, kind, payload, or packet field changes:
 Pluto currently has two simulation-facing paths:
 
 - Python PyBullet control path under `src/control`.
-- MuJoCo XML model and C++ simulation bridge under `src/mesh` and `src/sim`.
+- MuJoCo XML model and C++ simulation bridge under `src/sim/sim_mesh` and `src/sim`.
 
 The MuJoCo model uses the current per-leg STL files. The Python PyBullet visual path is older and still expects generic leg mesh filenames, so it needs a mesh update to fully match the current CAD set.
 

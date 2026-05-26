@@ -20,8 +20,9 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(glfw)
 
-# MuJoCo is not available via FetchContent, so we require the user to download it manually and specify the path here.
-set(MUJOCO_DIR "C:/mujoco")
+# MuJoCo is not available via FetchContent, so download it manually and pass
+# -DMUJOCO_DIR=/path/to/mujoco when configuring CMake.
+set(MUJOCO_DIR "C:/mujoco" CACHE PATH "Path to the local MuJoCo installation")
 
 find_path(MUJOCO_INCLUDE_DIR
     mujoco/mujoco.h

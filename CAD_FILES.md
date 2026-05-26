@@ -79,7 +79,7 @@ The printed parts and firmware calibration are connected. If a leg is mounted on
 Simulation-specific meshes are stored in:
 
 ```text
-src/simulation mesh/
+src/sim/sim_mesh/
 ```
 
 These files are not the primary physical printing files. They are simplified/organized for simulation use and include:
@@ -91,7 +91,7 @@ These files are not the primary physical printing files. They are simplified/org
 - `br_coxa.stl`, `br_femur.stl`, `br_tibia.stl`
 - `pluto.xml`
 
-The MuJoCo model is [src/simulation mesh/pluto.xml](<src/simulation mesh/pluto.xml>).
+The MuJoCo model is [src/sim/sim_mesh/pluto.xml](src/sim/sim_mesh/pluto.xml).
 
 See [SIMULATION.md](SIMULATION.md) for the current simulation split.
 

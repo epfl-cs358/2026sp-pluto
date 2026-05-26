@@ -13,7 +13,7 @@
 
 </div>
 
-> **Current status:** Pluto has the main robot platform in place: ESP32 firmware, gait code, servo calibration hooks, ultrasonic and microphone reactions, a Python controller, shared UDP messages, updated per-leg meshes, and a MuJoCo model. Final physical gait tuning and some behavior sequences still need validation on the real robot.
+> **Current status:** Pluto has the main robot platform in place: ESP32 firmware, gait code, servo calibration hooks, ultrasonic wall-stopping, a compiled microphone driver, a Python controller, shared UDP messages, updated per-leg meshes, and a MuJoCo model. Final physical gait tuning, microphone behavior re-enabling, and some behavior sequences still need validation on the real robot.
 
 > **Live demo:** Demo media can be added here once final robot videos are available.
 
@@ -141,10 +141,10 @@ The repository documents both the final implementation and the current work-in-p
 
 - Drive 12 servo joints through a PCA9685 PWM driver.
 - Use per-joint calibration for coxa, femur, and tibia angles.
-- Run stand, stop, walk, trot, gallop, bow, and paw motion logic.
+- Run stand, stop, forward, backward, left turn, right turn, walk, trot, gallop, bow, and paw motion logic.
 - Update gait motion every 20 ms.
 - Stop forward motion when the ultrasonic sensor detects a close wall.
-- Toggle walking on microphone clap-energy detection.
+- Compile the microphone driver; the clap-energy walking toggle code exists but is currently disabled in the main loop.
 - Accept serial monitor commands for gait testing and servo trimming.
 - Optionally receive UDP commands when WiFi support is enabled.
 
@@ -174,11 +174,11 @@ The repository documents both the final implementation and the current work-in-p
 | --- | --- | --- |
 | Physical robot | In progress | Main build and wiring docs exist; final gait validation still needed |
 | Servo control | Implemented | Calibration lives in `src/esp/legs/leg_data.h` |
-| Gaits | Implemented, tuning needed | Walk, trot, gallop, bow, paw, stand, and stop logic exist |
-| Sensors | Implemented | Ultrasonic wall stop and microphone clap toggle are enabled by default |
+| Gaits | Implemented, tuning needed | Walk, trot, gallop, left/right turn, bow, paw, stand, and stop logic exist |
+| Sensors | Implemented, tuning needed | Ultrasonic wall stop is active; microphone driver is compiled, but clap-control is currently commented out |
 | Controller UI | Implemented | Connect button, movement input, quick actions, telemetry, speech worker |
 | WiFi/UDP | Implemented, disabled by default | Enable `PLUTO_ENABLE_WIFI` and set `IP_OF_ESP` before use |
-| Meshes | Updated | 3D-printing meshes live in `src/3D printing mesh`; simulation meshes and `pluto.xml` live in `src/simulation mesh` |
+| Meshes | Updated | 3D-printing meshes live in `src/3D printing mesh`; simulation meshes and `pluto.xml` live in `src/sim/sim_mesh` |
 | PyBullet | Partial | UI path exists, but visual meshes still reference old generic filenames |
 | MuJoCo | Partial | Model and C++ bridge exist, but not yet a validated physical twin |
 
@@ -329,7 +329,7 @@ Print the physical robot parts from `src/3D printing mesh/`. The folders are org
 - `Back Left/`
 - `Back Right/`
 
-Each folder contains that leg's coxa, femur, tibia, spacer, and linkage/bar parts. The simulation-only meshes are separate and live in `src/simulation mesh/`.
+Each folder contains that leg's coxa, femur, tibia, spacer, and linkage/bar parts. The simulation-only meshes are separate and live in `src/sim/sim_mesh/`.
 
 Label parts as soon as they are printed. Do not mix parts between legs. The firmware also uses `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, and `BOTTOM_RIGHT`, so a physical mix-up can become a software calibration problem later.
 
@@ -461,15 +461,17 @@ Recommended order:
 3. `0`: set speed to 0%.
 4. `5`: set speed to 50%.
 5. `f`: test forward motion briefly.
-6. `s`: stop.
-7. `2`: select trot only after walk is stable.
-8. `3`: select gallop only after lower-speed gaits are stable.
+6. `q`: test left turn briefly.
+7. `e`: test right turn briefly.
+8. `s`: stop.
+9. `2`: select trot only after walk and turns are stable.
+10. `3`: select gallop only after lower-speed gaits are stable.
 
 If a leg moves in the wrong direction, stop and return to calibration. Do not compensate by forcing the gait constants first.
 
 #### Step 10: Test sensors
 
-By default, ultrasonic and microphone support are enabled:
+By default, ultrasonic and microphone support are compiled:
 
 ```cpp
 #define PLUTO_ENABLE_ULTRASONIC
@@ -481,7 +483,7 @@ Current sensor templates:
 - Ultrasonic: `SensorUltraSonic<5, 18>`
 - Microphone: `SensorMicrophone<26, 25, 33>`
 
-The ultrasonic sensor stops forward motion if the measured distance is below 20 cm. The microphone uses audio energy as a clap detector and toggles walking after a cooldown.
+The ultrasonic sensor stops forward motion if the measured distance is below 20 cm. The microphone object is initialized, but `update_microphone_control(now)` is currently commented out in `src/esp/main.cpp`; re-enable that call only after validating the energy threshold on the real microphone.
 
 #### Step 11: Enable WiFi last
 
@@ -610,7 +612,7 @@ Keeps both sides aligned.
 
 ### Current Mesh Set
 
-The current physical printing files live in `src/3D printing mesh/`, grouped by leg:
+The current physical 3D-printing CAD/STL files live in `src/3D printing mesh/`, grouped by leg:
 
 ```text
 src/3D printing mesh/
@@ -620,7 +622,7 @@ src/3D printing mesh/
 `-- Back Right/
 ```
 
-The simulation meshes live separately in `src/simulation mesh/` and include `body.stl`, per-leg coxa/femur/tibia STL files, and `pluto.xml`. See [CAD_FILES.md](CAD_FILES.md).
+The simulation meshes live separately in `src/sim/sim_mesh/` and include `body.stl`, per-leg coxa/femur/tibia STL files, and `pluto.xml`. See [CAD_FILES.md](CAD_FILES.md).
 
 ### Build Flow
 
@@ -774,7 +776,7 @@ Implemented message examples:
 | Message | Direction | Meaning |
 | --- | --- | --- |
 | `MOVE_CONTROL_BEGIN_FOR` | Python -> ESP32 | Starts a control lease |
-| `MOVE_BY` | Python -> ESP32 | Carries forward/back and left/right signed 16-bit directions |
+| `MOVE_BY` | Python -> ESP32 | Carries forward/back and left/right signed 16-bit directions; firmware-side mapping is still marked as a TODO |
 | `MOVE_STOP_FOR` | Python -> ESP32 | Stop/stand request |
 | `BEHAVIOR_SIT` | Python -> ESP32 | High-level sit request |
 | `BEHAVIOR_GIVE_PAW` | Python -> ESP32 | High-level paw request |
@@ -795,9 +797,11 @@ Useful references:
 | Path | Files | Current state |
 | --- | --- | --- |
 | Python PyBullet UI | `src/control/pluto_menu/simulation.py`, `src/control/sim_motion.py` | Integrated in the UI, but visual mesh references need updating |
-| MuJoCo C++ bridge | `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/simulation mesh/pluto.xml` | Uses current simulation meshes and simulation-side copies/adapters of the ESP leg and gait abstractions |
+| MuJoCo C++ bridge | `CMakeLists.txt`, `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/sim/sim_mesh/pluto.xml` | Uses current simulation meshes and simulation-side copies/adapters of the ESP leg and gait abstractions |
 
 The MuJoCo path is more aligned with the current mesh set. The PyBullet path is still useful for UI/control experiments, but it needs a mesh update before it fully represents the current CAD assets.
+
+The C++ MuJoCo bridge uses the top-level `CMakeLists.txt`, which sets `PLUTO_MODEL_PATH` to `src/sim/sim_mesh/pluto.xml`. Its keyboard handlers are intended to mirror the firmware test controls: `F`/`B` for forward/backward, `Q`/`E` for left/right turning, `S` for stop, and `1`/`2`/`3` for walk/trot/gallop. Treat this bridge as development support until it has been rebuilt and validated on the current machine.
 
 See [SIMULATION.md](SIMULATION.md).
 
@@ -819,7 +823,7 @@ Current defaults in `src/esp/main.cpp`:
 | --- | --- | --- |
 | WiFi/UDP | Off | Enable `PLUTO_ENABLE_WIFI` before using controller networking |
 | Ultrasonic | On | Stops forward motion when wall distance is below threshold |
-| Microphone | On | Toggles walking on clap-energy detection |
+| Microphone | Compiled on, control inactive | `SensorMicrophone<26, 25, 33>` is initialized, but the clap-control update call is commented out |
 
 ### Sensor Pins and Thresholds
 
@@ -829,8 +833,8 @@ Current defaults in `src/esp/main.cpp`:
 | Microphone template | `SensorMicrophone<26, 25, 33>` |
 | Wall stop distance | 20 cm |
 | Ultrasonic period | 150 ms |
-| Microphone clap threshold | `2000000` |
-| Clap cooldown | 800 ms |
+| Microphone clap threshold | `15000000000` in the commented clap-control block |
+| Clap cooldown | 800 ms in the commented clap-control block |
 
 Operating timing:
 
@@ -839,7 +843,7 @@ Operating timing:
 | Gait update | 20 ms / 50 Hz |
 | Ultrasonic read cycle | 150 ms |
 | Ultrasonic wait after trigger | 10 ms |
-| Microphone energy print cycle | 150 ms |
+| Microphone energy print cycle | 1000 ms in the commented clap-control block |
 | Serial monitor baud | 115200 |
 
 ### Servo Calibration
@@ -900,6 +904,8 @@ pio device monitor -b 115200
 | --- | --- |
 | `f` | Move forward |
 | `b` | Move backward |
+| `q` | Turn left |
+| `e` | Turn right |
 | `o` | Bow |
 | `k` | Give paw |
 | `s` | Stop and stand |
@@ -944,11 +950,11 @@ pio device monitor -b 115200
 |-- images/
 |-- scripts/
 `-- src/
-    |-- comm/       # Shared protocol definitions
-    |-- control/    # Python UI, input, speech, and controller client
-    |-- esp/        # ESP32 firmware
-    |-- mesh/       # STL meshes and MuJoCo XML model
-    `-- sim/        # C++ MuJoCo simulation bridge
+    |-- 3D printing mesh/ # Physical 3D-printing STL files
+    |-- comm/             # Shared protocol definitions
+    |-- control/          # Python UI, input, speech, and controller client
+    |-- esp/              # ESP32 firmware
+    `-- sim/              # C++ MuJoCo simulation bridge and sim_mesh assets
 ```
 
 ---
@@ -973,6 +979,7 @@ pio device monitor -b 115200
 
 - WiFi is disabled by default.
 - Controller IP is currently hard-coded.
+- UDP `MOVE_BY` messages are defined, but the ESP32 handler still needs to map them into gait commands.
 - PyBullet visual meshes need updating.
 - MuJoCo is not yet a validated physical twin.
 
@@ -999,7 +1006,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - **CRC**: Packet integrity check used by the shared communication protocol.
 - **NiceGUI**: Python web UI framework used for the control hub.
 - **Vosk**: Offline speech recognition engine.
-- **MuJoCo**: Physics simulator used by `src/simulation mesh/pluto.xml` and the files under `src/sim/`.
+- **MuJoCo**: Physics simulator used by `src/sim/sim_mesh/pluto.xml` and the files under `src/sim/`.
 - **PyBullet**: Python simulation dependency used by the control stack.
 
 </details>
@@ -1008,10 +1015,10 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 <summary><strong>Project objectives</strong></summary>
 
 - Reliable servo control: drive 12 calibrated joints safely through the PCA9685.
-- Legged locomotion: support stand, stop, walk, trot, gallop, bow, and paw motion primitives.
+- Legged locomotion: support stand, stop, forward/backward movement, left/right turns, walk, trot, gallop, bow, and paw motion primitives.
 - IK-based movement: generate joint angles from foot targets instead of fixed pulse sequences.
 - Remote operation: use a shared UDP protocol for movement, behavior, info, acknowledgement, and sensor messages.
-- Sensor reactions: stop near obstacles and use microphone energy for clap-triggered start/stop behavior.
+- Sensor reactions: stop near obstacles; microphone energy code exists for clap-triggered start/stop behavior but is currently disabled in the main loop.
 - Simulation before hardware: keep mesh and simulation assets available for gait development.
 - Clear documentation: keep hardware, wiring, firmware, controller, protocol, and troubleshooting notes separated.
 
@@ -1035,9 +1042,9 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - Drive all 12 joints through calibrated `LegJoint` objects.
 - Convert IK outputs into constrained PWM pulses.
 - Update gait motion every 20 ms.
-- Handle serial commands for gait selection, speed changes, manual walk staging, and servo trimming.
+- Handle serial commands for movement, turning, gait selection, speed changes, manual walk staging, and servo trimming.
 - Read ultrasonic distance and stop when a wall is too close.
-- Read microphone energy and toggle walking on clap detection.
+- Initialize the microphone driver; clap detection logic is present but currently disabled in `loop()`.
 - Optionally accept UDP commands through the Pluto server.
 
 </details>
@@ -1091,7 +1098,7 @@ Key source files:
 - [ESP gait controller](src/esp/motion/gait.cpp)
 - [ESP IK solver](src/esp/motion/ik_solver.cpp)
 - [Shared C++ message definitions](src/comm/message.h)
-- [MuJoCo model](<src/simulation mesh/pluto.xml>)
+- [MuJoCo model](src/sim/sim_mesh/pluto.xml)
 - [C++ simulation entry point](src/sim/sim_main.cpp)
 
 </details>
@@ -1117,11 +1124,11 @@ See [ARCHIVES.md](ARCHIVES.md).
 
 Current focus:
 
-- Hardware gait validation: test walk, trot, gallop, bow, paw, and stop on the physical robot.
+- Hardware gait validation: test walk, trot, gallop, left/right turns, bow, paw, and stop on the physical robot.
 - Servo calibration: refine PWM limits, starting pulses, inversion flags, and angle ranges.
 - WiFi control: enable and validate live UDP movement and behavior commands.
 - Behavior implementation: replace placeholder behavior handlers with calibrated motion sequences.
-- Sensor-driven reactions: tune ultrasonic wall stopping and microphone clap detection.
+- Sensor-driven reactions: tune ultrasonic wall stopping and re-enable/tune microphone clap detection if needed.
 - Simulation fidelity: improve physical accuracy for mass, friction, joint limits, and servo response.
 
 Known issues:

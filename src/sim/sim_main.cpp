@@ -33,11 +33,11 @@ void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods)
             std::cout << "Motion: backward" << std::endl;
             break;
         case GLFW_KEY_Q:
-            gait.set_motion(pluto::sim::MotionCommand::LEFT);
+            gait.set_motion(pluto::sim::SimMotionCommand::LEFT);
             std::cout << "Motion: turn left" << std::endl;
             break;
         case GLFW_KEY_E:
-            gait.set_motion(pluto::sim::MotionCommand::RIGHT);
+            gait.set_motion(pluto::sim::SimMotionCommand::RIGHT);
             std::cout << "Motion: turn right" << std::endl;
             break;
         case GLFW_KEY_S:

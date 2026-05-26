@@ -377,10 +377,10 @@ namespace pluto::sim
   void SimGaitController::write_leg(
       std::array<pluto::sim::SimLeg, 4>& legs, LegSide side, float time_s) const noexcept
   {
-    const bool explicit_right_turn = _motion == MotionCommand::RIGHT;
-    const bool explicit_left_turn  = _motion == MotionCommand::LEFT;
+    const bool explicit_right_turn = _motion == SimMotionCommand::RIGHT;
+    const bool explicit_left_turn  = _motion == SimMotionCommand::LEFT;
 
-    float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
+    float direction = _motion == SimMotionCommand::BACKWARD ? -1.0F : 1.0F;
     float turn_flip = 1.0F;
 
     if (explicit_right_turn)
@@ -393,7 +393,7 @@ namespace pluto::sim
       direction = 1.0F;
       turn_flip = is_right_side(side) ? 1.0F : -1.0F;
     }
-    else if (_gait == GaitKind::TURN)
+    else if (_gait == SimGaitKind::TURN)
     {
       turn_flip = is_right_side(side) ? -1.0F : 1.0F;
     }

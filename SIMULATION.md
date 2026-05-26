@@ -7,7 +7,7 @@ Pluto currently has two simulation-facing paths. They are useful for development
 | Path | Files | Status |
 | --- | --- | --- |
 | Python PyBullet UI | `src/control/pluto_menu/simulation.py`, `src/control/sim_motion.py`, `src/control/gait.py` | Integrated into the NiceGUI control hub, but the visual mesh loading still expects older generic mesh filenames |
-| MuJoCo C++ bridge | `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/mesh/pluto.xml` | Uses the current per-leg mesh set and simulation-side leg/gait abstractions based on the ESP concepts |
+| MuJoCo C++ bridge | `CMakeLists.txt`, `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/sim/sim_mesh/pluto.xml` | Uses the current per-leg mesh set and simulation-side leg/gait abstractions based on the ESP concepts |
 
 ## How A New Team Should Use Simulation
 
@@ -17,7 +17,7 @@ Recommended order:
 
 1. Read `src/control/gait.py` and `src/control/robot_config.py` to understand Python-side gait assumptions.
 2. Read `src/esp/motion/gait.cpp` to understand firmware-side gait assumptions.
-3. Inspect `src/mesh/pluto.xml` to see how the current mesh set is represented in MuJoCo.
+3. Inspect `src/sim/sim_mesh/pluto.xml` to see how the current mesh set is represented in MuJoCo.
 4. Use the PyBullet UI path for controller and UI experiments.
 5. Use the MuJoCo bridge to inspect how ESP gait output maps to simulated actuators.
 6. Treat simulation success as a sign to continue testing, not as proof that the physical robot is safe.
@@ -51,7 +51,7 @@ To update this path, replace the generic mesh references in `sim_motion.py` with
 The MuJoCo model is stored in:
 
 ```text
-src/mesh/pluto.xml
+src/sim/sim_mesh/pluto.xml
 ```
 
 It references the current mesh files:
@@ -70,10 +70,28 @@ src/sim/sim_gait.cpp
 src/sim/sim_gait.h
 src/sim/sim_leg.h
 src/sim/sim_leg_joint.h
-src/sim/CMakeLists.txt
+CMakeLists.txt
 ```
 
 It constructs simulation-side `Leg` objects, runs a simulation-side `GaitController`, converts current joint angles to radians, and writes them to 12 MuJoCo actuators.
+
+### Build and Run the MuJoCo Bridge
+
+The MuJoCo bridge is built with the top-level `CMakeLists.txt`, not PlatformIO. MuJoCo must be downloaded separately, then CMake must be pointed at that local installation.
+
+```bash
+cmake -S . -B build -DMUJOCO_DIR=/path/to/mujoco
+cmake --build build
+./build/bin/pluto_sim
+```
+
+On Windows, the default path is `C:/mujoco`, and the build copies MuJoCo DLLs from `MUJOCO_DIR/bin` beside the executable. On macOS or Linux, pass the actual MuJoCo install path with `-DMUJOCO_DIR=...`.
+
+The model path is compiled into the executable as:
+
+```text
+PLUTO_MODEL_PATH="${CMAKE_SOURCE_DIR}/src/sim/sim_mesh/pluto.xml"
+```
 
 The bridge currently supports keyboard commands:
 
@@ -81,6 +99,8 @@ The bridge currently supports keyboard commands:
 | --- | --- |
 | `F` | Move forward |
 | `B` | Move backward |
+| `Q` | Turn left |
+| `E` | Turn right |
 | `S` | Stop |
 | `1` | Walk gait |
 | `2` | Trot gait |
@@ -93,7 +113,7 @@ The bridge currently supports keyboard commands:
 - Python PyBullet and C++ MuJoCo paths are separate and not yet unified.
 - The PyBullet visual mesh path needs to be updated to use the current per-leg mesh files.
 - The MuJoCo bridge is not part of the PlatformIO ESP32 firmware build.
-- `src/sim/CMakeLists.txt` should be checked before use because the current source filenames may need to be aligned with the actual `src/sim` files.
+- The top-level `CMakeLists.txt` defines the MuJoCo executable and sets `PLUTO_MODEL_PATH` to `src/sim/sim_mesh/pluto.xml`.
 
 ## Future Simulation Work
 
