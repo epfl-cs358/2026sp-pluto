@@ -33,7 +33,7 @@ It is designed around a non-blocking read pattern:
 
 The current firmware starts a read every 150 ms and checks the result roughly 10 ms later. If the robot is moving forward and the measured distance is positive and below 20 cm, `stop_robot("wall too close")` is called.
 
-The sensor is intended for simple front obstacle detection, not full mapping or SLAM.
+The sensor is intended for simple front obstacle detection.
 
 ## Microphone
 

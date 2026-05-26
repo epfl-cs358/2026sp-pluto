@@ -30,7 +30,6 @@ Pluto is still under active development. The current codebase already provides t
 - Gait constants in ESP firmware still need final physical measurements and tuning.
 - The Python PyBullet visual path still references old generic mesh filenames.
 - MuJoCo support is useful for development, but it is not yet a validated physical twin.
-- Camera, IMU-based stabilization, SLAM, and higher-level autonomy are future-work items, not complete features in the current repository.
 
 ## Future Directions
 

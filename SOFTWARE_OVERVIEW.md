@@ -81,7 +81,6 @@ See [Simulation Notes](SIMULATION.md).
 - Live WiFi control validation on hardware.
 - More complete behavior sequences.
 - IMU-based stabilization.
-- Camera or SLAM-based perception.
 - Higher-fidelity simulation.
 - Autonomous obstacle avoidance.
 

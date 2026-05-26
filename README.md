@@ -808,7 +808,6 @@ Known issues to address:
 - The ESP32 IP address is still a placeholder in `src/control/main.py`.
 - Gait constants need final physical measurement and tuning.
 - MuJoCo and PyBullet support are useful for development, but not yet perfect models of the real robot.
-- Camera, IMU stabilization, SLAM, and higher-level autonomy remain future work.
 
 See [Ongoing Works & Next Steps](ONGOING_WORK.md) for the full list.
 
@@ -818,7 +817,15 @@ See [Ongoing Works & Next Steps](ONGOING_WORK.md) for the full list.
 
 ### Project Team
 
-Pluto was developed by Serhat Botan, Alexis Cazal, Neha Chakraborty, Myriam Lahoud, Sam Lee, Raphael Dib Nehme, and Mariya Rakytyanska as part of EPFL's Making Intelligent Things course.
+Pluto was developed as part of EPFL's Making Intelligent Things course by:
+
+- Serhat Botan
+- Alexis Cazal
+- Neha Chakraborty
+- Myriam Lahoud
+- Sam Lee
+- Raphael Dib Nehme
+- Mariya Rakytyanska
 
 ### Use of AI Tools in Development
 
