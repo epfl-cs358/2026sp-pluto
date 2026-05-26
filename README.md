@@ -127,7 +127,7 @@ The repository documents both the final implementation and the current work-in-p
 | ESP32 firmware | Servo control, gait execution, ultrasonic sensing, microphone sensing, serial testing, and optional WiFi/UDP command handling |
 | Python tooling | NiceGUI control hub, keyboard/gamepad input, speech command handling, telemetry display, and simulation control |
 | Shared communication | C++ and Python packet/message definitions kept aligned |
-| CAD and simulation assets | Per-leg STL meshes, `pluto.xml`, PyBullet-facing code, and MuJoCo bridge |
+| CAD and simulation assets | 3D-printing meshes, simulation meshes, `pluto.xml`, PyBullet-facing code, and MuJoCo bridge |
 
 ---
 
@@ -178,7 +178,7 @@ The repository documents both the final implementation and the current work-in-p
 | Sensors | Implemented | Ultrasonic wall stop and microphone clap toggle are enabled by default |
 | Controller UI | Implemented | Connect button, movement input, quick actions, telemetry, speech worker |
 | WiFi/UDP | Implemented, disabled by default | Enable `PLUTO_ENABLE_WIFI` and set `IP_OF_ESP` before use |
-| Meshes | Updated | Current assets are per-leg STL files plus `pluto.xml` |
+| Meshes | Updated | 3D-printing meshes live in `src/3D printing mesh`; simulation meshes and `pluto.xml` live in `src/simulation mesh` |
 | PyBullet | Partial | UI path exists, but visual meshes still reference old generic filenames |
 | MuJoCo | Partial | Model and C++ bridge exist, but not yet a validated physical twin |
 
@@ -292,7 +292,7 @@ This is the recommended order for a new team starting with only the repository, 
 | Phase | Goal | Main files/docs | Exit check |
 | --- | --- | --- | --- |
 | 1. Understand the system | Know what each subsystem does before building | `README.md`, [SOFTWARE_OVERVIEW.md](SOFTWARE_OVERVIEW.md), [HARDWARE_OVERVIEW.md](HARDWARE_OVERVIEW.md) | Team can explain firmware, controller, communication, sensors, and simulation roles |
-| 2. Print parts | Produce body and leg parts from the current mesh set | [CAD_FILES.md](CAD_FILES.md), `src/mesh/` | All body, coxa, femur, and tibia parts are printed and inspected |
+| 2. Print parts | Produce body and leg parts from the current 3D-printing mesh set | [CAD_FILES.md](CAD_FILES.md), `src/3D printing mesh/` | All body, coxa, femur, tibia, spacer, and linkage parts are printed and inspected |
 | 3. Assemble one leg | Validate mechanical fit before repeating four times | [ASSEMBLY.md](ASSEMBLY.md) | One leg moves freely by hand without binding |
 | 4. Assemble all legs and body | Build the full physical robot frame | [ASSEMBLY.md](ASSEMBLY.md) | Four legs are mounted with correct orientation |
 | 5. Build power system | Prepare battery, switch, buck converter, grounds, and servo power | [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md) | Buck output is measured and all grounds are common |
@@ -304,6 +304,200 @@ This is the recommended order for a new team starting with only the repository, 
 | 11. Use simulation for iteration | Inspect gait logic and mesh assumptions before risky physical tests | [SIMULATION.md](SIMULATION.md) | Team understands current PyBullet and MuJoCo limitations |
 
 For a new team, the most important rule is to validate one subsystem at a time. Do not test full-body walking before power, calibration, and single-joint behavior are understood.
+
+### From Zero To First Motion
+
+This section is written as a handoff guide for a team that did not build the original robot. It repeats some information from the detailed docs so the README can be used as a complete starting point.
+
+#### Step 1: Prepare the repository and tools
+
+1. Clone the repository.
+2. Install Python 3.13.
+3. Install PlatformIO Core or the PlatformIO VS Code extension.
+4. Confirm that `pio --version` works.
+5. Confirm that the Python controller can start with `bash run.sh` or `run.bat`.
+6. Do not connect the LiPo battery yet.
+
+The goal of this step is only to verify that the computer can build firmware and run the controller UI.
+
+#### Step 2: Print and label the parts
+
+Print the physical robot parts from `src/3D printing mesh/`. The folders are organized by leg:
+
+- `Front Left/`
+- `Front Right/`
+- `Back Left/`
+- `Back Right/`
+
+Each folder contains that leg's coxa, femur, tibia, spacer, and linkage/bar parts. The simulation-only meshes are separate and live in `src/simulation mesh/`.
+
+Label parts as soon as they are printed. Do not mix parts between legs. The firmware also uses `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, and `BOTTOM_RIGHT`, so a physical mix-up can become a software calibration problem later.
+
+Before installing any servo:
+
+- Check that each servo fits into its printed part.
+- Check that screw holes are usable.
+- Check that bearings sit correctly.
+- Check that the tibia linkage can move without rubbing.
+
+#### Step 3: Assemble one leg first
+
+Build one complete leg before building the other three.
+
+1. Assemble the tibia with its bearing and foot.
+2. Assemble the femur around the servo.
+3. Attach the coxa section.
+4. Connect femur and tibia with the linkage.
+5. Move the leg by hand.
+
+The leg should move smoothly without powered servos. If it binds by hand, it will bind under servo power.
+
+#### Step 4: Assemble the body and remaining legs
+
+After one leg is validated:
+
+1. Assemble the other three legs.
+2. Mount coxa servos into the body.
+3. Mount the PCA9685.
+4. Mount the buck converter.
+5. Mount the ESP32.
+6. Mount the ultrasonic sensor at the front.
+7. Mount the microphone if used.
+8. Mount the battery so it is secure but removable.
+
+Do not power the robot from the battery yet.
+
+#### Step 5: Wire power safely
+
+Wire in this order:
+
+1. LiPo connector.
+2. Rocker switch.
+3. Servo power rail and PCA9685 servo power input.
+4. Buck converter input.
+5. Buck converter output.
+6. ESP32 power.
+7. PCA9685 logic power and I2C.
+8. Sensors.
+9. Servos.
+
+Before connecting the ESP32 or sensors to the buck converter, measure the output with a multimeter. All grounds must be connected together: battery/servo ground, PCA9685 ground, buck converter ground, ESP32 ground, and sensor ground.
+
+#### Step 6: Verify servo channels
+
+The firmware expects this PCA9685 channel mapping:
+
+| Leg | Coxa | Femur | Tibia |
+| --- | ---: | ---: | ---: |
+| `TOP_LEFT` | 0 | 1 | 2 |
+| `TOP_RIGHT` | 4 | 5 | 6 |
+| `BOTTOM_LEFT` | 8 | 9 | 10 |
+| `BOTTOM_RIGHT` | 12 | 13 | 14 |
+
+Channels 3, 7, 11, and 15 are unused by the current leg abstraction.
+
+If a servo is plugged into the wrong channel, the robot may move the wrong joint even if the code is correct.
+
+#### Step 7: Flash firmware with the robot supported
+
+Put the robot on a stand so the legs cannot hit the table.
+
+Then run:
+
+```bash
+pio run
+pio run -t upload
+pio device monitor -b 115200
+```
+
+At this stage, use serial commands only. Do not use WiFi movement yet.
+
+#### Step 8: Calibrate one joint at a time
+
+Calibration is in:
+
+```text
+src/esp/legs/leg_data.h
+```
+
+Each joint has:
+
+- `raw_min`
+- `raw_max`
+- `raw_start`
+- `angle_min_md`
+- `angle_max_md`
+- `inverted`
+
+Use the serial monitor:
+
+- `l` selects the next leg.
+- `n` selects the next joint.
+- `p` prints the selected leg, joint, and pulse.
+- `+` increases raw PWM by 5.
+- `-` decreases raw PWM by 5.
+- `r` resets the selected joint.
+- `R` resets all joints on the selected leg.
+
+For each joint:
+
+1. Select the leg and joint.
+2. Print the current value.
+3. Move slowly with `+` and `-`.
+4. Stop before mechanical binding.
+5. Record safe min and max raw values.
+6. Choose a safe `raw_start`.
+7. Check whether direction needs `inverted = true`.
+8. Rebuild and upload after editing calibration.
+
+Only after all 12 joints are calibrated should walking be tested.
+
+#### Step 9: Test motion in small stages
+
+Recommended order:
+
+1. `s`: stop and stand.
+2. `1`: select walk.
+3. `0`: set speed to 0%.
+4. `5`: set speed to 50%.
+5. `f`: test forward motion briefly.
+6. `s`: stop.
+7. `2`: select trot only after walk is stable.
+8. `3`: select gallop only after lower-speed gaits are stable.
+
+If a leg moves in the wrong direction, stop and return to calibration. Do not compensate by forcing the gait constants first.
+
+#### Step 10: Test sensors
+
+By default, ultrasonic and microphone support are enabled:
+
+```cpp
+#define PLUTO_ENABLE_ULTRASONIC
+#define PLUTO_ENABLE_MICROPHONE
+```
+
+Current sensor templates:
+
+- Ultrasonic: `SensorUltraSonic<5, 18>`
+- Microphone: `SensorMicrophone<26, 25, 33>`
+
+The ultrasonic sensor stops forward motion if the measured distance is below 20 cm. The microphone uses audio energy as a clap detector and toggles walking after a cooldown.
+
+#### Step 11: Enable WiFi last
+
+Only enable WiFi after serial movement is safe.
+
+1. Uncomment or add `#define PLUTO_ENABLE_WIFI`.
+2. Add WiFi credentials with `PLUTO_SERVER.addAP(...)`.
+3. Upload firmware.
+4. Find the ESP32 IP address.
+5. Set `IP_OF_ESP` in `src/control/main.py`.
+6. Run the Python controller.
+7. Press `Connect & Take Control`.
+8. Press `Stop All` before sending movement.
+9. Watch telemetry for acknowledgements.
+
+The controller should be treated as a convenience layer, not the first debugging tool.
 
 ---
 
@@ -416,18 +610,17 @@ Keeps both sides aligned.
 
 ### Current Mesh Set
 
-The current STL files live in `src/mesh`:
+The current physical printing files live in `src/3D printing mesh/`, grouped by leg:
 
 ```text
-body.stl
-tl_coxa.stl   tl_femur.stl   tl_tibia.stl
-tr_coxa.stl   tr_femur.stl   tr_tibia.stl
-bl_coxa.stl   bl_femur.stl   bl_tibia.stl
-br_coxa.stl   br_femur.stl   br_tibia.stl
-pluto.xml
+src/3D printing mesh/
+|-- Front Left/
+|-- Front Right/
+|-- Back Left/
+`-- Back Right/
 ```
 
-The old generic `coxa`, `femur`, and `tibia` meshes were replaced by per-leg meshes. See [CAD_FILES.md](CAD_FILES.md).
+The simulation meshes live separately in `src/simulation mesh/` and include `body.stl`, per-leg coxa/femur/tibia STL files, and `pluto.xml`. See [CAD_FILES.md](CAD_FILES.md).
 
 ### Build Flow
 
@@ -602,7 +795,7 @@ Useful references:
 | Path | Files | Current state |
 | --- | --- | --- |
 | Python PyBullet UI | `src/control/pluto_menu/simulation.py`, `src/control/sim_motion.py` | Integrated in the UI, but visual mesh references need updating |
-| MuJoCo C++ bridge | `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/mesh/pluto.xml` | Uses current per-leg meshes and simulation-side copies/adapters of the ESP leg and gait abstractions |
+| MuJoCo C++ bridge | `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/simulation mesh/pluto.xml` | Uses current simulation meshes and simulation-side copies/adapters of the ESP leg and gait abstractions |
 
 The MuJoCo path is more aligned with the current mesh set. The PyBullet path is still useful for UI/control experiments, but it needs a mesh update before it fully represents the current CAD assets.
 
@@ -806,7 +999,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - **CRC**: Packet integrity check used by the shared communication protocol.
 - **NiceGUI**: Python web UI framework used for the control hub.
 - **Vosk**: Offline speech recognition engine.
-- **MuJoCo**: Physics simulator used by `src/mesh/pluto.xml` and the files under `src/sim/`.
+- **MuJoCo**: Physics simulator used by `src/simulation mesh/pluto.xml` and the files under `src/sim/`.
 - **PyBullet**: Python simulation dependency used by the control stack.
 
 </details>
@@ -898,7 +1091,7 @@ Key source files:
 - [ESP gait controller](src/esp/motion/gait.cpp)
 - [ESP IK solver](src/esp/motion/ik_solver.cpp)
 - [Shared C++ message definitions](src/comm/message.h)
-- [MuJoCo model](src/mesh/pluto.xml)
+- [MuJoCo model](<src/simulation mesh/pluto.xml>)
 - [C++ simulation entry point](src/sim/sim_main.cpp)
 
 </details>
