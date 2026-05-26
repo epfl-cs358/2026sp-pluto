@@ -2,6 +2,23 @@
 
 Use this guide when Pluto does not start cleanly. Start with the section that matches the symptom.
 
+## Debugging Rule For A New Build
+
+When building from scratch, debug in this order:
+
+1. Mechanical binding.
+2. Power and ground.
+3. ESP32 flashing and serial output.
+4. PCA9685 and one servo.
+5. All servo channel mapping.
+6. Servo calibration.
+7. Sensors.
+8. WiFi.
+9. Controller UI.
+10. Gait behavior.
+
+Do not debug gait behavior before power, wiring, and calibration are known to be correct.
+
 ## Controller UI Does Not Start
 
 ### Python 3.13 Not Found

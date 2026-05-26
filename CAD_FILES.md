@@ -34,6 +34,17 @@ The previous generic files `coxa.stl`, `Femur.stl`, and `tibia.stl` are no longe
 
 The repository uses top/bottom naming in several mesh and firmware files. In the physical robot documentation, this corresponds to front/back placement depending on how the robot is oriented during assembly.
 
+## How To Use These Files From Scratch
+
+1. Start with `body.stl`; this defines where the electronics and coxa servos mount.
+2. Print exactly one full leg set first, for example `tl_coxa.stl`, `tl_femur.stl`, and `tl_tibia.stl`.
+3. Check servo fit, screw holes, bearing fit, and linkage movement on that one leg.
+4. Only then print the remaining leg-specific parts.
+5. Keep each printed part labelled by leg position. Do not mix top-left, top-right, bottom-left, and bottom-right parts.
+6. After assembly, verify that the physical leg position matches the firmware leg names in `src/esp/legs/leg_data.h`.
+
+The mesh files and firmware calibration are connected: a part mounted on the wrong side can make a correct calibration file behave incorrectly.
+
 ## Simulation Usage
 
 The MuJoCo model at [src/mesh/pluto.xml](src/mesh/pluto.xml) references the current per-leg STL files.
@@ -49,6 +60,16 @@ See [SIMULATION.md](SIMULATION.md) for the current simulation split.
 - Print and inspect all leg parts before inserting servos.
 - Keep track of left/right and top/bottom orientation during assembly.
 - Check bearing fits, screw holes, and servo horn alignment before final assembly.
+
+## Recommended Print Validation
+
+Before committing to a full set:
+
+- Confirm that the servo body fits without forcing the print.
+- Confirm that the servo horn can be mounted without rubbing.
+- Confirm that the tibia bearing sits flat.
+- Confirm that screw holes can be used without cracking the part.
+- Confirm that leg movement is smooth before electronics are powered.
 
 ## Related Documentation
 

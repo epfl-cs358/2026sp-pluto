@@ -31,6 +31,23 @@ Important checks:
 - Connect all grounds together: LiPo/servo ground, PCA9685 ground, ESP32 ground, buck converter ground, and sensor ground.
 - Do not test full gaits until standing poses and single-leg motion are stable.
 
+## Wiring Order From Scratch
+
+Wire the robot in this order. Each step should be verified before continuing:
+
+1. Battery connector and rocker switch.
+2. Servo power rail and PCA9685 servo power input.
+3. Buck converter input from the switched battery side.
+4. Buck converter output, measured before connecting electronics.
+5. ESP32 regulated power and ground.
+6. PCA9685 logic power, ground, SDA, and SCL.
+7. One servo channel for initial testing.
+8. Remaining servo channels after the first channel works.
+9. Ultrasonic sensor power, ground, trigger, and echo.
+10. Microphone I2S power, ground, and signal pins.
+
+If a later step fails, disconnect power and return to the last verified step.
+
 ## ESP32 Connections
 
 The ESP32 is the main controller. It handles firmware execution, sensor reads, serial debugging, optional WiFi, and communication with the PCA9685 servo driver.
@@ -53,6 +70,19 @@ The PCA9685 drives all 12 servos.
 - Connect each servo to the expected PCA9685 channel before calibration.
 - Check servo orientation mechanically before sending large movements.
 
+## Servo Channel Mapping
+
+The firmware assigns channels from `src/esp/legs/leg.h`. Each leg uses four channel slots, but only the first three are used for coxa, femur, and tibia.
+
+| Leg | Coxa channel | Femur channel | Tibia channel | Unused slot |
+| --- | ---: | ---: | ---: | ---: |
+| `TOP_LEFT` | 0 | 1 | 2 | 3 |
+| `TOP_RIGHT` | 4 | 5 | 6 | 7 |
+| `BOTTOM_LEFT` | 8 | 9 | 10 | 11 |
+| `BOTTOM_RIGHT` | 12 | 13 | 14 | 15 |
+
+Before running gait commands, verify that each physical servo is plugged into the channel expected by this table. If a servo is on the wrong channel, the IK and gait code will move the wrong joint.
+
 ## Sensors
 
 Current sensor notes:
@@ -68,6 +98,18 @@ Current firmware pin templates:
 If the ultrasonic ECHO line outputs 5V, use a voltage divider or level shifter before connecting it to an ESP32 GPIO.
 
 See [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) for software-side sensor behavior.
+
+## Minimum Electrical Tests
+
+Before full robot testing:
+
+1. With battery disconnected, check continuity for ground paths.
+2. With servos disconnected, power the logic electronics and verify ESP32 startup.
+3. Confirm the PCA9685 is detected by firmware and receives logic power.
+4. Connect one servo and test small raw changes from the serial monitor.
+5. Connect the remaining servos only after the first servo behaves correctly.
+6. Test the ultrasonic sensor separately before relying on wall-stop behavior.
+7. Test microphone energy prints before relying on clap-toggle behavior.
 
 ## First Power-Up Checklist
 

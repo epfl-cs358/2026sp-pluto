@@ -2,6 +2,29 @@
 
 Pluto's software is split into four active areas: ESP32 firmware, Python controller, shared communication protocol, and simulation support.
 
+## How To Read The Code From Scratch
+
+For a new team, read the code in this order:
+
+| Step | File or folder | What to learn |
+| --- | --- | --- |
+| 1 | `platformio.ini` | How PlatformIO builds the ESP32 firmware from `src/esp` |
+| 2 | `src/esp/legs/leg_data.h` | Servo calibration values and leg names |
+| 3 | `src/esp/legs/leg.h` | Servo channel mapping and leg abstraction |
+| 4 | `src/esp/legs/leg_joint.h` | How raw PWM and logical angles are written |
+| 5 | `src/esp/motion/ik_solver.cpp` | How foot targets become joint angles |
+| 6 | `src/esp/motion/gait.cpp` | How stand, walk, trot, gallop, bow, and paw are generated |
+| 7 | `src/esp/main.cpp` | Firmware startup, feature flags, sensors, serial commands, and optional UDP dispatch |
+| 8 | `src/comm/message.h` | Shared C++ packet and message format |
+| 9 | `src/control/pluto_server/message.py` | Python mirror of the same packet and message format |
+| 10 | `src/control/pluto_server/server.py` | Python UDP client, connection handshake, heartbeat, and listener |
+| 11 | `src/control/main.py` | NiceGUI app entry point and controller setup |
+| 12 | `src/control/pluto_menu/controller.py` | How keyboard/gamepad input becomes robot messages |
+| 13 | `src/control/pluto_speech/speech.py` | How recognized speech becomes robot messages |
+| 14 | `src/control/sim_motion.py` and `src/sim/sim_main.cpp` | Current Python and MuJoCo simulation paths |
+
+Read this before changing behavior. Most software bugs in this project come from changing one side of a shared contract without updating the matching side.
+
 ## Main Components
 
 | Component | Location | Role |
@@ -36,6 +59,18 @@ Current default feature flags in `src/esp/main.cpp`:
 
 See [ESP32 Firmware](src/esp/README.md).
 
+### Firmware Bring-Up Order
+
+Use this sequence when setting up a new robot:
+
+1. Build firmware without changing feature flags.
+2. Upload to ESP32 and open serial monitor.
+3. Verify PCA9685 startup and stand pose.
+4. Test `s`, `p`, `l`, `n`, `+`, `-`, and `r` before walking.
+5. Tune `src/esp/legs/leg_data.h`.
+6. Test `1`, `2`, `3` gait selection without aggressive speeds.
+7. Enable WiFi only after serial control is safe.
+
 ## Control Layer
 
 The Python control hub provides operator-facing tools:
@@ -52,6 +87,20 @@ The ESP32 IP address is currently a placeholder in `src/control/main.py` and mus
 
 See [Python Controller](src/control/README.md).
 
+### Controller Bring-Up Order
+
+Use this sequence when setting up the controller:
+
+1. Run `bash run.sh` or `run.bat`.
+2. Confirm the NiceGUI home page opens.
+3. Open `/controller` and check that keyboard vectors update.
+4. Set `IP_OF_ESP` in `src/control/main.py`.
+5. Enable `PLUTO_ENABLE_WIFI` in firmware.
+6. Connect from the controller page.
+7. Test `Stop All` before movement.
+8. Test a small movement vector.
+9. Check telemetry for acknowledgements.
+
 ## Communication Layer
 
 Python and C++ share a compact binary protocol. Commands are grouped into UDP packets with:
@@ -63,6 +112,16 @@ Python and C++ share a compact binary protocol. Commands are grouped into UDP pa
 - Up to 64 packed 8-byte messages per packet.
 
 See [Communication](src/comm/README.md) and [WiFi Protocol](SOFTWARE_WIFI.md).
+
+### Keeping Protocol Files In Sync
+
+Whenever a message family, kind, payload, or packet field changes:
+
+1. Update `src/comm/message.h`.
+2. Update `src/control/pluto_server/message.py`.
+3. Update [src/comm/README.md](src/comm/README.md).
+4. Test packing and unpacking on the Python side.
+5. Flash firmware and test one packet type at a time.
 
 ## Simulation Layer
 

@@ -2,6 +2,50 @@
 
 Follow these steps to assemble Pluto. Read [Wiring & Electrical](WIRING_ELECTRICAL.md) before powering anything.
 
+## Build Philosophy
+
+This guide assumes a future team is building Pluto from scratch. Build and test one layer at a time:
+
+1. Print and inspect the mechanical parts.
+2. Assemble one leg and verify that all joints move freely by hand.
+3. Assemble the remaining legs only after the first leg is understood.
+4. Mount electronics without connecting the battery yet.
+5. Build and verify the power system with a multimeter.
+6. Flash firmware over USB before using battery power.
+7. Test individual joints before testing full gaits.
+
+Do not skip directly to walking. Most failures in quadruped builds come from reversed servo orientation, incorrect power wiring, missing common ground, or uncalibrated joint limits.
+
+## Required Inputs Before Starting
+
+| Item | Source |
+| --- | --- |
+| Printed body and leg meshes | [CAD_FILES.md](CAD_FILES.md), `src/mesh/` |
+| Wiring plan | [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md) |
+| Firmware setup | [src/esp/README.md](src/esp/README.md) |
+| Servo calibration file | `src/esp/legs/leg_data.h` |
+| Troubleshooting checklist | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+
+## Mechanical Orientation
+
+The code uses four leg positions:
+
+| Firmware name | Physical meaning |
+| --- | --- |
+| `TOP_LEFT` | Forward-facing left leg |
+| `TOP_RIGHT` | Forward-facing right leg |
+| `BOTTOM_LEFT` | Rear-facing left leg |
+| `BOTTOM_RIGHT` | Rear-facing right leg |
+
+The mesh filenames use the same idea:
+
+- `tl_*`: top-left leg parts.
+- `tr_*`: top-right leg parts.
+- `bl_*`: bottom-left leg parts.
+- `br_*`: bottom-right leg parts.
+
+Keep this orientation consistent while assembling, wiring, and calibrating. If a leg is physically swapped, the servo channel mapping and calibration values will no longer match the robot.
+
 ## 1. Print Parts
 
 Print the required body and leg parts from the current mesh set in [src/mesh](src/mesh). The active mesh inventory is documented in [CAD_FILES.md](CAD_FILES.md).
@@ -131,6 +175,34 @@ Reference images:
 4. Open the serial monitor at `115200`.
 5. Test stand, stop, and small trimming commands before walking.
 6. Tune servo calibration in `src/esp/legs/leg_data.h`.
+
+## Bring-Up Sequence After Assembly
+
+Use this order after the robot is mechanically assembled:
+
+1. Power the ESP32 from USB only.
+2. Build and upload the firmware with `pio run -t upload`.
+3. Open the serial monitor with `pio device monitor -b 115200`.
+4. Confirm that the firmware prints the command list.
+5. Power the PCA9685 logic side and confirm it initializes.
+6. Connect only one servo or one leg for first motion tests if possible.
+7. Use `l` and `n` to select leg and joint, then `+`, `-`, `r`, and `p` for small trimming checks.
+8. Confirm that increasing/decreasing pulse values moves the expected joint.
+9. Update `src/esp/legs/leg_data.h` if a joint direction, start pulse, or safe range is wrong.
+10. Repeat for all joints before running walking commands.
+
+## Completion Checklist
+
+The hardware build is not complete until all checks pass:
+
+- All screws are tight but joints still move freely.
+- No wire can be caught by a moving leg.
+- Battery is mounted securely and can be disconnected quickly.
+- Buck converter output has been measured.
+- ESP32, PCA9685, sensors, and servo power share ground.
+- Each servo channel moves the expected joint.
+- Servo calibration limits prevent mechanical over-travel.
+- `s` returns the robot to stop/stand behavior.
 
 Software instructions: [SOFTWARE_OVERVIEW.md](SOFTWARE_OVERVIEW.md)
 

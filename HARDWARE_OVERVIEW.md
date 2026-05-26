@@ -22,6 +22,20 @@ Pluto is a compact 12-servo quadruped robot. The hardware is organized around a 
 5. Verify voltage levels and polarity before connecting all servos.
 6. Flash the ESP32 firmware and test basic serial commands before running full gaits.
 
+## From-Scratch Hardware Milestones
+
+Use these milestones to know when it is reasonable to move to the next stage:
+
+| Milestone | What must be true |
+| --- | --- |
+| Mechanical prototype | One leg can be assembled and moved by hand without binding |
+| Full frame | Four legs are mounted and have consistent orientation |
+| Power system | Battery, switch, buck converter, and common ground are verified with a multimeter |
+| Servo wiring | Each PCA9685 channel controls the expected joint |
+| Sensor wiring | Ultrasonic and microphone pins match `src/esp/main.cpp` |
+| Firmware bring-up | Serial monitor commands work before walking is attempted |
+| Calibration | Every joint has safe `raw_min`, `raw_max`, and `raw_start` values |
+
 ## Important Hardware Notes
 
 - All electronics and servo power paths must share a common ground.

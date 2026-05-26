@@ -283,6 +283,28 @@ See [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 
 ---
 
+## Build Pluto From Scratch
+
+This is the recommended order for a new team starting with only the repository, parts, and a 3D printer.
+
+| Phase | Goal | Main files/docs | Exit check |
+| --- | --- | --- | --- |
+| 1. Understand the system | Know what each subsystem does before building | `README.md`, [SOFTWARE_OVERVIEW.md](SOFTWARE_OVERVIEW.md), [HARDWARE_OVERVIEW.md](HARDWARE_OVERVIEW.md) | Team can explain firmware, controller, communication, sensors, and simulation roles |
+| 2. Print parts | Produce body and leg parts from the current mesh set | [CAD_FILES.md](CAD_FILES.md), `src/mesh/` | All body, coxa, femur, and tibia parts are printed and inspected |
+| 3. Assemble one leg | Validate mechanical fit before repeating four times | [ASSEMBLY.md](ASSEMBLY.md) | One leg moves freely by hand without binding |
+| 4. Assemble all legs and body | Build the full physical robot frame | [ASSEMBLY.md](ASSEMBLY.md) | Four legs are mounted with correct orientation |
+| 5. Build power system | Prepare battery, switch, buck converter, grounds, and servo power | [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md) | Buck output is measured and all grounds are common |
+| 6. Wire controller and servos | Connect ESP32, PCA9685, servos, ultrasonic sensor, and microphone | [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md), [SOFTWARE_SENSORS.md](SOFTWARE_SENSORS.md) | ESP32 flashes over USB and PCA9685 powers correctly |
+| 7. Bring up firmware safely | Test stand, stop, and raw trim commands before walking | [src/esp/README.md](src/esp/README.md) | Serial monitor works and joints move in expected directions |
+| 8. Calibrate servos | Tune per-joint raw limits, start values, angle ranges, and inversion flags | `src/esp/legs/leg_data.h` | Each joint can move through a safe range without hitting mechanical stops |
+| 9. Test motion slowly | Validate stand, walk, trot, gallop, bow, and paw behavior | `src/esp/motion/gait.cpp`, [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Robot can stand reliably and execute controlled test motions |
+| 10. Enable controller | Configure WiFi and Python controller only after safe serial tests | [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md), [src/control/README.md](src/control/README.md) | Controller connects and sends stop/behavior/movement commands |
+| 11. Use simulation for iteration | Inspect gait logic and mesh assumptions before risky physical tests | [SIMULATION.md](SIMULATION.md) | Team understands current PyBullet and MuJoCo limitations |
+
+For a new team, the most important rule is to validate one subsystem at a time. Do not test full-body walking before power, calibration, and single-joint behavior are understood.
+
+---
+
 ## System Architecture
 
 ```text
@@ -440,6 +462,21 @@ Detailed hardware docs:
 
 ## Software Overview
 
+For a new team, read the code in this order:
+
+| Step | Read | Why |
+| --- | --- | --- |
+| 1 | `src/esp/legs/leg_data.h` | Defines the physical servo calibration assumptions |
+| 2 | `src/esp/legs/leg.h` and `leg_joint.h` | Shows how servo channels and joint commands are abstracted |
+| 3 | `src/esp/motion/ik_solver.cpp` | Converts foot targets into coxa/femur/tibia angles |
+| 4 | `src/esp/motion/gait.cpp` | Generates stand, walk, trot, gallop, bow, and paw motion |
+| 5 | `src/esp/main.cpp` | Connects setup, loop timing, sensors, serial commands, and optional WiFi |
+| 6 | `src/comm/message.h` | Defines the shared C++ message format |
+| 7 | `src/control/pluto_server/message.py` | Mirrors the same format in Python |
+| 8 | `src/control/pluto_server/server.py` | Handles Python-side UDP connection, heartbeat, and receive loop |
+| 9 | `src/control/pluto_menu/controller.py` | Converts UI input into movement and behavior messages |
+| 10 | `src/control/sim_motion.py` and `src/sim/sim_main.cpp` | Shows the current simulation paths and their limitations |
+
 ### Firmware
 
 PlatformIO environment:
@@ -563,7 +600,7 @@ Useful references:
 | Path | Files | Current state |
 | --- | --- | --- |
 | Python PyBullet UI | `src/control/pluto_menu/simulation.py`, `src/control/sim_motion.py` | Integrated in the UI, but visual mesh references need updating |
-| MuJoCo C++ bridge | `src/sim/sim.cpp`, `src/sim/MockPWMServoDriver.h`, `src/mesh/pluto.xml` | Uses current per-leg meshes and reuses ESP gait code |
+| MuJoCo C++ bridge | `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/mesh/pluto.xml` | Uses current per-leg meshes and simulation-side copies/adapters of the ESP leg and gait abstractions |
 
 The MuJoCo path is more aligned with the current mesh set. The PyBullet path is still useful for UI/control experiments, but it needs a mesh update before it fully represents the current CAD assets.
 
@@ -767,7 +804,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - **CRC**: Packet integrity check used by the shared communication protocol.
 - **NiceGUI**: Python web UI framework used for the control hub.
 - **Vosk**: Offline speech recognition engine.
-- **MuJoCo**: Physics simulator used by `src/mesh/pluto.xml` and `src/sim/sim.cpp`.
+- **MuJoCo**: Physics simulator used by `src/mesh/pluto.xml` and the files under `src/sim/`.
 - **PyBullet**: Python simulation dependency used by the control stack.
 
 </details>
@@ -860,7 +897,7 @@ Key source files:
 - [ESP IK solver](src/esp/motion/ik_solver.cpp)
 - [Shared C++ message definitions](src/comm/message.h)
 - [MuJoCo model](src/mesh/pluto.xml)
-- [C++ simulation bridge](src/sim/sim.cpp)
+- [C++ simulation entry point](src/sim/sim_main.cpp)
 
 </details>
 

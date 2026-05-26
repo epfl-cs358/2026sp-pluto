@@ -7,7 +7,21 @@ Pluto currently has two simulation-facing paths. They are useful for development
 | Path | Files | Status |
 | --- | --- | --- |
 | Python PyBullet UI | `src/control/pluto_menu/simulation.py`, `src/control/sim_motion.py`, `src/control/gait.py` | Integrated into the NiceGUI control hub, but the visual mesh loading still expects older generic mesh filenames |
-| MuJoCo C++ bridge | `src/sim/sim.cpp`, `src/sim/MockPWMServoDriver.h`, `src/mesh/pluto.xml` | Uses the current per-leg mesh set and reuses the ESP gait controller through a mock PWM driver |
+| MuJoCo C++ bridge | `src/sim/sim_main.cpp`, `src/sim/sim_gait.*`, `src/sim/sim_leg.*`, `src/mesh/pluto.xml` | Uses the current per-leg mesh set and simulation-side leg/gait abstractions based on the ESP concepts |
+
+## How A New Team Should Use Simulation
+
+Use simulation to inspect concepts, not to prove that hardware walking is safe.
+
+Recommended order:
+
+1. Read `src/control/gait.py` and `src/control/robot_config.py` to understand Python-side gait assumptions.
+2. Read `src/esp/motion/gait.cpp` to understand firmware-side gait assumptions.
+3. Inspect `src/mesh/pluto.xml` to see how the current mesh set is represented in MuJoCo.
+4. Use the PyBullet UI path for controller and UI experiments.
+5. Use the MuJoCo bridge to inspect how ESP gait output maps to simulated actuators.
+6. Treat simulation success as a sign to continue testing, not as proof that the physical robot is safe.
+7. Validate all physical movement slowly on the real robot with conservative calibration.
 
 ## Python PyBullet Path
 
@@ -30,6 +44,8 @@ Current limitation:
 
 Those files are not part of the current mesh set. The active repository now stores per-leg files such as `tl_coxa.stl`, `tr_femur.stl`, and `br_tibia.stl`. Until `sim_motion.py` is updated, the PyBullet visual mesh path may fail or render without the intended current parts.
 
+To update this path, replace the generic mesh references in `sim_motion.py` with the current per-leg STL files and verify the visual frame offsets for each leg.
+
 ## MuJoCo Path
 
 The MuJoCo model is stored in:
@@ -49,11 +65,15 @@ It references the current mesh files:
 The C++ bridge is stored in:
 
 ```text
-src/sim/sim.cpp
-src/sim/MockPWMServoDriver.h
+src/sim/sim_main.cpp
+src/sim/sim_gait.cpp
+src/sim/sim_gait.h
+src/sim/sim_leg.h
+src/sim/sim_leg_joint.h
+src/sim/CMakeLists.txt
 ```
 
-It creates a mock PWM driver, constructs the same ESP `Leg` objects used by firmware, runs the `GaitController`, converts current joint angles to radians, and writes them to 12 MuJoCo actuators.
+It constructs simulation-side `Leg` objects, runs a simulation-side `GaitController`, converts current joint angles to radians, and writes them to 12 MuJoCo actuators.
 
 The bridge currently supports keyboard commands:
 
@@ -73,6 +93,17 @@ The bridge currently supports keyboard commands:
 - Python PyBullet and C++ MuJoCo paths are separate and not yet unified.
 - The PyBullet visual mesh path needs to be updated to use the current per-leg mesh files.
 - The MuJoCo bridge is not part of the PlatformIO ESP32 firmware build.
+- `src/sim/CMakeLists.txt` should be checked before use because the current source filenames may need to be aligned with the actual `src/sim` files.
+
+## Future Simulation Work
+
+For a future team, useful improvements would be:
+
+- Unify the Python and MuJoCo simulation assumptions.
+- Replace old PyBullet generic mesh references with current per-leg meshes.
+- Add documented build/run commands for the C++ MuJoCo bridge.
+- Tune mass, friction, joint limits, and servo response against physical measurements.
+- Add screenshots or videos showing expected simulation output.
 
 ## Related Documentation
 

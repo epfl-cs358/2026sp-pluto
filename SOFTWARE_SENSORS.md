@@ -18,6 +18,19 @@ Current pin templates:
 
 Verify these pins against the physical wiring before flashing or powering the robot.
 
+## Sensor Bring-Up From Scratch
+
+Bring up sensors after the ESP32, PCA9685, and basic servo tests work.
+
+1. Confirm both sensors share ground with the ESP32.
+2. Confirm the ultrasonic ECHO voltage is safe for the ESP32. Use a level shifter or voltage divider if needed.
+3. Flash firmware with `PLUTO_ENABLE_ULTRASONIC` and `PLUTO_ENABLE_MICROPHONE` enabled.
+4. Open the serial monitor at `115200`.
+5. Confirm microphone energy values print periodically.
+6. Move an object in front of the ultrasonic sensor and confirm wall-stop behavior only during forward motion.
+7. Clap near the microphone and confirm walking toggles only once per cooldown period.
+8. If sensor behavior is unstable, test one sensor at a time by disabling the other feature flag.
+
 ## Ultrasonic Sensor
 
 The ultrasonic abstraction is implemented in:
@@ -34,6 +47,16 @@ It is designed around a non-blocking read pattern:
 The current firmware starts a read every 150 ms and checks the result roughly 10 ms later. If the robot is moving forward and the measured distance is positive and below 20 cm, `stop_robot("wall too close")` is called.
 
 The sensor is intended for simple front obstacle detection.
+
+### Ultrasonic Integration Notes
+
+- The firmware does not block while waiting for the ultrasonic echo.
+- `read_begin()` starts the measurement.
+- The main loop waits briefly before `read_end()`.
+- The stop condition only applies when the gait motion is `FORWARD`.
+- Current wall-stop threshold is 20 cm.
+
+This sensor is a safety and interaction feature, not a full mapping sensor.
 
 ## Microphone
 
@@ -54,6 +77,13 @@ This returns a dimensionless relative audio energy value. In the current firmwar
 - Clap threshold: `2000000`
 - Clap cooldown: `800 ms`
 - Behavior: if the robot is walking, a clap stops it; otherwise a clap starts walking.
+
+### Microphone Integration Notes
+
+- The ESP32 microphone code measures energy, not full speech.
+- Speech recognition is intentionally handled by the controller computer.
+- The clap threshold is empirical and should be tuned in the real environment.
+- If the robot starts or stops accidentally, increase the threshold or add filtering.
 
 ## Speech Recognition
 
