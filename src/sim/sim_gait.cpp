@@ -110,7 +110,7 @@ namespace pluto::sim
       return is_right_side(side) ? -FOOT_Y_STANCE : FOOT_Y_STANCE;
     }
 
-    FootTarget foot_from_phase(
+    pluto::motion::FootTarget foot_from_phase(
         float phase, float forward_scale, float foot_y, float stride, float lift,
         float z_stand) noexcept
     {
@@ -139,7 +139,7 @@ namespace pluto::sim
       return {(-stride * (1.0F - smoothstep(t))) * forward_scale, foot_y, z_stand};
     }
 
-    JointAnglesMd solve_leg(FootTarget foot, LegSide side) noexcept
+    pluto::motion::JointAnglesMd solve_leg(pluto::motion::FootTarget foot, LegSide side) noexcept
     {
       const float signed_coxa = is_right_side(side) ? -COXA_LENGTH : COXA_LENGTH;
       return to_millidegrees(
@@ -178,7 +178,7 @@ namespace pluto::sim
                  / static_cast<int64_t>(config.raw_max - config.raw_min));
     }
 
-    JointAnglesMd standing_servo_angles_md(LegSide side) noexcept
+    pluto::motion::JointAnglesMd standing_servo_angles_md(LegSide side) noexcept
     {
       const auto& config = LEG_CONFIGS[static_cast<uint8_t>(side)];
       return {
@@ -187,12 +187,12 @@ namespace pluto::sim
           raw_to_angle_md(config.tibia, config.tibia.raw_start)};
     }
 
-    JointAnglesMd standing_ik_angles_md(LegSide side) noexcept
+    pluto::motion::JointAnglesMd standing_ik_angles_md(LegSide side) noexcept
     {
       return solve_leg({0.0F, side_stance_y(side), FOOT_Z_STAND}, side);
     }
 
-    JointAnglesMd standing_angle_offsets_md(LegSide side) noexcept
+    pluto::motion::JointAnglesMd standing_angle_offsets_md(LegSide side) noexcept
     {
       const auto servo = standing_servo_angles_md(side);
       const auto ik    = standing_ik_angles_md(side);
@@ -201,7 +201,7 @@ namespace pluto::sim
           servo.tibia_md - ik.tibia_md};
     }
 
-    JointAnglesMd apply_standing_offsets(JointAnglesMd angles, LegSide side) noexcept
+    pluto::motion::JointAnglesMd apply_standing_offsets(pluto::motion::JointAnglesMd angles, LegSide side) noexcept
     {
       const auto offsets = standing_angle_offsets_md(side);
       angles.coxa_md += offsets.coxa_md;
@@ -211,38 +211,38 @@ namespace pluto::sim
     }
   } // namespace
 
-  void GaitController::set_gait(GaitKind gait) noexcept
+  void SimGaitController::set_gait(SimGaitKind gait) noexcept
   {
     _gait = gait;
   }
 
-  void GaitController::set_motion(MotionCommand motion) noexcept
+  void SimGaitController::set_motion(SimMotionCommand motion) noexcept
   {
     _motion = motion;
   }
 
-  void GaitController::set_speed(float speed) noexcept
+  void SimGaitController::set_speed(float speed) noexcept
   {
     _speed = std::clamp(speed, 0.0F, 1.0F);
   }
 
-  void GaitController::set_walk_manual_phase(bool enabled) noexcept
+  void SimGaitController::set_walk_manual_phase(bool enabled) noexcept
   {
     _walk_manual_phase_enabled = enabled;
     _walk_manual_stage         = 0;
   }
 
-  void GaitController::next_walk_manual_stage() noexcept
+  void SimGaitController::next_walk_manual_stage() noexcept
   {
     _walk_manual_stage = static_cast<uint8_t>((_walk_manual_stage + 1) % 4);
   }
 
-  void GaitController::next_walk_manual_leg() noexcept
+  void SimGaitController::next_walk_manual_leg() noexcept
   {
-    _walk_manual_leg = pluto::next_leg_side(_walk_manual_leg);
+    _walk_manual_leg = pluto::sim::next_leg_side(_walk_manual_leg);
   }
 
-  void GaitController::stand(std::array<pluto::sim::Leg, 4>& legs) const noexcept
+  void SimGaitController::stand(std::array<pluto::sim::SimLeg, 4>& legs) const noexcept
   {
     for (auto& leg : legs)
     {
@@ -250,22 +250,22 @@ namespace pluto::sim
     }
   }
 
-  void GaitController::update(
-      std::array<pluto::sim::Leg, 4>& legs, uint32_t now_ms) const noexcept
+  void SimGaitController::update(
+      std::array<pluto::sim::SimLeg, 4>& legs, uint32_t now_ms) const noexcept
   {
-    if (_motion == MotionCommand::IDLE || _speed <= 0.0F)
+    if (_motion == SimMotionCommand::IDLE || _speed <= 0.0F)
     {
       return;
     }
 
     const float time_s = static_cast<float>(now_ms) * 0.001F;
-    if (_motion == MotionCommand::BOW)
+    if (_motion == SimMotionCommand::BOW)
     {
       write_bow(legs, time_s);
       return;
     }
 
-    if (_motion == MotionCommand::PAW)
+    if (_motion == SimMotionCommand::PAW)
     {
       write_paw(legs, time_s);
       return;
@@ -277,28 +277,28 @@ namespace pluto::sim
     }
   }
 
-  float GaitController::period_seconds() const noexcept
+  float SimGaitController::period_seconds() const noexcept
   {
     switch (_gait)
     {
-    case GaitKind::WALK:
+    case SimGaitKind::WALK:
       return 5.50F;
-    case GaitKind::TROT:
+    case SimGaitKind::TROT:
       return 0.90F;
-    case GaitKind::GALLOP:
+    case SimGaitKind::GALLOP:
       return 0.60F;
-    case GaitKind::TURN:
+    case SimGaitKind::TURN:
       return 0.60F;
     }
 
     return 0.35F;
   }
 
-  float GaitController::offset_for(LegSide side) const noexcept
+  float SimGaitController::offset_for(LegSide side) const noexcept
   {
     switch (_gait)
     {
-    case GaitKind::WALK:
+    case SimGaitKind::WALK:
       switch (side)
       {
       case LegSide::TOP_LEFT:
@@ -312,7 +312,7 @@ namespace pluto::sim
       }
       break;
 
-    case GaitKind::TROT:
+    case SimGaitKind::TROT:
       switch (side)
       {
       case LegSide::TOP_LEFT:
@@ -324,7 +324,7 @@ namespace pluto::sim
       }
       break;
 
-    case GaitKind::GALLOP:
+    case SimGaitKind::GALLOP:
       switch (side)
       {
       case LegSide::TOP_LEFT:
@@ -338,7 +338,7 @@ namespace pluto::sim
       }
       break;
 
-    case GaitKind::TURN:
+    case SimGaitKind::TURN:
       switch (side)
       {
       case LegSide::TOP_LEFT:
@@ -354,10 +354,10 @@ namespace pluto::sim
     return 0.0F;
   }
 
-  float GaitController::phase_for(
+  float SimGaitController::phase_for(
       LegSide side, float time_s, float period) const noexcept
   {
-    if (!(_gait == GaitKind::WALK && _walk_manual_phase_enabled))
+    if (!(_gait == SimGaitKind::WALK && _walk_manual_phase_enabled))
     {
       return normalized_phase(time_s, period, offset_for(side));
     }
@@ -374,18 +374,18 @@ namespace pluto::sim
     return 0.88F;
   }
 
-  void GaitController::write_leg(
-      std::array<pluto::sim::Leg, 4>& legs, LegSide side, float time_s) const noexcept
+  void SimGaitController::write_leg(
+      std::array<pluto::sim::SimLeg, 4>& legs, LegSide side, float time_s) const noexcept
   {
-    const float direction = _motion == MotionCommand::BACKWARD ? -1.0F : 1.0F;
+    const float direction = _motion == SimMotionCommand::BACKWARD ? -1.0F : 1.0F;
     const float turn_flip =
-        (_gait == GaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
+        (_gait == SimGaitKind::TURN && is_right_side(side)) ? -1.0F : 1.0F;
     const float period = period_seconds();
     const float phase  = quantize_phase(phase_for(side, time_s, period));
     const bool current_leg_airborne = is_airborne(phase);
 
     float leg_stride_scale = 1.0F;
-    if (_gait == GaitKind::WALK)
+    if (_gait == SimGaitKind::WALK)
     {
       leg_stride_scale =
           is_front_side(side) ? WALK_FRONT_STRIDE_SCALE : WALK_REAR_STRIDE_SCALE;
@@ -395,7 +395,7 @@ namespace pluto::sim
     float current_lift    = LIFT;
     float current_z_stand = FOOT_Z_STAND;
 
-    if (_gait == GaitKind::TROT) //  && !is_front_side(side)
+    if (_gait == SimGaitKind::TROT) //  && !is_front_side(side)
     {
       current_stride *= 0.70F; // Limits Femur forward/backward sweep
       current_lift *= 0.50F;   // Limits Tibia upward compression
@@ -405,17 +405,17 @@ namespace pluto::sim
         phase, direction * turn_flip * _speed * leg_stride_scale,
         side_stance_y(side), current_stride, current_lift, current_z_stand);
 
-    if (_gait == GaitKind::WALK && !is_front_side(side))
+    if (_gait == SimGaitKind::WALK && !is_front_side(side))
     {
       foot.x += WALK_REAR_X_BIAS;
     }
 
-    if (_gait == GaitKind::WALK && !is_front_side(side))
+    if (_gait == SimGaitKind::WALK && !is_front_side(side))
     {
       foot.z -= WALK_REAR_LEG_EXTEND_Z;
     }
 
-    if (_gait == GaitKind::WALK)
+    if (_gait == SimGaitKind::WALK)
     {
       if (is_front_side(side))
       {
@@ -439,16 +439,16 @@ namespace pluto::sim
     foot.z = quantize_step(foot.z, FOOT_Z_QUANTIZATION_STEP);
 
     auto angles = solve_leg(foot, side);
-    if (_gait == GaitKind::WALK && side == LegSide::TOP_LEFT)
+    if (_gait == SimGaitKind::WALK && side == LegSide::TOP_LEFT)
     {
       angles.femur_md -= WALK_LF_FEMUR_FLAT_MD;
     }
-    if (_gait == GaitKind::WALK && side == LegSide::TOP_RIGHT)
+    if (_gait == SimGaitKind::WALK && side == LegSide::TOP_RIGHT)
     {
       angles.femur_md += WALK_RF_FEMUR_FLAT_MD;
     }
 
-    if (_gait == GaitKind::WALK && !is_front_side(side))
+    if (_gait == SimGaitKind::WALK && !is_front_side(side))
     {
       angles.tibia_md += WALK_REAR_TIBIA_EXTEND_MD;
     }
@@ -459,35 +459,35 @@ namespace pluto::sim
         servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
   }
 
-  void GaitController::write_bow(
-      std::array<pluto::sim::Leg, 4>& legs, float time_s) const noexcept
+  void SimGaitController::write_bow(
+      std::array<pluto::sim::SimLeg, 4>& legs, float time_s) const noexcept
   {
     const float phase = normalized_phase(time_s, BOW_PERIOD, 0.0F);
     const float pose  = sinf(phase * PI);
 
     for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
     {
-      const auto side = static_cast<LegSide>(i);
-      FootTarget foot = {0.0F, side_stance_y(side), FOOT_Z_STAND};
+        const auto side = static_cast<LegSide>(i);
+        pluto::motion::FootTarget foot = {0.0F, side_stance_y(side), FOOT_Z_STAND};
 
-      if (is_front_side(side))
-      {
-        foot.x += BOW_FRONT_BACK * pose;
-        foot.z -= BOW_FRONT_DROP * pose;
-      }
-      else
-      {
-        foot.z += BOW_REAR_RISE * pose;
-      }
+        if (is_front_side(side))
+        {
+            foot.x += BOW_FRONT_BACK * pose;
+            foot.z -= BOW_FRONT_DROP * pose;
+        }
+        else
+        {
+            foot.z += BOW_REAR_RISE * pose;
+        }
 
-      const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
-      legs[i].write_angles(
-          servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
-    }
+        const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+        legs[i].write_angles(
+            servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
+}
   }
 
-  void GaitController::write_paw(
-      std::array<pluto::sim::Leg, 4>& legs, float time_s) const noexcept
+  void SimGaitController::write_paw(
+      std::array<pluto::sim::SimLeg, 4>& legs, float time_s) const noexcept
   {
     constexpr LegSide paw_side = LegSide::TOP_RIGHT;
     const float phase          = normalized_phase(time_s, PAW_PERIOD, 0.0F);
@@ -500,28 +500,31 @@ namespace pluto::sim
 
     for (uint8_t i = 0; i < static_cast<uint8_t>(LegSide::_count_LegSide); ++i)
     {
-      const auto side = static_cast<LegSide>(i);
-      FootTarget foot = {
-          0.0F, side_stance_y(side) + away_from_paw * PAW_SHIFT_Y * shift_weight,
-          FOOT_Z_STAND};
+        const auto side = static_cast<LegSide>(i);
+        pluto::motion::FootTarget foot = 
+        {
+            0.0F, 
+            side_stance_y(side) + away_from_paw * PAW_SHIFT_Y * shift_weight,
+            FOOT_Z_STAND
+        };
 
-      if (side == paw_side)
-      {
-        foot.x = PAW_REST_X + (PAW_PEAK_X - PAW_REST_X) * wave * swing_scale;
-        foot.z = PAW_REST_Z + (PAW_PEAK_Z - PAW_REST_Z) * wave * swing_scale;
-      }
-      else if (is_front_side(side))
-      {
-        foot.x = PAW_FRONT_SUPPORT_BACK_X;
-      }
-      else
-      {
-        foot.z = FOOT_Z_STAND - PAW_REAR_SUPPORT_DROP_Z;
-      }
+        if (side == paw_side)
+        {
+            foot.x = PAW_REST_X + (PAW_PEAK_X - PAW_REST_X) * wave * swing_scale;
+            foot.z = PAW_REST_Z + (PAW_PEAK_Z - PAW_REST_Z) * wave * swing_scale;
+        }
+        else if (is_front_side(side))
+        {
+            foot.x = PAW_FRONT_SUPPORT_BACK_X;
+        }
+        else
+        {
+            foot.z = FOOT_Z_STAND - PAW_REAR_SUPPORT_DROP_Z;
+        }
 
-      const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
-      legs[i].write_angles(
-          servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
+        const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+        legs[i].write_angles(
+            servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
   }
 } // namespace pluto::motion

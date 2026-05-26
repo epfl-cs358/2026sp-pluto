@@ -1,5 +1,5 @@
 <mujoco model="pluto">
-    <compiler angle="radian"/>
+    <compiler angle="radian" meshdir="."/>
 
     <!-- ===================================================== -->
     <!-- DEFAULTS -->

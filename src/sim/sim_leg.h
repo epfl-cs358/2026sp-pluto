@@ -9,7 +9,7 @@
 namespace pluto::sim
 {
   /// @brief Identifiers for the three degrees of freedom in a robotic leg.
-  enum class LegJointType : uint8_t
+  enum class SimLegJointType : uint8_t
   {
     /// @brief Proximal joint attached to the chassis.
     /// Controls horizontal rotation (abduction/adduction) for swing and orientation.
@@ -32,24 +32,24 @@ namespace pluto::sim
   /// After BOTTOM, this returns TOP.
   /// @param joint The current joint type
   /// @return The next joint type
-  constexpr LegJointType next_leg_joint_type(LegJointType joint) noexcept
+  constexpr SimLegJointType next_leg_joint_type(SimLegJointType joint) noexcept
   {
-    return (LegJointType)(((uint8_t)joint + 1)
-                          % (uint8_t)LegJointType::_count_LegJointType);
+    return (SimLegJointType)(((uint8_t)joint + 1)
+                          % (uint8_t)SimLegJointType::_count_LegJointType);
   }
 
-  /// @brief Converts a LegJointType to a string.
+  /// @brief Converts a SimLegJointType to a string.
   /// @param joint The joint type
   /// @return String
-  constexpr const char* str_leg_joint_type(LegJointType joint) noexcept
+  constexpr const char* str_leg_joint_type(SimLegJointType joint) noexcept
   {
     switch (joint)
     {
-    case LegJointType::TOP:
+    case SimLegJointType::TOP:
       return "COXA (TOP)";
-    case LegJointType::MIDDLE:
+    case SimLegJointType::MIDDLE:
       return "FEMUR (MIDDLE)";
-    case LegJointType::BOTTOM:
+    case SimLegJointType::BOTTOM:
       return "TIBIA (BOTTOM)";
     default:
       return "UNKNOWN JOINT";
@@ -82,45 +82,45 @@ namespace pluto::sim
   }
 
   /// @brief  Simulation-friendly abstraction of a leg (no hardware dependencies)
-  class Leg
+  class SimLeg
   {
   public:
     static constexpr uint8_t CHANNEL_STEPS_PER_SIDE = 4;
 
-    Leg(LegSide side) noexcept
+    SimLeg(LegSide side) noexcept
         : _side(side)
         , _joints{
-            LegJoint(
+            SimLegJoint(
               static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 0,
               LEG_CONFIGS[static_cast<uint8_t>(side)].coxa),
 
-            LegJoint(
+            SimLegJoint(
               static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 1,
               LEG_CONFIGS[static_cast<uint8_t>(side)].femur),
             
-            LegJoint(
+            SimLegJoint(
               static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 2,
               LEG_CONFIGS[static_cast<uint8_t>(side)].tibia)
         }
     {
     }
-    Leg(Leg&&) noexcept                 = default;
-    Leg(const Leg&) noexcept            = default;
-    Leg& operator=(Leg&&) noexcept      = default;
-    Leg& operator=(const Leg&) noexcept = default;
+    SimLeg(SimLeg&&) noexcept                 = default;
+    SimLeg(const SimLeg&) noexcept            = default;
+    SimLeg& operator=(SimLeg&&) noexcept      = default;
+    SimLeg& operator=(const SimLeg&) noexcept = default;
 
     /// @brief Indexes into the joints
-    /// @param type The LegJointType
-    /// @return LegJoint reference
-    pluto::sim::LegJoint& operator[](LegJointType type) noexcept
+    /// @param type The SimLegJointType
+    /// @return SimLegJoint reference
+    pluto::sim::SimLegJoint& operator[](SimLegJointType type) noexcept
     {
       return _joints[static_cast<uint8_t>(type)];
     }
 
     /// @brief Indexes into the joints (const version)
-    /// @param type The LegJointType
-    /// @return LegJoint const reference
-    const pluto::sim::LegJoint& operator[](LegJointType type) const noexcept
+    /// @param type The SimLegJointType
+    /// @return SimLegJoint const reference
+    const pluto::sim::SimLegJoint& operator[](SimLegJointType type) const noexcept
     {
       return _joints[static_cast<uint8_t>(type)];
     }
@@ -156,7 +156,7 @@ namespace pluto::sim
     }
 
     /// @brief Function template to apply an operation to each joint in the leg.
-    /// @tparam Func The type of the function or lambda to apply to each joint. It should take a LegJoint& as a parameter.
+    /// @tparam Func The type of the function or lambda to apply to each joint. It should take a SimLegJoint& as a parameter.
     /// @param fn The function or lambda to apply to each joint.
     template<typename Func>
     void for_each_joint(Func&& fn) noexcept 
@@ -178,6 +178,6 @@ namespace pluto::sim
       /// @brief The side of the leg on the chassis.
       LegSide _side;
       /// @brief The three joints of the leg: coxa, femur, tibia.
-      std::array<pluto::sim::LegJoint, JOINT_COUNT> _joints;
+      std::array<pluto::sim::SimLegJoint, JOINT_COUNT> _joints;
   };
 } // namespace pluto

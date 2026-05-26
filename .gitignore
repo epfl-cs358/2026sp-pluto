@@ -5,6 +5,9 @@ __pycache__/
 .build/
 .installed
 
+# CMake build directory
+build/
+
 #############
 # PLATFORMIO:
 #############

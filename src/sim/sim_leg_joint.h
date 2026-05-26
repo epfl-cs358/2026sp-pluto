@@ -8,16 +8,16 @@
 namespace pluto::sim
 {
   /// @brief Simulation-friendly abstraction of a servo joint (no hardware dependencies)
-  class LegJoint
+  class SimLegJoint
   {
   public:
-    LegJoint(LegJoint&&) noexcept                  = default;
-    LegJoint(const LegJoint&) noexcept             = default;
-    LegJoint& operator=(LegJoint&&) noexcept       = default;
-    LegJoint& operator=(const LegJoint&) noexcept  = default;
+    SimLegJoint(SimLegJoint&&) noexcept                  = default;
+    SimLegJoint(const SimLegJoint&) noexcept             = default;
+    SimLegJoint& operator=(SimLegJoint&&) noexcept       = default;
+    SimLegJoint& operator=(const SimLegJoint&) noexcept  = default;
 
-    /// @brief Constructs a LegJoint
-    LegJoint(uint8_t channel, const JointConfig& config) noexcept
+    /// @brief Constructs a SimLegJoint
+    SimLegJoint(uint8_t channel, const JointConfig& config) noexcept
         : _channel(channel)
         , _config(config)
         , _current(config.raw_start)
