@@ -2,8 +2,6 @@
 
 > A four-legged canine robot with ESP32-based gait control, calibrated 12-servo actuation, WiFi command transport, voice-triggered behaviors, obstacle/audio reactions, and simulation support through Python and MuJoCo assets.
 
-![Electrical Circuit](images/circuit.png)
-
 Live Demo
 
 Demo media can be added here once final robot videos are available.
