@@ -24,7 +24,7 @@ namespace pluto::sim
     LEFT = 3,
     RIGHT = 4,
 
-    BOW = 5,
+    FLIP = 5,
     PAW = 6,
   };
 
@@ -53,7 +53,7 @@ namespace pluto::sim
     float offset_for(LegSide side) const noexcept;
     float phase_for(LegSide side, float time_s, float period) const noexcept;
     void write_leg(std::array<pluto::sim::SimLeg, 4>& legs, LegSide side, float time_s) const noexcept;
-    void write_bow(std::array<pluto::sim::SimLeg, 4>& legs, float time_s) const noexcept;
+    void write_flip(std::array<pluto::sim::SimLeg, 4>& legs, float time_s) const noexcept;
     void write_paw(std::array<pluto::sim::SimLeg, 4>& legs, float time_s) const noexcept;
 
     SimGaitKind _gait        = SimGaitKind::TROT;

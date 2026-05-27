@@ -356,9 +356,9 @@ namespace pluto::motion
     }
 
     const float time_s = static_cast<float>(now_ms) * 0.001F;
-    if (_motion == MotionCommand::BOW)
+    if (_motion == MotionCommand::FLIP)
     {
-      write_bow(legs, time_s);
+      write_flip(legs, time_s);
       return;
     }
 
@@ -559,7 +559,7 @@ namespace pluto::motion
         servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
   }
 
-  void GaitController::write_bow(
+  void GaitController::write_flip(
       std::array<Leg, 4>& legs, float time_s) const noexcept
   {
     const float phase = normalized_phase(time_s, BOW_PERIOD, 0.0F);

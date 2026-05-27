@@ -261,9 +261,9 @@ namespace pluto::sim
     }
 
     const float time_s = static_cast<float>(now_ms) * 0.001F;
-    if (_motion == SimMotionCommand::BOW)
+    if (_motion == SimMotionCommand::FLIP)
     {
-      write_bow(legs, time_s);
+      write_flip(legs, time_s);
       return;
     }
 
@@ -479,7 +479,7 @@ namespace pluto::sim
         servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
   }
 
-  void SimGaitController::write_bow(
+  void SimGaitController::write_flip(
       std::array<pluto::sim::SimLeg, 4>& legs, float time_s) const noexcept
   {
     const float phase = normalized_phase(time_s, BOW_PERIOD, 0.0F);

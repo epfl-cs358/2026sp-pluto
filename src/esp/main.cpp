@@ -251,8 +251,8 @@ void loop()
       Serial.println("Motion: turn right");
       break;
     case 'o':
-      GAIT.set_motion(pluto::motion::MotionCommand::BOW);
-      Serial.println("Motion: bow");
+      GAIT.set_motion(pluto::motion::MotionCommand::FLIP);
+      Serial.println("Motion: flip");
       break;
     case 'k':
       GAIT.set_motion(pluto::motion::MotionCommand::PAW);

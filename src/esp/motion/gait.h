@@ -24,7 +24,7 @@ namespace pluto::motion
     LEFT = 3,
     RIGHT = 4,
 
-    BOW = 5,
+    FLIP = 5,
     PAW = 6,
   };
 
@@ -57,7 +57,7 @@ namespace pluto::motion
     float offset_for(LegSide side) const noexcept;
     float phase_for(LegSide side, float time_s, float period) const noexcept;
     void write_leg(std::array<Leg, 4>& legs, LegSide side, float time_s) const noexcept;
-    void write_bow(std::array<Leg, 4>& legs, float time_s) const noexcept;
+    void write_flip(std::array<Leg, 4>& legs, float time_s) const noexcept;
     void write_paw(std::array<Leg, 4>& legs, float time_s) const noexcept;
 
     GaitKind _gait        = GaitKind::TROT;
