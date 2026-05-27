@@ -27,6 +27,7 @@ namespace pluto::motion
     FLIP = 5,
     PAW = 6,
     BOW = 7,
+    SIT = 8,
   };
 
   class GaitController
@@ -52,6 +53,7 @@ namespace pluto::motion
     void turnleft_start(std::array<Leg, 4>& legs) const noexcept;
     void turnright_start(std::array<Leg, 4>& legs) const noexcept;
     void bow_start(std::array<Leg, 4>& legs) const noexcept;
+    void sit_start(std::array<Leg, 4>& legs) const noexcept;
     void update(std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept;  
 
   private:

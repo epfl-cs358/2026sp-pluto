@@ -181,6 +181,15 @@ namespace pluto
       }
     }
 
+    /// @brief Moves all joints in the leg to the sit starting position.
+    void write_sit_start() noexcept
+    {
+      for (auto& joint : _joints)
+      {
+        joint.write_sit_start();
+      }
+    }
+
     /// @brief Keeps compatibility with the old starting position function.
     void write_starting() noexcept
     {
