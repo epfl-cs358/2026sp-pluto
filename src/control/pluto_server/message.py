@@ -144,13 +144,11 @@ class UDPPacket:
                 f"Packet size mismatch. Expected {expected_size}, got {len(data)}"
             )
 
-        # validate CRC
         payload_start = data[4:expected_size]
         computed_crc = zlib.crc32(payload_start) & 0xFFFFFFFF
         if crc32 != computed_crc:
             raise ValueError(f"CRC mismatch! Expected {crc32}, computed {computed_crc}")
 
-        # unpack messages
         messages = []
         for i in range(count):
             start_idx = PACKET_HEADER_SIZE + (i * 8)
@@ -198,10 +196,6 @@ def create_sensor_distance(distance_mm: int, current_millis: int) -> Message:
 
 
 def create_behavior(behavior_kind: MessageBehaviorKind, duration_ms: int = 0) -> Message:
-    """
-    Creates a high-level behavior command.
-    The behavior_kind is stored in the 4-bit 'kind' field.
-    """
     return Message(
         family=MessageFamilyKind.KIND_BEHAVIOR,
         kind=behavior_kind,
