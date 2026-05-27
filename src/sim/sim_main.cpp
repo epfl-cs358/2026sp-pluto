@@ -39,6 +39,9 @@ double lasty = 0;
 // Handle mouse click type
 void mouse_button(GLFWwindow* window, int button, int act, int mods)
 {
+    // Use arguments to remove compiler warnings about unused parameters
+    button = button; act = act; mods = mods;
+
     button_left =
         (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
 
@@ -54,6 +57,9 @@ void mouse_button(GLFWwindow* window, int button, int act, int mods)
 // Move camera based on mouse movement
 void mouse_move(GLFWwindow* window, double xpos, double ypos)
 {
+    // Use arguments to remove compiler warnings about unused parameters
+    xpos = xpos; ypos = ypos;
+
     if (!button_left && !button_middle && !button_right)
         return;
 
@@ -92,6 +98,9 @@ void mouse_move(GLFWwindow* window, double xpos, double ypos)
 // Scroll zoom in/out
 void scroll(GLFWwindow* window, double xoffset, double yoffset)
 {
+    // Use argument to remove compiler warnings about unused parameters
+    window = window; xoffset = xoffset;
+
     mjv_moveCamera(
         m,
         mjMOUSE_ZOOM,
@@ -104,6 +113,9 @@ void scroll(GLFWwindow* window, double xoffset, double yoffset)
 
 // Handle movement input
 void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    // Use arguments to remove compiler warnings about unused parameters
+    window = window; scancode = scancode; mods = mods;
+
     if (action != GLFW_PRESS) return;
 
     switch(key) {
@@ -115,7 +127,6 @@ void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods)
             gait.set_motion(pluto::sim::SimMotionCommand::BACKWARD);
             std::cout << "Motion: turn right (backward gait)" << std::endl;
             break;
-        case GLFW_KEY_A:
         case GLFW_KEY_Q:
             gait.set_motion(pluto::sim::SimMotionCommand::LEFT);
             std::cout << "Motion: turn left" << std::endl;
@@ -127,6 +138,14 @@ void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods)
         case GLFW_KEY_S:
             gait.set_motion(pluto::sim::SimMotionCommand::IDLE);
             std::cout << "Motion: stop" << std::endl;
+            break;
+        case GLFW_KEY_P:
+            gait.set_motion(pluto::sim::SimMotionCommand::PAW);
+            std::cout << "Motion: paw" << std::endl;
+            break;
+        case GLFW_KEY_O:
+            gait.set_motion(pluto::sim::SimMotionCommand::BOW);
+            std::cout << "Motion: bow" << std::endl;
             break;
         case GLFW_KEY_1:
             gait.set_gait(pluto::sim::SimGaitKind::WALK);
@@ -225,7 +244,7 @@ int main() {
     auto start_time = std::chrono::steady_clock::now();
 
     std::array<int, 12> actuator_indices;
-    for (int i=0;i<12;i++) {
+    for (int i = 0; i < 12; i++) {
         actuator_indices[i] = mj_name2id(m, mjOBJ_ACTUATOR, actuator_names[i].c_str());
         if (actuator_indices[i] == -1) {
             std::cerr << "Actuator not found: " << actuator_names[i] << std::endl;

@@ -8,21 +8,21 @@ namespace pluto::sim
 {
   namespace
   {
-    constexpr float COXA_LENGTH  = 7.00F;
-    constexpr float FEMUR_LENGTH = 12.00F;
-    constexpr float TIBIA_LENGTH = 13.50F;
+    constexpr float COXA_LENGTH  = 5.00F;
+    constexpr float FEMUR_LENGTH = 6.00F;
+    constexpr float TIBIA_LENGTH = 6.00F;
 
-    constexpr float FOOT_Z_STAND = -23.0F; // standing height
+    constexpr float FOOT_Z_STAND = -17.0F; // standing height
 
     constexpr float SHIFT_END                = 0.25F;
     constexpr float LIFT_END                 = 0.50F;
     constexpr float STEP_END                 = 0.75F;
-    constexpr float PHASE_QUANTIZATION_STEPS = 10.0F;
-    constexpr float FOOT_X_QUANTIZATION_STEP = 0.25F;
-    constexpr float FOOT_Z_QUANTIZATION_STEP = 0.25F;
+    constexpr float PHASE_QUANTIZATION_STEPS = 0.0F;
+    constexpr float FOOT_X_QUANTIZATION_STEP = 0.0F;
+    constexpr float FOOT_Z_QUANTIZATION_STEP = 0.0F;
 
-    constexpr float STRIDE = 1.80F;
-    constexpr float LIFT   = 3.20F;
+    constexpr float STRIDE = 10.00F;
+    constexpr float LIFT   = 10.00F;
 
     constexpr float FOOT_Y_STANCE               = 7.00F;
     constexpr float WALK_REAR_LEG_EXTEND_Z      = 0.00F;
@@ -132,7 +132,7 @@ namespace pluto::sim
         const float t = (phase - LIFT_END) / (STEP_END - LIFT_END);
         return {
             (stride - 2.0F * stride * smoothstep(t)) * forward_scale, foot_y,
-            z_stand + lift * cosf(0.5F * PI * t)};
+            z_stand + lift * powf(sinf(PI * t), 1.5F)};
       }
 
       const float t = (phase - STEP_END) / (1.0F - STEP_END);
@@ -246,6 +246,7 @@ namespace pluto::sim
   {
     for (auto& leg : legs)
     {
+      // In the simulation, starting angles are 0
       leg.write_starting();
     }
   }
@@ -255,6 +256,7 @@ namespace pluto::sim
   {
     if (_motion == SimMotionCommand::IDLE || _speed <= 0.0F)
     {
+      stand(legs);
       return;
     }
 

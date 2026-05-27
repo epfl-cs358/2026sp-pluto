@@ -1,10 +1,5 @@
 <mujoco model="pluto">
     <compiler angle="radian" meshdir="."/>
-
-    <option>
-        <flag contact="disable"/>
-    </option>
-
     <!-- ===================================================== -->
     <!-- DEFAULTS -->
     <!-- ===================================================== -->
@@ -12,15 +7,17 @@
         <!-- Convert Fusion360 coordinates to MuJoCo -->
         <geom type="mesh" xyaxes="1 0 0 0 0 1" density="1000000" condim="3" friction="1.0 0.1 0.1"/>
 
-        <joint type="hinge" limited="true" damping="2" armature="0.01"/>
+        <joint type="hinge" limited="true" damping="10" armature="0.1"/>
 
-        <position ctrllimited="true" kp="5000" kv="200" forcerange="-3.1415 3.1415"/>
+        <position ctrllimited="true" kp="5000" kv="200" forcerange="-20 20"/>
     </default>
 
     <!-- ===================================================== -->
     <!-- ASSETS -->
     <!-- ===================================================== -->
     <asset>
+        <texture name="skybox" type="skybox" builtin="gradient" rgb1="0.6 0.8 1" rgb2="0.1 0.3 0.5" width="512" height="512"/>
+
         <mesh name="body"      file="body.stl"      scale="0.001 0.001 0.001"/>
 
         <mesh name="tl_coxa"   file="tl_coxa.stl"   scale="0.001 0.001 0.001"/>
@@ -45,11 +42,17 @@
     <!-- WORLD -->
     <!-- ===================================================== -->
     <worldbody>
+        <!-- ===================================================== -->
+        <!-- GROUND -->
+        <!-- ===================================================== -->
+        <geom name="ground_geom" type="plane" pos="0 0 0" euler="0 0 -1.5708" size="10 10 0.1" rgba="0 1 0 1"/>
+
         <!-- ================================================= -->
         <!-- BODY -->
         <!-- ================================================= -->
-        <body name="body" pos="0 0 2" euler="-1.5708 0 0">
-            <geom mesh="body" mass="0.8"/>
+        <body name="body" pos="0 0 1.5" euler="-1.5708 0 0">
+            <freejoint></freejoint>
+            <geom mesh="body" mass="0.8" rgba="1 1 1 1"/>
 
             <!-- ============================================= -->
             <!-- TOP LEFT LEG -->
