@@ -20,7 +20,7 @@ namespace pluto::sim
     SimLegJoint(uint8_t channel, const JointConfig& config) noexcept
         : _channel(channel)
         , _config(config)
-        , _current(config.raw_start)
+        , _current(config.raw_stand)
     {
     }
 
@@ -42,7 +42,7 @@ namespace pluto::sim
     /// @brief Reset to starting position
     void write_starting() noexcept
     {
-      write_raw(_config.raw_start);
+      write_raw(_config.raw_stand);
     }
 
     const JointConfig& config() const noexcept { return _config; }
