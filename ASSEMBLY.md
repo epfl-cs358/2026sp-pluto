@@ -50,13 +50,15 @@ Keep this orientation consistent while assembling, wiring, and calibrating. If a
 
 Print the required body and leg parts from the current physical mesh set in [src/3D printing mesh](<src/3D printing mesh>). The active mesh inventory is documented in [CAD_FILES.md](CAD_FILES.md).
 
-Current part groups:
+Current physical print groups:
 
-- Body: `body.stl`
-- Top-left leg: `tl_coxa.stl`, `tl_femur.stl`, `tl_tibia.stl`
-- Top-right leg: `tr_coxa.stl`, `tr_femur.stl`, `tr_tibia.stl`
-- Bottom-left leg: `bl_coxa.stl`, `bl_femur.stl`, `bl_tibia.stl`
-- Bottom-right leg: `br_coxa.stl`, `br_femur.stl`, `br_tibia.stl`
+- Top-level body/electronics parts: `Main Body.stl`, `Board Holder.stl`, `Sensor Holder.stl`
+- Front-left leg folder: coxa, inner/outer femur, femur spacer, tibia, inner mirror tibia, and linkage bar
+- Front-right leg folder: coxa, inner/outer femur, femur spacer, inner tibia, inner mirror tibia, and linkage bar
+- Back-left leg folder: coxa, inner/outer femur, femur spacer, inner tibia, inner mirror tibia, and linkage bar
+- Back-right leg folder: coxa, inner/outer femur, femur spacer, inner tibia, inner mirror tibia, and linkage bar
+
+The MuJoCo-style names such as `body.stl`, `tl_coxa.stl`, and `br_tibia.stl` are simulation meshes under `src/sim/sim_mesh/`, not the main physical printing inventory.
 
 Print rigid body and leg parts in PLA or PETG. Use TPU or rubber pads for the feet if available.
 

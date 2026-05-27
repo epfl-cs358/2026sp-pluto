@@ -15,6 +15,10 @@
 
 </div>
 
+<p align="center">
+  <img src="images/pluto_body.png" alt="Pluto physical robot" width="720">
+</p>
+
 > **Current status:** Pluto has the main robot platform in place: ESP32 firmware, gait code, servo calibration hooks, ultrasonic wall-stopping, a compiled microphone driver, a Python controller, shared UDP messages, updated per-leg meshes, and a MuJoCo model. Final physical gait tuning, microphone behavior re-enabling, and some behavior sequences still need validation on the real robot.
 
 > **Live demo:** Demo media can be added here once final robot videos are available.
@@ -292,7 +296,7 @@ This is the recommended order for a new team starting with only the repository, 
 | Phase | Goal | Main files/docs | Exit check |
 | --- | --- | --- | --- |
 | 1. Understand the system | Know what each subsystem does before building | `README.md`, [SOFTWARE_OVERVIEW.md](SOFTWARE_OVERVIEW.md), [HARDWARE_OVERVIEW.md](HARDWARE_OVERVIEW.md) | Team can explain firmware, controller, communication, sensors, and simulation roles |
-| 2. Print parts | Produce body and leg parts from the current 3D-printing mesh set | [CAD_FILES.md](CAD_FILES.md), `src/3D printing mesh/` | All body, coxa, femur, tibia, spacer, and linkage parts are printed and inspected |
+| 2. Print parts | Produce body, holder, and leg parts from the current 3D-printing mesh set | [CAD_FILES.md](CAD_FILES.md), `src/3D printing mesh/` | Main body, board holder, sensor holder, coxa, femur, tibia, spacer, and linkage parts are printed and inspected |
 | 3. Assemble one leg | Validate mechanical fit before repeating four times | [ASSEMBLY.md](ASSEMBLY.md) | One leg moves freely by hand without binding |
 | 4. Assemble all legs and body | Build the full physical robot frame | [ASSEMBLY.md](ASSEMBLY.md) | Four legs are mounted with correct orientation |
 | 5. Build power system | Prepare battery, switch, buck converter, grounds, and servo power | [WIRING_ELECTRICAL.md](WIRING_ELECTRICAL.md) | Buck output is measured and all grounds are common |
@@ -329,7 +333,7 @@ Print the physical robot parts from `src/3D printing mesh/`. The folders are org
 - `Back Left/`
 - `Back Right/`
 
-Each folder contains that leg's coxa, femur, tibia, spacer, and linkage/bar parts. The simulation-only meshes are separate and live in `src/sim/sim_mesh/`.
+The same folder also includes the top-level `Main Body.stl`, `Board Holder.stl`, and `Sensor Holder.stl` files. Each leg folder contains that leg's coxa, femur, tibia, spacer, and linkage/bar parts. The simulation-only meshes are separate and live in `src/sim/sim_mesh/`.
 
 Label parts as soon as they are printed. Do not mix parts between legs. The firmware also uses `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, and `BOTTOM_RIGHT`, so a physical mix-up can become a software calibration problem later.
 
@@ -625,7 +629,7 @@ src/3D printing mesh/
 `-- Back Right/
 ```
 
-The simulation meshes live separately in `src/sim/sim_mesh/` and include `body.stl`, per-leg coxa/femur/tibia STL files, and `pluto.xml`. See [CAD_FILES.md](CAD_FILES.md).
+The physical print folder also includes `Main Body.stl`, `Board Holder.stl`, and `Sensor Holder.stl`. The simulation meshes live separately in `src/sim/sim_mesh/` and include `body.stl`, per-leg coxa/femur/tibia STL files, and `pluto.xml`. See [CAD_FILES.md](CAD_FILES.md).
 
 ### 🔄 Build Flow
 
