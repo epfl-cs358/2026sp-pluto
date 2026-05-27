@@ -55,16 +55,19 @@ pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
 static bool robot_walking = false; 
 void stop_robot(const char* reason)
 {
-  GAIT.set_motion(pluto::motion::MotionCommand::IDLE); 
+  GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
   GAIT.stand(LEGS);
-  robot_walking = false; 
+  robot_walking = false;
 
-  Serial.print("STOP: "); 
+  Serial.print("STOP: ");
   Serial.println(reason);
 }
 
 void start_robot()
 {
+  GAIT.forward_start(LEGS);
+  delay(300);
+
   GAIT.set_gait(pluto::motion::GaitKind::WALK);
   GAIT.set_speed(0.65F); 
   GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
@@ -216,11 +219,17 @@ void loop()
     switch (cmd)
     {
     case 'f':
+      GAIT.forward_start(LEGS); 
+      delay(300);
+
       GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
       robot_walking = true; 
       Serial.println("Motion: forward");
       break;
     case 'b':
+      GAIT.backward_start(LEGS); 
+      delay(300);
+
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
       robot_walking = true; 
       Serial.println("Motion: backward");

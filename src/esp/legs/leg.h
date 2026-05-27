@@ -128,12 +128,36 @@ namespace pluto
     }
 
     /// @brief Moves all joints in the leg to their starting positions.
-    void write_starting() noexcept
+    void write_standing() noexcept
     {
       for (auto& joint : _joints) 
       {
-        joint.write_starting();
+        joint.write_standing();
       }
+    }
+
+    /// @brief Moves all joints in the leg to the forward starting position.
+    void write_forward_start() noexcept
+    {
+      for (auto& joint : _joints) 
+      {
+        joint.write_forward_start();
+      }
+    }
+
+    /// @brief Moves all joints in the leg to the backward starting position.
+    void write_backward_start() noexcept
+    {
+      for (auto& joint : _joints) 
+      {
+        joint.write_backward_start();
+      }
+    }
+
+    /// @brief Keeps compatibility with the old starting position function.
+    void write_starting() noexcept
+    {
+      write_standing();
     }
 
     /// @brief Sets all three joint angles simultaneously.
