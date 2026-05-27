@@ -182,9 +182,9 @@ namespace pluto::sim
     {
       const auto& config = LEG_CONFIGS[static_cast<uint8_t>(side)];
       return {
-          raw_to_angle_md(config.coxa, config.coxa.raw_start),
-          raw_to_angle_md(config.femur, config.femur.raw_start),
-          raw_to_angle_md(config.tibia, config.tibia.raw_start)};
+          raw_to_angle_md(config.coxa, config.coxa.raw_stand),
+          raw_to_angle_md(config.femur, config.femur.raw_stand),
+          raw_to_angle_md(config.tibia, config.tibia.raw_stand)};
     }
 
     pluto::motion::JointAnglesMd standing_ik_angles_md(LegSide side) noexcept

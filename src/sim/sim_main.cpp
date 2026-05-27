@@ -20,6 +20,89 @@ pluto::sim::SimGaitController gait;
 pluto::sim::SimLegJointType current_joint   = pluto::sim::SimLegJointType::COXA;
 pluto::LegSide current_side              = pluto::LegSide::TOP_LEFT;
 
+// ---------------------------------------
+// Global movable camera initialization
+// ---------------------------------------
+mjvCamera cam;
+mjvOption opt;
+mjvScene scn;
+mjrContext con;
+mjModel* m = nullptr;
+
+bool button_left = false;
+bool button_middle = false;
+bool button_right = false;
+
+double lastx = 0;
+double lasty = 0;
+
+// Handle mouse click type
+void mouse_button(GLFWwindow* window, int button, int act, int mods)
+{
+    button_left =
+        (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+
+    button_middle =
+        (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
+
+    button_right =
+        (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+
+    glfwGetCursorPos(window, &lastx, &lasty);
+}
+
+// Move camera based on mouse movement
+void mouse_move(GLFWwindow* window, double xpos, double ypos)
+{
+    if (!button_left && !button_middle && !button_right)
+        return;
+
+    double dx = xpos - lastx;
+    double dy = ypos - lasty;
+
+    lastx = xpos;
+    lasty = ypos;
+
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
+    bool mod_shift =
+        (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
+         glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS);
+
+    mjtMouse action;
+
+    if (button_right)
+        action = mod_shift ? mjMOUSE_MOVE_H : mjMOUSE_MOVE_V;
+    else if (button_left)
+        action = mod_shift ? mjMOUSE_ROTATE_H : mjMOUSE_ROTATE_V;
+    else
+        action = mjMOUSE_ZOOM;
+
+    mjv_moveCamera(
+        m,
+        action,
+        dx / height,
+        dy / height,
+        &scn,
+        &cam
+    );
+}
+
+// Scroll zoom in/out
+void scroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    mjv_moveCamera(
+        m,
+        mjMOUSE_ZOOM,
+        0,
+        -0.05 * yoffset,
+        &scn,
+        &cam
+    );
+}
+
+// Handle movement input
 void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS) return;
 
@@ -62,7 +145,7 @@ void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods)
 int main() {
     const char* model_path = PLUTO_MODEL_PATH;
     char error[1000] = "Could not load model";
-    mjModel* m = mj_loadXML(model_path, nullptr, error, 1000);
+    m = mj_loadXML(model_path, nullptr, error, 1000);
     if (!m) {
         std::cerr << "Error loading model: " << error << std::endl;
         return 1;
@@ -114,11 +197,9 @@ int main() {
 
     glfwSwapInterval(1);
     glfwSetKeyCallback(window, handle_key);
-
-    mjvCamera cam;
-    mjvOption opt;
-    mjvScene scn;
-    mjrContext con;
+    glfwSetMouseButtonCallback(window, mouse_button);
+    glfwSetCursorPosCallback(window, mouse_move);
+    glfwSetScrollCallback(window, scroll);
 
     mjv_defaultCamera(&cam);
     mjv_defaultOption(&opt);
@@ -150,6 +231,13 @@ int main() {
             return 1;
         }
     }
+
+    // Make camera track the body
+    cam.type = mjCAMERA_TRACKING;
+    cam.trackbodyid = mj_name2id(m, mjOBJ_BODY, "body");
+    cam.distance = 7.0F;
+    cam.azimuth = 45.0F;
+    cam.elevation = -20.0F;
 
     // --------------------------------------
     // Simulation loop
