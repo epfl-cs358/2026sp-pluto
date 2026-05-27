@@ -48,6 +48,11 @@ To update this path, replace the generic mesh references in `sim_motion.py` with
 
 ## 🎮 MuJoCo Path
 
+Why use MuJoCo in this project:
+
+- Better sim-to-real potential: MuJoCo gives stronger contact and dynamics behavior for legged motion tuning, so gait behavior in simulation is more likely to transfer to hardware than a purely UI-focused path.
+- C++ integration: the simulator bridge is already implemented in C++ and mirrors ESP-side concepts, which makes it easier to reuse control logic and keep firmware/simulation assumptions aligned.
+
 The MuJoCo model is stored in:
 
 ```text
