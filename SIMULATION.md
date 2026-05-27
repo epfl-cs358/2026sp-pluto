@@ -120,6 +120,8 @@ Mouse controls are handled through MuJoCo camera helpers:
 - Middle drag zooms.
 - Scroll zooms in and out.
 
+![MuJoCo simulation](images/simulation.mp4)
+
 ## 🎮 Known Simulation Limitations
 
 - The simulation is not yet a validated physical twin of Pluto.
