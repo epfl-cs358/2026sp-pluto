@@ -19,7 +19,12 @@ The folder is organized by physical leg position:
 | [Back Left](<src/3D printing mesh/Back Left>) | Printable parts for the back-left leg |
 | [Back Right](<src/3D printing mesh/Back Right>) | Printable parts for the back-right leg |
 
-Other than the leg files there are files corresponding to the Main Body, the Board Holder and the Sensor Holder.\
+The folder also includes top-level printable files for the main body, board holder, and sensor holder:
+
+- [Main Body.stl](<src/3D printing mesh/Main Body.stl>)
+- [Board Holder.stl](<src/3D printing mesh/Board Holder.stl>)
+- [Sensor Holder.stl](<src/3D printing mesh/Sensor Holder.stl>)
+
 Each leg folder contains the printable coxa, femur, tibia, spacer, and linkage/bar parts for that specific leg.
 
 ## 🖨️ Printable Parts By Leg

@@ -106,10 +106,19 @@ The bridge currently supports keyboard commands:
 | `B` | Move backward |
 | `Q` | Turn left |
 | `E` | Turn right |
+| `P` | Give paw |
+| `O` | Bow |
 | `S` | Stop |
 | `1` | Walk gait |
 | `2` | Trot gait |
 | `3` | Gallop gait |
+
+Mouse controls are handled through MuJoCo camera helpers:
+
+- Left drag rotates the camera.
+- Right drag moves the camera vertically or horizontally with Shift.
+- Middle drag zooms.
+- Scroll zooms in and out.
 
 ## 🎮 Known Simulation Limitations
 
@@ -126,7 +135,6 @@ For a future team, useful improvements would be:
 
 - Unify the Python and MuJoCo simulation assumptions.
 - Replace old PyBullet generic mesh references with current per-leg meshes.
-- Add documented build/run commands for the C++ MuJoCo bridge.
 - Tune mass, friction, joint limits, and servo response against physical measurements.
 - Add screenshots or videos showing expected simulation output.
 

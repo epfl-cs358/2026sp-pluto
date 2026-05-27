@@ -33,7 +33,7 @@ Power path, common ground, PCA9685, sensors, and safety checks.
 </td>
 <td width="25%" align="center" valign="top">
 <a href="src/esp/README.md"><strong>ESP32 Firmware</strong></a><br>
-Gaits, IK, servos, sensors, serial commands, and optional WiFi.
+Gaits, IK, servos, sensors, serial commands, and WiFi/UDP.
 </td>
 <td width="25%" align="center" valign="top">
 <a href="src/control/README.md"><strong>Controller UI</strong></a><br>
@@ -124,7 +124,7 @@ The repository documents both the final implementation and the current work-in-p
 
 | Layer | Role |
 | --- | --- |
-| ESP32 firmware | Servo control, gait execution, ultrasonic sensing, microphone sensing, serial testing, and optional WiFi/UDP command handling |
+| ESP32 firmware | Servo control, gait execution, ultrasonic sensing, microphone sensing, serial testing, and WiFi/UDP command handling |
 | Python tooling | NiceGUI control hub, keyboard/gamepad input, speech command handling, telemetry display, and simulation control |
 | Shared communication | C++ and Python packet/message definitions kept aligned |
 | CAD and simulation assets | 3D-printing meshes, simulation meshes, `pluto.xml`, PyBullet-facing code, and MuJoCo bridge |
@@ -143,10 +143,10 @@ The repository documents both the final implementation and the current work-in-p
 - Use per-joint calibration for coxa, femur, and tibia angles.
 - Run stand, stop, forward, backward, left turn, right turn, walk, trot, gallop, bow, and paw motion logic.
 - Update gait motion every 20 ms.
-- Stop forward motion when the ultrasonic sensor detects a close wall.
+- Stop motion when the ultrasonic sensor detects a close wall.
 - Compile the microphone driver; the clap-energy walking toggle code exists but is currently disabled in the main loop.
 - Accept serial monitor commands for gait testing and servo trimming.
-- Optionally receive UDP commands when WiFi support is enabled.
+- Receive UDP commands over WiFi when configured on the same network.
 
 </td>
 <td width="50%" valign="top">
@@ -176,8 +176,8 @@ The repository documents both the final implementation and the current work-in-p
 | Servo control | Implemented | Calibration lives in `src/esp/legs/leg_data.h` |
 | Gaits | Implemented, tuning needed | Walk, trot, gallop, left/right turn, bow, paw, stand, and stop logic exist |
 | Sensors | Implemented, tuning needed | Ultrasonic wall stop is active; microphone driver is compiled, but clap-control is currently commented out |
-| Controller UI | Implemented | Connect button, movement input, quick actions, telemetry, speech worker |
-| WiFi/UDP | Implemented, disabled by default | Enable `PLUTO_ENABLE_WIFI` and set `IP_OF_ESP` before use |
+| Controller UI | Implemented | Connect button, mDNS scan, movement input, quick actions, telemetry, speech worker |
+| WiFi/UDP | Implemented, enabled in firmware | Add WiFi credentials in `setup()`; the controller discovers `_pluto._udp.local` with zeroconf |
 | Meshes | Updated | 3D-printing meshes live in `src/3D printing mesh`; simulation meshes and `pluto.xml` live in `src/sim/sim_mesh` |
 | PyBullet | Partial | UI path exists, but visual meshes still reference old generic filenames |
 | MuJoCo | Partial | Model and C++ bridge exist, but not yet a validated physical twin |
@@ -264,11 +264,9 @@ Expected startup behavior:
 - Pluto enters a stand pose.
 - The serial monitor prints available commands.
 
-### 📶 4. Enable WiFi Control
+### 📶 4. Configure WiFi Control
 
-WiFi support exists but is disabled by default in `src/esp/main.cpp`.
-
-Enable:
+WiFi support is currently enabled in `src/esp/main.cpp`:
 
 ```cpp
 #define PLUTO_ENABLE_WIFI
@@ -277,9 +275,9 @@ Enable:
 Then:
 
 1. Configure access points with `PLUTO_SERVER.addAP(...)`.
-2. Set `IP_OF_ESP` in `src/control/main.py`.
-3. Make sure the computer and ESP32 are on the same network.
-4. Use the controller page to connect and send commands.
+2. Make sure the computer and ESP32 are on the same network.
+3. Run the controller and open `/controller`.
+4. Press `Connect & Take Control`; the Python client scans for Pluto via mDNS/zeroconf and then performs the UDP handshake.
 
 See [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 
@@ -300,7 +298,7 @@ This is the recommended order for a new team starting with only the repository, 
 | 7. Bring up firmware safely | Test stand, stop, and raw trim commands before walking | [src/esp/README.md](src/esp/README.md) | Serial monitor works and joints move in expected directions |
 | 8. Calibrate servos | Tune per-joint raw limits, start values, angle ranges, and inversion flags | `src/esp/legs/leg_data.h` | Each joint can move through a safe range without hitting mechanical stops |
 | 9. Test motion slowly | Validate stand, walk, trot, gallop, bow, and paw behavior | `src/esp/motion/gait.cpp`, [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Robot can stand reliably and execute controlled test motions |
-| 10. Enable controller | Configure WiFi and Python controller only after safe serial tests | [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md), [src/control/README.md](src/control/README.md) | Controller connects and sends stop/behavior/movement commands |
+| 10. Test controller | Configure WiFi and Python controller only after safe serial tests | [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md), [src/control/README.md](src/control/README.md) | Controller connects and sends stop/behavior/movement commands |
 | 11. Use simulation for iteration | Inspect gait logic and mesh assumptions before risky physical tests | [SIMULATION.md](SIMULATION.md) | Team understands current PyBullet and MuJoCo limitations |
 
 For a new team, the most important rule is to validate one subsystem at a time. Do not test full-body walking before power, calibration, and single-joint behavior are understood.
@@ -424,7 +422,12 @@ Each joint has:
 
 - `raw_min`
 - `raw_max`
-- `raw_start`
+- `raw_stand`
+- `raw_forward`
+- `raw_turnleft`
+- `raw_turnright`
+- `raw_bow`
+- `raw_sit`
 - `angle_min_md`
 - `angle_max_md`
 - `inverted`
@@ -446,7 +449,7 @@ For each joint:
 3. Move slowly with `+` and `-`.
 4. Stop before mechanical binding.
 5. Record safe min and max raw values.
-6. Choose a safe `raw_start`.
+6. Choose safe standing and motion-specific raw start values.
 7. Check whether direction needs `inverted = true`.
 8. Rebuild and upload after editing calibration.
 
@@ -483,21 +486,19 @@ Current sensor templates:
 - Ultrasonic: `SensorUltraSonic<5, 18>`
 - Microphone: `SensorMicrophone<26, 25, 33>`
 
-The ultrasonic sensor stops forward motion if the measured distance is below 20 cm. The microphone object is initialized, but `update_microphone_control(now)` is currently commented out in `src/esp/main.cpp`; re-enable that call only after validating the energy threshold on the real microphone.
+The ultrasonic sensor stops motion if the measured distance is below 35 cm. The microphone object is initialized, but `update_microphone_control(now)` is currently commented out in `src/esp/main.cpp`; re-enable that call only after validating the energy threshold on the real microphone.
 
-#### Step 11: Enable WiFi last
+#### Step 11: Test WiFi last
 
-Only enable WiFi after serial movement is safe.
+Only test WiFi control after serial movement is safe.
 
-1. Uncomment or add `#define PLUTO_ENABLE_WIFI`.
+1. Confirm `#define PLUTO_ENABLE_WIFI` is present.
 2. Add WiFi credentials with `PLUTO_SERVER.addAP(...)`.
 3. Upload firmware.
-4. Find the ESP32 IP address.
-5. Set `IP_OF_ESP` in `src/control/main.py`.
-6. Run the Python controller.
-7. Press `Connect & Take Control`.
-8. Press `Stop All` before sending movement.
-9. Watch telemetry for acknowledgements.
+4. Run the Python controller.
+5. Press `Connect & Take Control`.
+6. Press `Stop All` before sending movement.
+7. Watch telemetry for acknowledgements.
 
 The controller should be treated as a convenience layer, not the first debugging tool.
 
@@ -553,7 +554,7 @@ Runs on the ESP32.
 - gait controller
 - ultrasonic checks
 - microphone energy checks
-- optional UDP server
+- UDP server with mDNS advertising
 
 </td>
 <td width="33%" valign="top">
@@ -667,7 +668,7 @@ For a new team, read the code in this order:
 | 2 | `src/esp/legs/leg.h` and `leg_joint.h` | Shows how servo channels and joint commands are abstracted |
 | 3 | `src/esp/motion/ik_solver.cpp` | Converts foot targets into coxa/femur/tibia angles |
 | 4 | `src/esp/motion/gait.cpp` | Generates stand, walk, trot, gallop, bow, and paw motion |
-| 5 | `src/esp/main.cpp` | Connects setup, loop timing, sensors, serial commands, and optional WiFi |
+| 5 | `src/esp/main.cpp` | Connects setup, loop timing, sensors, serial commands, and WiFi |
 | 6 | `src/comm/message.h` | Defines the shared C++ message format |
 | 7 | `src/control/pluto_server/message.py` | Mirrors the same format in Python |
 | 8 | `src/control/pluto_server/server.py` | Handles Python-side UDP connection, heartbeat, and receive loop |
@@ -708,7 +709,7 @@ Important firmware files:
 | `src/esp/motion/ik_solver.cpp` | inverse kinematics |
 | `src/esp/sensors/ultrasonic.h` | ultrasonic sensor abstraction |
 | `src/esp/sensors/microphone.h` | I2S microphone abstraction |
-| `src/esp/server/server.cpp` | optional UDP server |
+| `src/esp/server/server.cpp` | UDP server and mDNS advertisement |
 
 ### 🎛️ Controller
 
@@ -719,10 +720,9 @@ nicegui
 numpy
 debugpy
 pybullet
-mujoco
-glfw
 vosk
 sounddevice
+zeroconf
 ```
 
 Important controller files:
@@ -801,7 +801,7 @@ Useful references:
 
 The MuJoCo path is more aligned with the current mesh set. The PyBullet path is still useful for UI/control experiments, but it needs a mesh update before it fully represents the current CAD assets.
 
-The C++ MuJoCo bridge uses the top-level `CMakeLists.txt`, which sets `PLUTO_MODEL_PATH` to `src/sim/sim_mesh/pluto.xml`. Its keyboard handlers are intended to mirror the firmware test controls: `F`/`B` for forward/backward, `Q`/`E` for left/right turning, `S` for stop, and `1`/`2`/`3` for walk/trot/gallop. Treat this bridge as development support until it has been rebuilt and validated on the current machine.
+The C++ MuJoCo bridge uses the top-level `CMakeLists.txt`, which sets `PLUTO_MODEL_PATH` to `src/sim/sim_mesh/pluto.xml`. Its keyboard handlers are intended to mirror the firmware test controls: `F`/`B` for forward/backward, `Q`/`E` for left/right turning, `P` for paw, `O` for bow, `S` for stop, and `1`/`2`/`3` for walk/trot/gallop. Mouse drag and scroll controls are wired through MuJoCo's camera helpers. Treat this bridge as development support until it has been rebuilt and validated on the current machine.
 
 See [SIMULATION.md](SIMULATION.md).
 
@@ -814,15 +814,15 @@ See [SIMULATION.md](SIMULATION.md).
 Current defaults in `src/esp/main.cpp`:
 
 ```cpp
-// #define PLUTO_ENABLE_WIFI
+#define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
 #define PLUTO_ENABLE_MICROPHONE
 ```
 
 | Feature | Default | Notes |
 | --- | --- | --- |
-| WiFi/UDP | Off | Enable `PLUTO_ENABLE_WIFI` before using controller networking |
-| Ultrasonic | On | Stops forward motion when wall distance is below threshold |
+| WiFi/UDP | On | Configure valid access points before using controller networking |
+| Ultrasonic | On | Stops motion when wall distance is below threshold |
 | Microphone | Compiled on, control inactive | `SensorMicrophone<26, 25, 33>` is initialized, but the clap-control update call is commented out |
 
 ### 📍 Sensor Pins and Thresholds
@@ -831,9 +831,9 @@ Current defaults in `src/esp/main.cpp`:
 | --- | --- |
 | Ultrasonic template | `SensorUltraSonic<5, 18>` |
 | Microphone template | `SensorMicrophone<26, 25, 33>` |
-| Wall stop distance | 20 cm |
+| Wall stop distance | 35 cm |
 | Ultrasonic period | 150 ms |
-| Microphone clap threshold | `15000000000` in the commented clap-control block |
+| Microphone clap threshold | `30000000` in the commented clap-control block |
 | Clap cooldown | 800 ms in the commented clap-control block |
 
 Operating timing:
@@ -858,7 +858,12 @@ Each joint has:
 
 - `raw_min`
 - `raw_max`
-- `raw_start`
+- `raw_stand`
+- `raw_forward`
+- `raw_turnleft`
+- `raw_turnright`
+- `raw_bow`
+- `raw_sit`
 - `angle_min_md`
 - `angle_max_md`
 - `inverted`
@@ -906,7 +911,9 @@ pio device monitor -b 115200
 | `b` | Move backward |
 | `q` | Turn left |
 | `e` | Turn right |
-| `o` | Bow |
+| `o` | Flip |
+| `h` | Bow |
+| `i` | Sit |
 | `k` | Give paw |
 | `s` | Stop and stand |
 | `1` | Select walk gait |
@@ -977,8 +984,8 @@ pio device monitor -b 115200
 
 ### 💻 Software and Simulation
 
-- WiFi is disabled by default.
-- Controller IP is currently hard-coded.
+- WiFi credentials still need to be configured for the target network.
+- Controller discovery depends on mDNS/zeroconf working on the local network.
 - UDP `MOVE_BY` messages are defined, but the ESP32 handler still needs to map them into gait commands.
 - PyBullet visual meshes need updating.
 - MuJoCo is not yet a validated physical twin.
@@ -1030,7 +1037,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - **Hardware**: ESP32, PCA9685, 12 DMS15-style servos, HC-SR04-style ultrasonic sensor, INMP441 I2S microphone, 2S LiPo, LM2596 buck converter.
 - **Firmware**: C++17, Arduino framework, FreeRTOS, PlatformIO, Adafruit PWM Servo Driver, Adafruit BusIO.
 - **Control UI**: Python 3.13, NiceGUI, keyboard/gamepad input, Vosk, sounddevice.
-- **Simulation**: PyBullet, MuJoCo, GLFW, STL mesh assets.
+- **Simulation**: PyBullet in Python, external MuJoCo/GLFW for the C++ bridge, STL mesh assets.
 - **Communication**: Custom C++/Python UDP packet format with session token, sequence number, timestamp, CRC, and packed messages.
 
 </details>
@@ -1045,7 +1052,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - Handle serial commands for movement, turning, gait selection, speed changes, manual walk staging, and servo trimming.
 - Read ultrasonic distance and stop when a wall is too close.
 - Initialize the microphone driver; clap detection logic is present but currently disabled in `loop()`.
-- Optionally accept UDP commands through the Pluto server.
+- Accept UDP commands through the Pluto server when connected to WiFi.
 
 </details>
 
@@ -1124,18 +1131,17 @@ See [ARCHIVES.md](ARCHIVES.md).
 
 Current focus:
 
-- Hardware gait validation: test walk, trot, gallop, left/right turns, bow, paw, and stop on the physical robot.
-- Servo calibration: refine PWM limits, starting pulses, inversion flags, and angle ranges.
-- WiFi control: enable and validate live UDP movement and behavior commands.
+- Hardware gait validation: test walk, trot, gallop, left/right turns, flip, bow, sit, paw, and stop on the physical robot.
+- Servo calibration: refine PWM limits, standing and motion-specific starting pulses, inversion flags, and angle ranges.
+- WiFi control: validate live UDP movement and behavior commands over mDNS-discovered connections.
 - Behavior implementation: replace placeholder behavior handlers with calibrated motion sequences.
 - Sensor-driven reactions: tune ultrasonic wall stopping and re-enable/tune microphone clap detection if needed.
 - Simulation fidelity: improve physical accuracy for mass, friction, joint limits, and servo response.
 
 Known issues:
 
-- WiFi support is present but disabled by default in `src/esp/main.cpp`.
 - Some firmware behavior handlers are still placeholders.
-- The ESP32 IP address is still a placeholder in `src/control/main.py`.
+- Some networks may block mDNS discovery, requiring controller-side fallback work.
 - Gait constants need final physical measurement and tuning.
 - MuJoCo and PyBullet support are useful for development, but not yet perfect models of the real robot.
 

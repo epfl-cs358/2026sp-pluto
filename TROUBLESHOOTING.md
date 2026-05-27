@@ -83,7 +83,7 @@ Then open `http://localhost:8081`.
 
 ### 🎮 MuJoCo Bridge
 
-- Check that `mujoco` and `glfw` installed successfully.
+- Confirm a local MuJoCo installation is available and pass it to CMake with `-DMUJOCO_DIR=...`.
 - Confirm that [src/sim/sim_mesh/pluto.xml](src/sim/sim_mesh/pluto.xml) can find the STL files in `src/sim/sim_mesh`.
 - The C++ MuJoCo bridge under `src/sim` is built with the top-level `CMakeLists.txt`, not the ESP32 PlatformIO firmware build.
 
@@ -133,7 +133,7 @@ If the monitor still shows nothing, check the USB cable, board selection, and wh
 
 ## 📶 Robot Does Not Connect Over WiFi
 
-WiFi is implemented but disabled by default in `src/esp/main.cpp`.
+WiFi is implemented and currently enabled in `src/esp/main.cpp`, but it still needs valid credentials and local-network discovery.
 
 Check:
 
@@ -141,7 +141,7 @@ Check:
 - The WiFi network is added in `setup()` with `PLUTO_SERVER.addAP(<WIFI_NAME>, <WIFI_PASSWORD>)`.
 - The computer and ESP32 are on the same network.
 - The ESP32 serial monitor shows WiFi startup activity.
-- `IP_OF_ESP` is set in `src/control/main.py`.
+- mDNS/zeroconf traffic is allowed so the controller can find `_pluto._udp.local`.
 - UDP port `4242` is not blocked by the network or firewall.
 
 For packet details, see [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
@@ -153,7 +153,7 @@ For packet details, see [SOFTWARE_WIFI.md](SOFTWARE_WIFI.md).
 - Confirm the LiPo is charged and the rocker switch is on.
 - Check that the servos are connected to the expected PCA9685 channels.
 - Use the serial monitor to test simple firmware commands before trying full walking.
-- Check `src/esp/legs/leg_data.h` for calibration limits and starting pulses.
+- Check `src/esp/legs/leg_data.h` for calibration limits and motion-specific starting pulses.
 
 Do not continue testing if a servo stalls, overheats, chatters heavily, or pulls the robot into a mechanically blocked position.
 
