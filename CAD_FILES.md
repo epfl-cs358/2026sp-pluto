@@ -25,6 +25,10 @@ The folder also includes top-level printable files for the main body, board hold
 - [Board Holder.stl](<src/3D printing mesh/Board Holder.stl>)
 - [Sensor Holder.stl](<src/3D printing mesh/Sensor Holder.stl>)
 
+And the TPU foot :
+
+-[TPU Foot.stl](<src/3D printing mesh/TPU Foot.stl>)
+
 Each leg folder contains the printable coxa, femur, tibia, spacer, and linkage/bar parts for that specific leg.
 
 ## 🖨️ Printable Parts By Leg
