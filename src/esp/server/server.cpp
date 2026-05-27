@@ -10,6 +10,11 @@ namespace pluto
 
   void PlutoServer::begin()
   {
+    if (!MDNS.begin("PlutoController"))
+        Serial.println("Error setting up MDNS responder!");
+    else
+        MDNS.addService("pluto", "udp", _port);
+    
     _msgQueue = xQueueCreate(QUEUE_SIZE, sizeof(Message));
     _txQueue  = xQueueCreate(QUEUE_SIZE, sizeof(Message));
 

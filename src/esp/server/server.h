@@ -9,6 +9,7 @@
 #include <atomic>
 
 #include <comm/message.h>
+#include <ESPmDNS.h>
 
 namespace pluto
 {
