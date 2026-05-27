@@ -172,6 +172,15 @@ namespace pluto
       }
     }
 
+    /// @brief Moves all joints in the leg to the bow starting position.
+    void write_bow_start() noexcept
+    {
+      for (auto& joint : _joints)
+      {
+        joint.write_bow_start();
+      }
+    }
+
     /// @brief Keeps compatibility with the old starting position function.
     void write_starting() noexcept
     {

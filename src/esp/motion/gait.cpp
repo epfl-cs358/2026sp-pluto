@@ -347,6 +347,14 @@ namespace pluto::motion
     }
   }
 
+  void GaitController::bow_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_bow_start();
+    }
+  }
+
   void GaitController::update(
       std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept
   {
@@ -365,6 +373,12 @@ namespace pluto::motion
     if (_motion == MotionCommand::PAW)
     {
       write_paw(legs, time_s);
+      return;
+    }
+    if (_motion == MotionCommand::BOW)
+    {
+      // Raw bow pose mode: hold preconfigured per-joint bow servo values.
+      bow_start(legs);
       return;
     }
 

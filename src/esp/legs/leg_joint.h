@@ -57,6 +57,8 @@ namespace pluto
     void write_turnleft_start() noexcept { write_raw(_config.raw_turnleft); }
     /// @brief Sets the joint to the right-turn starting position.
     void write_turnright_start() noexcept { write_raw(_config.raw_turnright); }
+    /// @brief Sets the joint to the bow starting position.
+    void write_bow_start() noexcept { write_raw(_config.raw_bow); }
     /// @brief Backward start is kept as compatibility alias to right-turn start.
     void write_backward_start() noexcept { write_turnright_start(); }
     /// @brief Keeps compatibility with the old starting position function.
