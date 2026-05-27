@@ -15,7 +15,7 @@ Pluto is a compact 12-servo quadruped robot. The hardware is organized around a 
 
 ## 🔢 Build Order
 
-1. Print the body and leg parts from the current physical 3D-printing mesh set in `src/3D printing mesh`.
+1. Print the body, holder, leg, and TPU foot parts from the current physical 3D-printing mesh set in `src/3D printing mesh`.
 2. Assemble each coxa/femur/tibia leg chain with servos, horns, bearings, and linkage hardware.
 3. Mount the coxa servos, PCA9685, buck converter, ESP32, sensors, and battery in the body.
 4. Wire the power system first, then I2C, servo channels, and sensor connections.

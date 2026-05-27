@@ -52,7 +52,7 @@ Print the required body and leg parts from the current physical mesh set in [src
 
 Current physical print groups:
 
-- Top-level body/electronics parts: `Main Body.stl`, `Board Holder.stl`, `Sensor Holder.stl`
+- Top-level body/electronics/foot parts: `Main Body.stl`, `Board Holder.stl`, `Sensor Holder.stl`, `TPU Foot.stl`
 - Front-left leg folder: coxa, inner/outer femur, femur spacer, tibia, inner mirror tibia, and linkage bar
 - Front-right leg folder: coxa, inner/outer femur, femur spacer, inner tibia, inner mirror tibia, and linkage bar
 - Back-left leg folder: coxa, inner/outer femur, femur spacer, inner tibia, inner mirror tibia, and linkage bar
@@ -60,7 +60,7 @@ Current physical print groups:
 
 The MuJoCo-style names such as `body.stl`, `tl_coxa.stl`, and `br_tibia.stl` are simulation meshes under `src/sim/sim_mesh/`, not the main physical printing inventory.
 
-Print rigid body and leg parts in PLA or PETG. Use TPU or rubber pads for the feet if available.
+Print rigid body and leg parts in PLA or PETG. Print `TPU Foot.stl` in TPU or another flexible material.
 
 ## ⚡ 2. Prepare Electronics
 
@@ -88,14 +88,14 @@ Each leg requires:
 - 3 servo horns or servo arms.
 - M3 screws for most mechanical connections.
 - Bearings and linkage hardware for the tibia mechanism.
-- TPU foot or rubber pad.
+- Printed `TPU Foot.stl` part or a rubber pad substitute.
 
 ### 🧩 Step 1: Assemble the Tibia
 
 - Take the two tibia printed parts.
 - Insert a ball bearing between both parts.
 - Align the pieces and screw them together.
-- Glue or fasten the TPU/rubber foot to the lower end.
+- Glue or fasten the printed TPU foot to the lower end.
 
 <p>
   <img width="260" alt="Tibia assembly photo 1" src="https://github.com/user-attachments/assets/5c1d1c69-fc43-4d7c-b345-83be95ee043b">
