@@ -619,6 +619,10 @@ Keeps both sides aligned.
 
 ### 🧱 Current Mesh Set
 
+<p align="center">
+  <img src="images/full_body_CAD.png" alt="Full body CAD model of Pluto" width="640">
+</p>
+
 The current physical 3D-printing CAD/STL files live in `src/3D printing mesh/`, grouped by leg:
 
 ```text

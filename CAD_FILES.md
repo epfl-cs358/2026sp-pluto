@@ -2,6 +2,10 @@
 
 This page documents the CAD/STL files used to physically print Pluto. The printable robot parts are stored separately from the simplified simulation meshes.
 
+<p align="center">
+  <img src="images/full_body_CAD.png" alt="Full body CAD model of Pluto" width="720">
+</p>
+
 ## 🖨️ Physical 3D-Printing Files
 
 Use this folder for fabrication:
@@ -19,17 +23,14 @@ The folder is organized by physical leg position:
 | [Back Left](<src/3D printing mesh/Back Left>) | Printable parts for the back-left leg |
 | [Back Right](<src/3D printing mesh/Back Right>) | Printable parts for the back-right leg |
 
-The folder also includes top-level printable files for the main body, board holder, and sensor holder:
+The folder also includes top-level printable files for the main body, board holder, sensor holder, and shared TPU feet:
 
 - [Main Body.stl](<src/3D printing mesh/Main Body.stl>)
 - [Board Holder.stl](<src/3D printing mesh/Board Holder.stl>)
 - [Sensor Holder.stl](<src/3D printing mesh/Sensor Holder.stl>)
+- [TPU Foot.stl](<src/3D printing mesh/TPU Foot.stl>)
 
-And the TPU foot :
-
--[TPU Foot.stl](<src/3D printing mesh/TPU Foot.stl>)
-
-Each leg folder contains the printable coxa, femur, tibia, spacer, and linkage/bar parts for that specific leg.
+Each leg folder contains the printable coxa, femur, tibia, spacer, and linkage/bar parts for that specific leg. `TPU Foot.stl` is shared across the legs and should be printed once per foot.
 
 ## 🖨️ Printable Parts By Leg
 
@@ -108,7 +109,7 @@ See [SIMULATION.md](SIMULATION.md) for the current simulation split.
 ## 📝 Printing Notes
 
 - Print rigid structural parts in PLA or PETG.
-- Use TPU or rubber pads for the feet if available.
+- Print [TPU Foot.stl](<src/3D printing mesh/TPU Foot.stl>) in TPU or another flexible material for foot contact.
 - Print and inspect one full leg before printing the entire set.
 - Keep track of front/back and left/right orientation during assembly.
 - Check bearing fits, screw holes, servo horn alignment, and linkage movement before final assembly.

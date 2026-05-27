@@ -50,6 +50,10 @@ Keep this orientation consistent while assembling, wiring, and calibrating. If a
 
 Print the required body and leg parts from the current physical mesh set in [src/3D printing mesh](<src/3D printing mesh>). The active mesh inventory is documented in [CAD_FILES.md](CAD_FILES.md).
 
+<p align="center">
+  <img src="images/full_body_CAD.png" alt="Full body CAD model of Pluto" width="640">
+</p>
+
 Current physical print groups:
 
 - Top-level body/electronics/foot parts: `Main Body.stl`, `Board Holder.stl`, `Sensor Holder.stl`, `TPU Foot.stl`
