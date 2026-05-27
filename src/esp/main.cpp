@@ -191,7 +191,7 @@ void setup()
   GAIT.stand(LEGS);
   Serial.println("Pluto motion ready");
   Serial.println(
-      "Commands: f forward, b backward, o bow, k paw, u walk-manual, m next-stage, j next-leg, s stop, 1 walk, 2 trot, 3 gallop, +/- trim "
+      "Commands: f forward, b backward, q turn-left, e turn-right, o flip, s stop, 1 walk, 2 trot, 3 gallop"
       "selected joint");
 }
 
@@ -227,21 +227,27 @@ void loop()
       Serial.println("Motion: forward");
       break;
     case 'b':
-      GAIT.backward_start(LEGS); 
+      GAIT.backward_start(LEGS);
       delay(1000);
 
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
-      robot_walking = true; 
+      robot_walking = true;
       Serial.println("Motion: backward");
       break;
     case 'q':
+      GAIT.turnleft_start(LEGS);
+      delay(1000);
+
       GAIT.set_motion(pluto::motion::MotionCommand::LEFT);
       robot_walking = true;
       Serial.println("Motion: turn left");
       break;
     case 'e':
-      GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
-      robot_walking = true;
+      GAIT.turnright_start(LEGS); 
+      delay(1000);
+
+      GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
+      robot_walking = true; 
       Serial.println("Motion: turn right");
       break;
     case 'o':

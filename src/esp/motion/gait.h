@@ -48,6 +48,8 @@ namespace pluto::motion
     void stand(std::array<Leg, 4>& legs) const noexcept;
     void forward_start(std::array<Leg, 4>& legs) const noexcept;
     void backward_start(std::array<Leg, 4>& legs) const noexcept;
+    void turnleft_start(std::array<Leg, 4>& legs) const noexcept;
+    void turnright_start(std::array<Leg, 4>& legs) const noexcept;
     void update(std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept;  
 
   private:

@@ -226,9 +226,11 @@ namespace pluto::motion
       case MotionCommand::RIGHT:
         return config.raw_forward;
 
-      case MotionCommand::BACKWARD:
       case MotionCommand::LEFT:
-        return config.raw_backward;
+        return config.raw_turnleft;
+
+      case MotionCommand::BACKWARD:
+        return config.raw_turnright;
 
       default:
         return config.raw_stand;
@@ -326,6 +328,22 @@ namespace pluto::motion
     for (auto& leg : legs)
     {
       leg.write_backward_start();
+    }
+  }
+
+  void GaitController::turnleft_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_turnleft_start();
+    }
+  }
+
+  void GaitController::turnright_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_turnright_start();
     }
   }
 
