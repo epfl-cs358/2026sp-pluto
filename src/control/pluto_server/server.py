@@ -5,11 +5,14 @@ import threading
 import logging
 
 from . import message
+from zeroconf import Zeroconf, ServiceListener, ServiceBrowser
 
 
 class PlutoController:
-    def __init__(self, target_ip: str, target_port: int = 4242):
-        self.target_addr = (target_ip, target_port)
+    def __init__(self, target_ip: str = "", target_port: int = 4242):
+        self.target_addr = (target_ip, target_port) if target_ip else None
+        self.default_port = target_port
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.settimeout(1.0)
 
@@ -20,6 +23,41 @@ class PlutoController:
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self.received_messages = deque(maxlen=100)
+
+    def scan_for_robot(self, timeout_seconds: float = 3.0) -> bool:
+        """Scans the network for the ESP32 via mDNS and updates target_addr."""
+        found_event = threading.Event()
+        discovered_ip = None
+        discovered_port = None
+
+        class PlutoListener(ServiceListener):
+            def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+                nonlocal discovered_ip, discovered_port
+                info = zc.get_service_info(type_, name)
+                if info and info.parsed_addresses():
+                    discovered_ip = info.parsed_addresses()[0]
+                    discovered_port = info.port
+                    found_event.set()
+
+            def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+                pass
+
+            def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+                pass
+
+        zc = Zeroconf()
+        browser = ServiceBrowser(zc, "_pluto._udp.local.", PlutoListener())
+
+        found_event.wait(timeout_seconds)
+        zc.close()
+
+        if discovered_ip:
+            self.target_addr = (discovered_ip, discovered_port or self.default_port)
+            logging.info(f"Discovered Pluto at {self.target_addr}")
+            return True
+
+        logging.warning("Failed to discover Pluto via mDNS.")
+        return False
 
     def send_heartbeat(self):
         """Sends an INFO_REQUEST_IS_ALIVE message to prevent session timeout."""
@@ -46,6 +84,10 @@ class PlutoController:
 
     def connect(self) -> bool:
         """Performs the handshake to acquire a session token."""
+        if not self.target_addr:
+            logging.error("No target address set. Cannot connect.")
+            return False
+
         handshake_packet = message.UDPPacket(
             session_token=0,
             sequence_number=self.sequence_number,

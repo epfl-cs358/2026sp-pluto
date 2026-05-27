@@ -3,6 +3,7 @@ from nicegui import ui, events, app
 from pluto_menu import navigation_bar
 from pluto_input.input_manager import InputManager
 from pluto_server import message, server
+import asyncio
 
 MAX_SPEED = 255
 
@@ -37,13 +38,38 @@ def controller_page():
         except Exception:
             pass
 
-    def connect_to_robot():
+    async def connect_to_robot():
+        ui.notify("Scanning network for Pluto...", type="info")
+
+        # Disable button so user can't spam it while scanning
+        connect_button.disable()
+        connect_button.text = "Scanning..."
+
+        # Run the blocking scan in a background thread
+        found = await asyncio.to_thread(pluto_controller.scan_for_robot, 3.0)
+
+        if not found:
+            ui.notify("Could not find Pluto. Is it powered on?", type="negative")
+            connect_button.enable()
+            connect_button.text = "Connect & Take Control"
+            return
+
         if pluto_controller.connect():
-            ui.notify("Connected to Pluto successfully!", type="positive")
+            ui.notify(
+                f"Connected via {pluto_controller.target_addr[0]}!", type="positive"
+            )
+            # Update the UI to show success
+            connect_button.text = "Connected"
+            connect_button.classes(replace="bg-green-600 text-white")
+            connection_status.set_text(f"IP: {pluto_controller.target_addr[0]}")
+            connection_status.classes(replace="text-green-500 font-bold text-lg")
+
             msg = message.create_control_begin(10000)
             pluto_controller.send_messages([msg])
         else:
-            ui.notify("Failed to connect to Pluto.", type="negative")
+            ui.notify("Found Pluto, but handshake failed.", type="negative")
+            connect_button.enable()
+            connect_button.text = "Connect & Take Control"
 
     def trigger_behavior(behavior_kind: message.MessageBehaviorKind):
         if pluto_controller.is_connected:
@@ -66,9 +92,13 @@ def controller_page():
     ):
         ui.label("Pluto Command Center").style("font-size: 1.6rem; font-weight: bold;")
 
-        ui.button("Connect & Take Control", on_click=connect_to_robot).classes(
-            "q-mb-md bg-blue-600 text-white"
-        )
+        with ui.row().classes("items-center q-gutter-md q-mb-md"):
+            connect_button = ui.button(
+                "Connect & Take Control", on_click=connect_to_robot, icon="search"
+            ).classes("bg-blue-600 text-white")
+            connection_status = ui.label("Disconnected").classes(
+                "text-red-500 font-bold text-lg"
+            )
 
         with ui.card().classes("w-full items-center p-4"):
             ui.label("Quick Actions").classes("text-lg font-bold q-mb-sm")

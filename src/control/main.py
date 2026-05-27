@@ -50,8 +50,7 @@ def index():
 if __name__ in {"__main__", "__mp_main__"}:
     args = parse_args()
 
-    IP_OF_ESP = ""
-    CONTROLLER = PlutoController(IP_OF_ESP)
+    CONTROLLER = PlutoController()
     app.extra["PLUTO_CONTROLLER"] = CONTROLLER
     app.on_startup(
         lambda: threading.Thread(
