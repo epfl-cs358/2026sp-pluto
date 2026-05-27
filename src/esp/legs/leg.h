@@ -154,6 +154,42 @@ namespace pluto
       }
     }
 
+    /// @brief Moves all joints in the leg to the left-turn starting position.
+    void write_turnleft_start() noexcept
+    {
+      for (auto& joint : _joints)
+      {
+        joint.write_turnleft_start();
+      }
+    }
+
+    /// @brief Moves all joints in the leg to the right-turn starting position.
+    void write_turnright_start() noexcept
+    {
+      for (auto& joint : _joints)
+      {
+        joint.write_turnright_start();
+      }
+    }
+
+    /// @brief Moves all joints in the leg to the bow starting position.
+    void write_bow_start() noexcept
+    {
+      for (auto& joint : _joints)
+      {
+        joint.write_bow_start();
+      }
+    }
+
+    /// @brief Moves all joints in the leg to the sit starting position.
+    void write_sit_start() noexcept
+    {
+      for (auto& joint : _joints)
+      {
+        joint.write_sit_start();
+      }
+    }
+
     /// @brief Keeps compatibility with the old starting position function.
     void write_starting() noexcept
     {

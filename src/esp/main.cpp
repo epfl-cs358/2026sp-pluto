@@ -191,7 +191,7 @@ void setup()
   GAIT.stand(LEGS);
   Serial.println("Pluto motion ready");
   Serial.println(
-      "Commands: f forward, b backward, o bow, k paw, u walk-manual, m next-stage, j next-leg, s stop, 1 walk, 2 trot, 3 gallop, +/- trim "
+      "Commands: f forward, b backward, q turn-left, e turn-right, o flip, h bow, i sit, s stop, 1 walk, 2 trot, 3 gallop"
       "selected joint");
 }
 
@@ -227,26 +227,44 @@ void loop()
       Serial.println("Motion: forward");
       break;
     case 'b':
-      GAIT.backward_start(LEGS); 
+      GAIT.backward_start(LEGS);
       delay(1000);
 
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
-      robot_walking = true; 
+      robot_walking = true;
       Serial.println("Motion: backward");
       break;
     case 'q':
+      GAIT.turnleft_start(LEGS);
+      delay(1000);
+
       GAIT.set_motion(pluto::motion::MotionCommand::LEFT);
       robot_walking = true;
       Serial.println("Motion: turn left");
       break;
     case 'e':
-      GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
-      robot_walking = true;
+      GAIT.turnright_start(LEGS); 
+      delay(1000);
+
+      GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
+      robot_walking = true; 
       Serial.println("Motion: turn right");
       break;
     case 'o':
+      GAIT.set_motion(pluto::motion::MotionCommand::FLIP);
+      Serial.println("Motion: flip");
+      break;
+    case 'h':
+      GAIT.bow_start(LEGS);
+      delay(250);
       GAIT.set_motion(pluto::motion::MotionCommand::BOW);
       Serial.println("Motion: bow");
+      break;
+    case 'i':
+      GAIT.sit_start(LEGS);
+      delay(250);
+      GAIT.set_motion(pluto::motion::MotionCommand::SIT);
+      Serial.println("Motion: sit");
       break;
     case 'k':
       GAIT.set_motion(pluto::motion::MotionCommand::PAW);
@@ -390,7 +408,9 @@ void loop()
       {
       case MessageBehaviorKind::BEHAVIOR_SIT:
         Serial.println("Behavior: Executing SIT sequence");
-        // Update kinematics state to sit configuration
+        GAIT.sit_start(LEGS);
+        GAIT.set_motion(pluto::motion::MotionCommand::SIT);
+        robot_walking = false;
         break;
 
       case MessageBehaviorKind::BEHAVIOR_GIVE_PAW:

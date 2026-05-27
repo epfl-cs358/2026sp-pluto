@@ -91,16 +91,13 @@ namespace pluto::sim
         : _side(side)
         , _joints{
             SimLegJoint(
-              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 0,
-              LEG_CONFIGS[static_cast<uint8_t>(side)].coxa),
+              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 0),
 
             SimLegJoint(
-              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 1,
-              LEG_CONFIGS[static_cast<uint8_t>(side)].femur),
+              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 1),
             
             SimLegJoint(
-              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 2,
-              LEG_CONFIGS[static_cast<uint8_t>(side)].tibia)
+              static_cast<uint8_t>(side) * CHANNEL_STEPS_PER_SIDE + 2)
         }
     {
     }
@@ -143,16 +140,6 @@ namespace pluto::sim
       _joints[0].write_angle(coxa_md);
       _joints[1].write_angle(femur_md);
       _joints[2].write_angle(tibia_md);
-    }
-    /// @brief Sets all three joint raw values simultaneously
-    /// @param coxa_raw The coxa raw PWM
-    /// @param femur_raw The femur raw PWM
-    /// @param tibia_raw The tibia raw PWM
-    void write_raws(int16_t coxa_raw, int16_t femur_raw, int16_t tibia_raw) noexcept
-    {
-      _joints[0].write_raw(coxa_raw);
-      _joints[1].write_raw(femur_raw);
-      _joints[2].write_raw(tibia_raw);
     }
 
     /// @brief Function template to apply an operation to each joint in the leg.

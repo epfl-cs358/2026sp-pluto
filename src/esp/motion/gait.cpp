@@ -226,9 +226,11 @@ namespace pluto::motion
       case MotionCommand::RIGHT:
         return config.raw_forward;
 
-      case MotionCommand::BACKWARD:
       case MotionCommand::LEFT:
-        return config.raw_backward;
+        return config.raw_turnleft;
+
+      case MotionCommand::BACKWARD:
+        return config.raw_turnright;
 
       default:
         return config.raw_stand;
@@ -329,6 +331,38 @@ namespace pluto::motion
     }
   }
 
+  void GaitController::turnleft_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_turnleft_start();
+    }
+  }
+
+  void GaitController::turnright_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_turnright_start();
+    }
+  }
+
+  void GaitController::bow_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_bow_start();
+    }
+  }
+
+  void GaitController::sit_start(std::array<Leg, 4>& legs) const noexcept
+  {
+    for (auto& leg : legs)
+    {
+      leg.write_sit_start();
+    }
+  }
+
   void GaitController::update(
       std::array<Leg, 4>& legs, uint32_t now_ms) const noexcept
   {
@@ -338,15 +372,27 @@ namespace pluto::motion
     }
 
     const float time_s = static_cast<float>(now_ms) * 0.001F;
-    if (_motion == MotionCommand::BOW)
+    if (_motion == MotionCommand::FLIP)
     {
-      write_bow(legs, time_s);
+      write_flip(legs, time_s);
       return;
     }
 
     if (_motion == MotionCommand::PAW)
     {
       write_paw(legs, time_s);
+      return;
+    }
+    if (_motion == MotionCommand::BOW)
+    {
+      // Raw bow pose mode: hold preconfigured per-joint bow servo values.
+      bow_start(legs);
+      return;
+    }
+    if (_motion == MotionCommand::SIT)
+    {
+      // Raw sit pose mode: hold preconfigured per-joint sit servo values.
+      sit_start(legs);
       return;
     }
 
@@ -541,7 +587,7 @@ namespace pluto::motion
         servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
   }
 
-  void GaitController::write_bow(
+  void GaitController::write_flip(
       std::array<Leg, 4>& legs, float time_s) const noexcept
   {
     const float phase = normalized_phase(time_s, BOW_PERIOD, 0.0F);
