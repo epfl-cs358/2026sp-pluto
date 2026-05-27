@@ -30,7 +30,7 @@ namespace pluto
         : _pwm(&driver)
         , _channel(channel)
         , _config(config)
-        , _current(config.raw_start)
+        , _current(config.raw_stand)
     {
     }
 
@@ -49,8 +49,14 @@ namespace pluto
           constrain(millidegrees, _config.angle_min_md, _config.angle_max_md);
       write_raw(angle_to_raw(calibrated_md));
     }
-    /// @brief Sets the joint to its starting position
-    void write_starting() noexcept { write_raw(_config.raw_start); }
+    /// @brief Sets the joint to the standing position.
+    void write_standing() noexcept { write_raw(_config.raw_stand); }
+    /// @brief Sets the joint to the forward starting position.
+    void write_forward_start() noexcept { write_raw(_config.raw_forward); }
+    /// @brief Sets the joint to the backward starting position.
+    void write_backward_start() noexcept { write_raw(_config.raw_backward); }
+    /// @brief Keeps compatibility with the old starting position function.
+    void write_starting() noexcept { write_standing(); }
     /// @brief Gets the joint configuration parameters.
     /// @return The JointConfig struct containing calibration data for this joint.
     const JointConfig& config() const noexcept { return _config; }
