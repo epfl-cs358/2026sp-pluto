@@ -220,7 +220,7 @@ void loop()
     {
     case 'f':
       GAIT.forward_start(LEGS); 
-      delay(300);
+      delay(1000);
 
       GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
       robot_walking = true; 
@@ -228,7 +228,7 @@ void loop()
       break;
     case 'b':
       GAIT.backward_start(LEGS); 
-      delay(300);
+      delay(1000);
 
       GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
       robot_walking = true; 

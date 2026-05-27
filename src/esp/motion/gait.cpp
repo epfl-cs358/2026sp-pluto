@@ -218,13 +218,31 @@ namespace pluto::motion
                  / static_cast<int64_t>(config.raw_max - config.raw_min));
     }
 
-    JointAnglesMd standing_servo_angles_md(LegSide side) noexcept
+    uint16_t raw_for_motion(const JointConfig& config, MotionCommand motion) noexcept
+    {
+      switch (motion)
+      {
+      case MotionCommand::FORWARD:
+      case MotionCommand::RIGHT:
+        return config.raw_forward;
+
+      case MotionCommand::BACKWARD:
+      case MotionCommand::LEFT:
+        return config.raw_backward;
+
+      default:
+        return config.raw_stand;
+      }
+    }
+
+    JointAnglesMd servo_angles_for_motion_md(LegSide side, MotionCommand motion) noexcept
     {
       const auto& config = LEG_CONFIGS[static_cast<uint8_t>(side)];
+
       return {
-          raw_to_angle_md(config.coxa, config.coxa.raw_stand),
-          raw_to_angle_md(config.femur, config.femur.raw_stand),
-          raw_to_angle_md(config.tibia, config.tibia.raw_stand)};
+          raw_to_angle_md(config.coxa, raw_for_motion(config.coxa, motion)),
+          raw_to_angle_md(config.femur, raw_for_motion(config.femur, motion)),
+          raw_to_angle_md(config.tibia, raw_for_motion(config.tibia, motion))};
     }
 
     JointAnglesMd standing_ik_angles_md(LegSide side) noexcept
@@ -232,24 +250,29 @@ namespace pluto::motion
       return solve_leg({0.0F, side_stance_y(side), FOOT_Z_STAND}, side);
     }
 
-    JointAnglesMd standing_angle_offsets_md(LegSide side) noexcept
+    JointAnglesMd angle_offsets_for_motion_md(LegSide side, MotionCommand motion) noexcept
     {
-      const auto servo = standing_servo_angles_md(side);
+      const auto servo = servo_angles_for_motion_md(side, motion);
       const auto ik    = standing_ik_angles_md(side);
+
       return {
-          servo.coxa_md - ik.coxa_md, servo.femur_md - ik.femur_md,
+          servo.coxa_md - ik.coxa_md,
+          servo.femur_md - ik.femur_md,
           servo.tibia_md - ik.tibia_md};
     }
 
-    JointAnglesMd apply_standing_offsets(JointAnglesMd angles, LegSide side) noexcept
+    JointAnglesMd apply_motion_offsets(JointAnglesMd angles, LegSide side, MotionCommand motion) noexcept
     {
-      const auto offsets = standing_angle_offsets_md(side);
+
+      const auto offsets = angle_offsets_for_motion_md(side, motion);
+
       angles.coxa_md += offsets.coxa_md;
       angles.femur_md += offsets.femur_md;
       angles.tibia_md += offsets.tibia_md;
+
       return angles;
-    }
-  } // namespace
+    } // namespace
+  }
 
   void GaitController::set_gait(GaitKind gait) noexcept
   {
@@ -485,7 +508,7 @@ namespace pluto::motion
     {
       angles.femur_md -= WALK_LF_FEMUR_FLAT_MD;
     }
-    const auto servo_angles = apply_standing_offsets(angles, side);
+    const auto servo_angles = apply_motion_offsets(angles, side, _motion);
 
     static uint32_t last_print = 0;
     static bool log_cycle      = false;
@@ -499,7 +522,8 @@ namespace pluto::motion
     }
     if (log_cycle)
     {
-      const auto offsets = standing_angle_offsets_md(side);
+
+      const auto offsets = angle_offsets_for_motion_md(side, _motion);
       Serial.printf(
           "%s foot=(%.2f,%.2f,%.2f) ik=(%d,%d,%d) off=(%d,%d,%d) servo=(%d,%d,%d)\n",
           leg_name(side), foot.x, foot.y, foot.z, angles.coxa_md / 1000,
@@ -538,7 +562,9 @@ namespace pluto::motion
         foot.z += BOW_REAR_RISE * pose;
       }
 
-      const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+      auto angles = solve_leg(foot, side);
+      const auto servo_angles = apply_motion_offsets(angles, side, MotionCommand::IDLE);
+
       legs[i].write_angles(
           servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
@@ -577,7 +603,9 @@ namespace pluto::motion
         foot.z = FOOT_Z_STAND - PAW_REAR_SUPPORT_DROP_Z;
       }
 
-      const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+      auto angles = solve_leg(foot, side);
+      const auto servo_angles = apply_motion_offsets(angles, side, MotionCommand::IDLE);
+
       legs[i].write_angles(
           servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }
