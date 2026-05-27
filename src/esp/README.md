@@ -169,6 +169,20 @@ Configure access points in `setup()` with:
 PLUTO_SERVER.addAP("<WIFI_NAME>", "<WIFI_PASSWORD>");
 ```
 
+Queued UDP messages are processed in `loop()`. `MOVE_BY` commands apply a small deadzone and then map to one of the existing movement commands:
+
+- positive forward/back value: walk forward
+- negative forward/back value: walk backward
+- negative left/right value: turn left
+- positive left/right value: turn right
+- both axes inside the deadzone: stop and stand
+
+Behavior messages currently map as follows:
+
+- `BEHAVIOR_SIT`: stop/stand
+- `BEHAVIOR_GIVE_PAW`: paw motion
+- `BEHAVIOR_LIE_DOWN`: bow motion
+
 See [WiFi Protocol](../../SOFTWARE_WIFI.md) and [Shared Communication Protocol](../comm/README.md).
 
 ## 📌 Build and Upload

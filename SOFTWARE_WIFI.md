@@ -45,7 +45,7 @@ Only test WiFi control after serial control and servo safety are working.
 7. Press `Connect & Take Control`.
 8. Send `Stop All` first.
 9. Check for acknowledgement messages in the telemetry log.
-10. Send small movement inputs only after stop and behavior messages work.
+10. Send small movement inputs only after stop and behavior messages work. The ESP32 maps `MOVE_BY` vectors to forward, backward, left turn, right turn, or stop.
 
 If connection fails, debug network reachability before debugging gait code.
 
@@ -108,19 +108,19 @@ Message families:
 Implemented message examples:
 
 - `MOVE_CONTROL_BEGIN_FOR`: starts a control lease.
-- `MOVE_BY`: carries forward/back and left/right signed 16-bit directions.
+- `MOVE_BY`: carries forward/back and left/right signed 16-bit directions. Firmware applies a deadzone and maps the command to forward, backward, left turn, right turn, or stop.
 - `MOVE_STOP_FOR`: stop/stand command.
-- `BEHAVIOR_SIT`: high-level sit request.
-- `BEHAVIOR_GIVE_PAW`: high-level paw request.
-- `BEHAVIOR_LIE_DOWN`: high-level lie-down request.
+- `BEHAVIOR_SIT`: high-level sit request; current firmware maps this to stop/stand.
+- `BEHAVIOR_GIVE_PAW`: high-level paw request; current firmware maps this to paw motion.
+- `BEHAVIOR_LIE_DOWN`: high-level lie-down request; current firmware maps this to bow motion.
 - `INFO_ACKNOWLEDGE`: acknowledges a sequence number.
 - `SENSOR_DISTANCE`: carries ultrasonic distance in millimeters.
 
 ## ⚠️ Current Limitations
 
 - WiFi credentials are still configured in firmware source.
-- Some behavior handlers on the ESP32 still print placeholders instead of complete calibrated sequences.
-- `MOVE_BY` is received by firmware, but final mapping from vector values to all physical motion cases still needs validation.
+- Behavior messages are mapped to existing safe motions, but sit and lie-down still need dedicated calibrated sequences.
+- `MOVE_BY` is mapped to basic movement commands, but final live tuning on the physical robot still needs validation.
 - The Python controller relies on mDNS/zeroconf discovery rather than a manual IP setting.
 
 ## ✅ Debugging Checklist

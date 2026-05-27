@@ -77,7 +77,7 @@ The Python control hub provides operator-facing tools:
 
 - NiceGUI home, simulation, and controller pages.
 - Keyboard and browser gamepad input normalization.
-- `MOVE_BY` command sending while movement input is non-zero.
+- `MOVE_BY` command sending while movement input is non-zero; firmware maps the vectors to forward, backward, left turn, right turn, or stop.
 - Quick behavior buttons for sit, give paw, and stop.
 - Telemetry display for acknowledgements and distance messages.
 - Vosk-based speech commands using the controller computer microphone.
@@ -136,7 +136,7 @@ See [Simulation Notes](SIMULATION.md).
 ## 📌 Current Extension Points
 
 - Better gait stability and interpolation.
-- Live WiFi control validation on hardware.
+- Live WiFi control tuning on hardware.
 - More complete behavior sequences.
 - Higher-fidelity simulation.
 - Autonomous obstacle avoidance.

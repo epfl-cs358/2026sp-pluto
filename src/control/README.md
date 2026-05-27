@@ -97,7 +97,7 @@ When `Connect & Take Control` is pressed, `pluto_server/server.py` scans for `_p
 - Connect and take-control button with mDNS/zeroconf scanning.
 - WASD keyboard input.
 - First browser gamepad input.
-- Repeated `MOVE_BY` messages while the movement vector is non-zero.
+- Repeated `MOVE_BY` messages while the movement vector is non-zero. The ESP32 maps these vectors to forward, backward, left turn, right turn, or stop.
 - Quick action buttons for sit, give paw, and stop.
 - Telemetry log for acknowledgements and distance messages.
 

@@ -161,7 +161,7 @@ The repository documents both the final implementation and the current work-in-p
 
 - Launch a NiceGUI control hub.
 - Use keyboard and browser gamepad input.
-- Send repeated `MOVE_BY` messages while movement input is active.
+- Send repeated `MOVE_BY` messages while movement input is active; firmware maps those vectors to forward, backward, left turn, right turn, or stop.
 - Trigger sit, give paw, and stop commands from the UI.
 - Run Vosk speech recognition on the controller computer.
 - Display acknowledgement and distance telemetry.
@@ -786,11 +786,11 @@ Implemented message examples:
 | Message | Direction | Meaning |
 | --- | --- | --- |
 | `MOVE_CONTROL_BEGIN_FOR` | Python -> ESP32 | Starts a control lease |
-| `MOVE_BY` | Python -> ESP32 | Carries forward/back and left/right signed 16-bit directions; firmware-side mapping is still marked as a TODO |
+| `MOVE_BY` | Python -> ESP32 | Carries forward/back and left/right signed 16-bit directions; firmware maps the dominant non-deadzone axis to forward, backward, left turn, right turn, or stop |
 | `MOVE_STOP_FOR` | Python -> ESP32 | Stop/stand request |
-| `BEHAVIOR_SIT` | Python -> ESP32 | High-level sit request |
-| `BEHAVIOR_GIVE_PAW` | Python -> ESP32 | High-level paw request |
-| `BEHAVIOR_LIE_DOWN` | Python -> ESP32 | High-level lie-down request |
+| `BEHAVIOR_SIT` | Python -> ESP32 | High-level sit request; current firmware maps it to stop/stand |
+| `BEHAVIOR_GIVE_PAW` | Python -> ESP32 | High-level paw request; current firmware maps it to paw motion |
+| `BEHAVIOR_LIE_DOWN` | Python -> ESP32 | High-level lie-down request; current firmware maps it to bow motion |
 | `INFO_ACKNOWLEDGE` | ESP32 -> Python | Acknowledges a packet sequence number |
 | `SENSOR_DISTANCE` | ESP32 -> Python | Sends ultrasonic distance in millimeters |
 
@@ -996,7 +996,7 @@ pio device monitor -b 115200
 
 - WiFi credentials still need to be configured for the target network.
 - Controller discovery depends on mDNS/zeroconf working on the local network.
-- UDP `MOVE_BY` messages are defined, but the ESP32 handler still needs to map them into gait commands.
+- UDP `MOVE_BY` messages are mapped by the ESP32 to basic gait commands, but live hardware tuning is still needed.
 - PyBullet visual meshes need updating.
 - MuJoCo is not yet a validated physical twin.
 
@@ -1072,7 +1072,7 @@ See [ONGOING_WORK.md](ONGOING_WORK.md).
 - Serve the NiceGUI app from `src/control/main.py`.
 - Provide navigation between home, simulation, and controller pages.
 - Read keyboard and gamepad input through `InputManager`.
-- Send repeated `MOVE_BY` messages while movement input is non-zero.
+- Send repeated `MOVE_BY` messages while movement input is non-zero; the ESP32 maps them to basic movement commands.
 - Send quick behavior commands for sit, give paw, and stop.
 - Display telemetry for acknowledgements and distance readings.
 - Start a Vosk speech worker on app startup.
@@ -1143,14 +1143,14 @@ Current focus:
 
 - Hardware gait validation: test walk, trot, gallop, left/right turns, flip, bow, sit, paw, and stop on the physical robot.
 - Servo calibration: refine PWM limits, standing and motion-specific starting pulses, inversion flags, and angle ranges.
-- WiFi control: validate live UDP movement and behavior commands over mDNS-discovered connections.
-- Behavior implementation: replace placeholder behavior handlers with calibrated motion sequences.
+- WiFi control: tune mapped UDP movement and behavior commands over mDNS-discovered connections.
+- Behavior implementation: replace the current safe mappings for sit and lie-down with dedicated calibrated motion sequences.
 - Sensor-driven reactions: tune ultrasonic wall stopping and re-enable/tune microphone clap detection if needed.
 - Simulation fidelity: improve physical accuracy for mass, friction, joint limits, and servo response.
 
 Known issues:
 
-- Some firmware behavior handlers are still placeholders.
+- Some firmware behavior messages currently reuse safe existing motions instead of dedicated calibrated sequences.
 - Some networks may block mDNS discovery, requiring controller-side fallback work.
 - Gait constants need final physical measurement and tuning.
 - MuJoCo and PyBullet support are useful for development, but not yet perfect models of the real robot.
