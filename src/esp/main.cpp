@@ -72,14 +72,15 @@ void start_robot()
 
   Serial.println("START: robot walking");
 }
+
 /**
-static constexpr uint32_t CLAP_THRESHOLD = 15000000000;
+static constexpr uint32_t CLAP_THRESHOLD = 30000000;
 static constexpr uint32_t CLAP_COOLDOWN_MS = 800;
 static constexpr uint32_t MICROPHONE_CHECK_PERIOD_MS = 50;
 static constexpr uint32_t MICROPHONE_PRINT_PERIOD_MS = 1000; 
 
 void update_microphone_control(uint32_t now)
-{git 
+{
 #ifdef PLUTO_ENABLE_MICROPHONE
   static uint32_t last_microphone_check_ms = 0; 
   static uint32_t last_microphone_print_ms = 0; 
@@ -98,8 +99,8 @@ void update_microphone_control(uint32_t now)
   {
     last_microphone_print_ms = now; 
 
-    // Serial.print("Mic energy: ");
-    // Serial.println(mic_energy);
+    Serial.print("Mic energy: ");
+    Serial.println(mic_energy);
   }
 
   bool above_threshold = mic_energy >= CLAP_THRESHOLD; 
@@ -128,7 +129,7 @@ void update_microphone_control(uint32_t now)
 }
 */
 
-static constexpr float WALL_STOP_DISTANCE_CM = 20.0F; 
+static constexpr float WALL_STOP_DISTANCE_CM = 35.0F; 
 static constexpr uint32_t ULTRASONIC_PERIOD_MS = 150;
 static constexpr uint32_t ULTRASONIC_WAIT_MS = 10; 
 
@@ -152,11 +153,8 @@ void update_ultrasonic_control(uint32_t now)
     last_ultrasonic_ms = now; 
 
     float distance_cm = SENSOR_ULTRASONIC.read_end(); 
-
-    // Serial.print("Distance: ");
-    // Serial.println(distance_cm);
   
-    if (GAIT.motion() == pluto::motion::MotionCommand::FORWARD && distance_cm > 0.0F && distance_cm < WALL_STOP_DISTANCE_CM)
+    if (distance_cm > 0.0F && distance_cm < WALL_STOP_DISTANCE_CM)
     {
       stop_robot("wall too close"); 
     }
