@@ -471,7 +471,7 @@ namespace pluto::sim
       angles.tibia_md += WALK_REAR_TIBIA_EXTEND_MD;
     }
 
-    const auto servo_angles = apply_standing_offsets(angles, side);
+    const auto servo_angles = angles;
 
     legs[static_cast<uint8_t>(side)].write_angles(
         servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
