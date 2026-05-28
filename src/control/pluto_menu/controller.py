@@ -17,8 +17,9 @@ def controller_page():
 
     pluto_controller: server.PlutoController = app.extra["PLUTO_CONTROLLER"]
 
-    # track if the robot was moving in the previous tick to send STOP only once
+    # Track states for movement and buttons to prevent spamming
     last_sent_command = {"direction": None}
+    previous_buttons = []
 
     def handle_key(e: events.KeyEventArguments):
         key = e.key.name.lower()
@@ -27,17 +28,46 @@ def controller_page():
             input_manager.update_from_keyboard(**movement_state)
 
     async def poll_gamepad():
+        nonlocal previous_buttons
+
         js_code = """
             (() => {
                 const gp = navigator.getGamepads()[0];
                 if (!gp) return null;
-                return { axes: gp.axes };
+                // Return axes and mapped boolean button states
+                return { 
+                    axes: gp.axes,
+                    buttons: gp.buttons.map(b => b.pressed)
+                };
             })()
         """
         try:
             data = await ui.run_javascript(js_code, timeout=0.5)
             if data:
+                # Update movement axes
                 input_manager.update_from_gamepad(data["axes"][0], data["axes"][1])
+
+                # Process buttons
+                current_buttons = data["buttons"]
+
+                if not previous_buttons:
+                    previous_buttons = current_buttons
+                    return
+
+                # Edge detection: trigger only when transitioning from False to True
+                if current_buttons[0] and not previous_buttons[0]:
+                    trigger_behavior(message.MessageBehaviorKind.BEHAVIOR_SIT)
+
+                if current_buttons[1] and not previous_buttons[1]:
+                    trigger_behavior(message.MessageBehaviorKind.BEHAVIOR_FLIP)
+
+                if current_buttons[2] and not previous_buttons[2]:
+                    trigger_behavior(message.MessageBehaviorKind.BEHAVIOR_BOW)
+
+                if current_buttons[3] and not previous_buttons[3]:
+                    trigger_behavior(message.MessageBehaviorKind.BEHAVIOR_GIVE_PAW)
+
+                previous_buttons = current_buttons
         except Exception:
             pass
 
@@ -162,10 +192,10 @@ def controller_page():
 
             forward_back = 0
             left_right = 0
+            direction = "stop"
 
             if vx == 0.0 and vy == 0.0:
                 direction = "stop"
-
             elif abs(vy) >= abs(vx):
                 if vy < 0:
                     direction = "forward"
@@ -173,7 +203,6 @@ def controller_page():
                 else:
                     direction = "backward"
                     forward_back = -MAX_SPEED
-
             else:
                 if vx < 0:
                     direction = "left"
@@ -183,15 +212,15 @@ def controller_page():
                     left_right = MAX_SPEED
 
             if pluto_controller.is_connected:
-                # Send only when the direction changes
-                if direction != last_sent_command["direction"]:
+                direction_changed = direction != last_sent_command["direction"]
+                if direction_changed:
                     last_sent_command["direction"] = direction
 
                     if direction == "stop":
                         trigger_stop(False)
                     else:
                         msg = message.create_move_by(
-                            forward_back, left_right, duration_ms=100
+                            forward_back, left_right, duration_ms=0
                         )
                         pluto_controller.send_messages([msg])
 
