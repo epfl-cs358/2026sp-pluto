@@ -17,6 +17,9 @@ def controller_page():
 
     pluto_controller: server.PlutoController = app.extra["PLUTO_CONTROLLER"]
 
+    # track if the robot was moving in the previous tick to send STOP only once
+    was_moving = False
+
     def handle_key(e: events.KeyEventArguments):
         key = e.key.name.lower()
         if key in movement_state:
@@ -41,11 +44,11 @@ def controller_page():
     async def connect_to_robot():
         ui.notify("Scanning network for Pluto...", type="info")
 
-        # Disable button so user can't spam it while scanning
+        # disable button so user can't spam it while scanning
         connect_button.disable()
         connect_button.text = "Scanning..."
 
-        # Run the blocking scan in a background thread
+        # run the blocking scan in a background thread
         found = await asyncio.to_thread(pluto_controller.scan_for_robot, 3.0)
 
         if not found:
@@ -59,7 +62,6 @@ def controller_page():
             ui.notify(
                 f"Connected via {pluto_controller.target_addr[0]}!", type="positive"
             )
-            # Update the UI to show success
             connect_button.text = "Connected"
             connect_button.classes(replace="bg-green-600 text-white")
             connection_status.set_text(f"IP: {pluto_controller.target_addr[0]}")
@@ -72,13 +74,14 @@ def controller_page():
             connect_button.enable()
             connect_button.text = "Connect & Take Control"
 
-    def trigger_behavior(behavior_kind: message.MessageBehaviorKind):
+    def trigger_behavior(behavior_kind: message.MessageBehaviorKind, notify: bool = True):
         if pluto_controller.is_connected:
             msg = message.create_behavior(behavior_kind)
             pluto_controller.send_messages([msg])
-            ui.notify(f"Sent: {behavior_kind.name}")
+            if notify:
+                ui.notify(f"Sent: {behavior_kind.name}")
 
-    def trigger_stop():
+    def trigger_stop(notify: bool = True):
         if pluto_controller.is_connected:
             msg = message.Message(
                 message.MessageFamilyKind.KIND_MOVE,
@@ -86,7 +89,8 @@ def controller_page():
                 0,
             )
             pluto_controller.send_messages([msg])
-            ui.notify("Sent: STOP", type="warning")
+            if notify:
+                ui.notify("Sent: STOP", type="warning")
 
     with ui.column().classes("items-center q-gutter-md").style(
         "padding: 24px; margin: 0 auto; max-width: 800px;"
@@ -145,16 +149,26 @@ def controller_page():
         )
 
         def update_robot_loop():
+            nonlocal was_moving
+
             vx, vy = input_manager.get_movement_vector()
             vector_label.set_text(f"Vector: ({vx:.2f}, {vy:.2f})")
 
-            if pluto_controller.is_connected and (vx != 0.0 or vy != 0.0):
-                forward_back = int(vy * MAX_SPEED)
-                left_right = int(vx * MAX_SPEED)
-                msg = message.create_move_by(forward_back, left_right, duration_ms=100)
-                pluto_controller.send_messages([msg])
+            is_moving = vx != 0.0 or vy != 0.0
 
             if pluto_controller.is_connected:
+                if is_moving:
+                    forward_back = int(vy * MAX_SPEED)
+                    left_right = int(vx * MAX_SPEED)
+                    msg = message.create_move_by(
+                        forward_back, left_right, duration_ms=100
+                    )
+                    pluto_controller.send_messages([msg])
+                    was_moving = True
+                elif was_moving:
+                    trigger_stop(False)
+                    was_moving = False
+
                 for msg in pluto_controller.get_latest_messages():
                     if msg.family == message.MessageFamilyKind.KIND_SENSOR:
                         if msg.kind == message.MessageSensorKind.SENSOR_DISTANCE:
