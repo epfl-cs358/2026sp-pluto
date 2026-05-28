@@ -107,7 +107,7 @@ The bridge currently supports keyboard commands:
 | `Q` | Turn left |
 | `E` | Turn right |
 | `P` | Give paw |
-| `O` | Bow |
+| `O` | Flip |
 | `S` | Stop |
 | `1` | Walk gait |
 | `2` | Trot gait |
@@ -120,11 +120,7 @@ Mouse controls are handled through MuJoCo camera helpers:
 - Middle drag zooms.
 - Scroll zooms in and out.
 
-<div align="center">
-<video width="320" height="240" controls>
-    <source src="images/simulation.mp4" type="video/mp4">
-</video>
-</div>
+Simulation demo video: [images/simulation.mp4](images/simulation.mp4)
 
 ## 🎮 Known Simulation Limitations
 

@@ -111,15 +111,16 @@ Implemented message examples:
 - `MOVE_BY`: carries forward/back and left/right signed 16-bit directions. Firmware applies a deadzone and maps the command to forward, backward, left turn, right turn, or stop.
 - `MOVE_STOP_FOR`: stop/stand command.
 - `BEHAVIOR_SIT`: high-level sit request; current firmware maps this to stop/stand.
+- `BEHAVIOR_FLIP`: high-level flip request; current firmware logs this over UDP but does not yet start a flip motion.
+- `BEHAVIOR_BOW`: high-level bow request; current firmware maps this to bow motion.
 - `BEHAVIOR_GIVE_PAW`: high-level paw request; current firmware maps this to paw motion.
-- `BEHAVIOR_LIE_DOWN`: high-level lie-down request; current firmware maps this to bow motion.
 - `INFO_ACKNOWLEDGE`: acknowledges a sequence number.
 - `SENSOR_DISTANCE`: carries ultrasonic distance in millimeters.
 
 ## ⚠️ Current Limitations
 
 - WiFi credentials are still configured in firmware source.
-- Behavior messages are mapped to existing safe motions, but sit and lie-down still need dedicated calibrated sequences.
+- Behavior messages are mapped to existing safe motions, but sit and UDP-triggered flip still need dedicated calibrated sequences.
 - `MOVE_BY` is mapped to basic movement commands, but final live tuning on the physical robot still needs validation.
 - The Python controller relies on mDNS/zeroconf discovery rather than a manual IP setting.
 

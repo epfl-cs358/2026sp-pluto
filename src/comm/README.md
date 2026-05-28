@@ -71,6 +71,17 @@ Message families:
 - `finalize_packet_crc`
 - `validate_packet`
 
+## 🤖 Behavior Kinds
+
+The current behavior enum is shared by `src/comm/message.h` and `src/control/pluto_server/message.py`:
+
+| Behavior | Current firmware handling |
+| --- | --- |
+| `BEHAVIOR_FLIP` | Accepted over UDP and logged, but the UDP handler does not yet start a flip motion |
+| `BEHAVIOR_BOW` | Starts the bow motion |
+| `BEHAVIOR_SIT` | Maps to stop/stand as a safe placeholder |
+| `BEHAVIOR_GIVE_PAW` | Starts the paw motion |
+
 ## ➕ Adding Or Changing A Message
 
 The protocol is shared by firmware and Python. When adding a message:

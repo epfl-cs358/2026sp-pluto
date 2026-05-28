@@ -7,8 +7,8 @@ Pluto is still under active development. The current codebase already provides t
 - Hardware gait validation: test walk, trot, gallop, left/right turns, flip, bow, sit, paw, and stop on the physical robot.
 - Servo calibration: refine each joint's PWM limits, standing and motion-specific starting pulses, inversion flag, and angle range so IK commands map safely to physical motion.
 - WiFi control validation: configure access points, verify mDNS/zeroconf discovery, and tune the mapped UDP movement commands on hardware.
-- Behavior implementation: replace the current safe mappings for sit and lie-down with dedicated calibrated motion sequences.
-- Sensor-driven reactions: tune ultrasonic wall stopping and re-enable/tune microphone clap detection if needed.
+- Behavior implementation: replace the current safe mapping for sit and the current UDP flip placeholder with dedicated calibrated motion sequences.
+- Sensor-driven reactions: tune ultrasonic wall stopping and re-enable/tune microphone compilation and clap detection if needed.
 - Simulation cleanup: update the Python PyBullet visual mesh path to use the current per-leg STL files and continue refining the MuJoCo model.
 
 ## 🛠️ Improvements

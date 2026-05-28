@@ -14,7 +14,7 @@ PlatformIO is configured with `src_dir = src/esp`, so this directory is the firm
 
 | Module | Purpose |
 | --- | --- |
-| `main.cpp` | Firmware setup, loop, feature flags, sensors, gait update, serial commands, and UDP dispatch |
+| `main.cpp` | Firmware setup, loop, feature flags, ultrasonic control, gait update, serial commands, and UDP dispatch |
 | `legs/leg_data.h` | Per-joint PWM and angle calibration |
 | `legs/leg_joint.h` | Calibrated servo output abstraction |
 | `legs/leg.h` | Three-joint leg abstraction |
@@ -29,11 +29,11 @@ PlatformIO is configured with `src_dir = src/esp`, so this directory is the firm
 This is the order in which the firmware operates:
 
 1. `setup()` starts serial output at `115200`.
-2. If WiFi is enabled, `PLUTO_SERVER` is configured, advertises `_pluto._udp.local`, and starts.
+2. If WiFi is enabled, `PLUTO_SERVER` is configured and starts its connection task.
 3. The PCA9685 is initialized and set to 50 Hz.
 4. Enabled sensors are initialized.
 5. `GAIT.stand(LEGS)` moves the robot into the starting stand pose.
-6. `loop()` repeatedly reads microphone and ultrasonic state.
+6. `loop()` repeatedly reads ultrasonic state; microphone control code is present but currently disabled.
 7. Every 20 ms, `GAIT.update(LEGS, now)` writes updated joint targets.
 8. Serial input is checked and converted into gait, speed, trimming, or reset commands.
 9. If WiFi is enabled, queued UDP messages are processed.
@@ -97,29 +97,29 @@ Current defaults in `main.cpp`:
 ```cpp
 #define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
-#define PLUTO_ENABLE_MICROPHONE
+// #define PLUTO_ENABLE_MICROPHONE
 ```
 
-That means WiFi/UDP, ultrasonic, and microphone support are enabled at compile time. WiFi still needs valid access point credentials in `setup()`.
+That means WiFi/UDP and ultrasonic support are enabled at compile time. Microphone support remains in the source tree, but the feature flag is currently commented out. WiFi still needs valid access point credentials in `setup()`.
 
 ## 📌 Timing
 
 - Gait update: every 20 ms.
 - Ultrasonic cycle: every 150 ms.
 - Ultrasonic wait after trigger: 10 ms.
-- Microphone clap-control code is present but currently commented out in `main.cpp`.
+- Microphone clap-control code and the microphone feature flag are currently commented out in `main.cpp`.
 - Serial baud rate: 115200.
 
 ## 📡 Sensors
 
-Current templates in `main.cpp`:
+Current sensor templates in `main.cpp`:
 
 - Ultrasonic: `SensorUltraSonic<5, 18>`
-- Microphone: `SensorMicrophone<26, 25, 33>`
+- Microphone, when re-enabled: `SensorMicrophone<26, 25, 33>`
 
 Motion stops if ultrasonic distance is between 0 and 35 cm.
 
-The microphone driver initializes, but the clap-toggle update call is currently commented out in `main.cpp`.
+The microphone driver does not initialize with the current default flags. Re-enable `PLUTO_ENABLE_MICROPHONE` and the `update_microphone_control(now)` call only after validating the energy threshold on the real microphone.
 
 ## ⌨️ Serial Commands
 
@@ -171,6 +171,8 @@ PLUTO_SERVER.addAP("<WIFI_NAME>", "<WIFI_PASSWORD>");
 
 Queued UDP messages are processed in `loop()`. `MOVE_BY` commands apply a small deadzone and then map to one of the existing movement commands:
 
+The mDNS service is advertised as `_pluto._udp.local` after the ESP32 is connected to WiFi. If WiFi disconnects, the firmware stops UDP listening, ends mDNS, and clears the active session.
+
 - positive forward/back value: walk forward
 - negative forward/back value: walk backward
 - negative left/right value: turn left
@@ -180,8 +182,9 @@ Queued UDP messages are processed in `loop()`. `MOVE_BY` commands apply a small 
 Behavior messages currently map as follows:
 
 - `BEHAVIOR_SIT`: stop/stand
+- `BEHAVIOR_FLIP`: accepted and logged, but no UDP-triggered flip motion yet
+- `BEHAVIOR_BOW`: bow motion
 - `BEHAVIOR_GIVE_PAW`: paw motion
-- `BEHAVIOR_LIE_DOWN`: bow motion
 
 See [WiFi Protocol](../../SOFTWARE_WIFI.md) and [Shared Communication Protocol](../comm/README.md).
 
