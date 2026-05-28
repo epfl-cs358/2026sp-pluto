@@ -174,7 +174,7 @@ void command_forward()
   if (GAIT.motion() != pluto::motion::MotionCommand::FORWARD)
   {
     GAIT.forward_start(LEGS);
-    delay(300);
+    delay(1000);
   }
 
   GAIT.set_gait(pluto::motion::GaitKind::TROT);
@@ -190,10 +190,11 @@ void command_backward()
   if (GAIT.motion() != pluto::motion::MotionCommand::BACKWARD)
   {
     GAIT.backward_start(LEGS);
-    delay(300);
+    delay(1000);
   }
 
   GAIT.set_gait(pluto::motion::GaitKind::TROT);
+  GAIT.set_speed(0.65F);
   GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
   robot_walking = true;
 
@@ -202,6 +203,9 @@ void command_backward()
 
 void command_turn_left()
 {
+  GAIT.turnleft_start(LEGS);
+  delay(1000);
+
   GAIT.set_motion(pluto::motion::MotionCommand::LEFT);
   robot_walking = true;
 
@@ -210,6 +214,9 @@ void command_turn_left()
 
 void command_turn_right()
 {
+  GAIT.turnright_start(LEGS);
+  delay(1000);
+
   GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
   robot_walking = true;
 
@@ -228,6 +235,9 @@ void command_stop()
 
 void command_bow()
 {
+  GAIT.bow_start(LEGS);
+  delay(250);
+
   GAIT.set_motion(pluto::motion::MotionCommand::BOW);
   robot_walking = false;
 
