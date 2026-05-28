@@ -52,7 +52,7 @@ pluto::SensorUltraSonic<5, 18> SENSOR_ULTRASONIC;
 pluto::SensorMicrophone<26, 25, 33> SENSOR_MICROPHONE;
 #endif
 
-static bool robot_walking = false; 
+static bool robot_walking = false;
 void stop_robot(const char* reason)
 {
   GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
@@ -69,7 +69,7 @@ void start_robot()
   delay(300);
 
   GAIT.set_gait(pluto::motion::GaitKind::WALK);
-  GAIT.set_speed(0.65F); 
+  GAIT.set_speed(0.65F);
   GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
   robot_walking = true;
 
@@ -132,40 +132,40 @@ void update_microphone_control(uint32_t now)
 }
 */
 
-static constexpr float WALL_STOP_DISTANCE_CM = 35.0F; 
+static constexpr float WALL_STOP_DISTANCE_CM   = 35.0F;
 static constexpr uint32_t ULTRASONIC_PERIOD_MS = 150;
-static constexpr uint32_t ULTRASONIC_WAIT_MS = 10; 
+static constexpr uint32_t ULTRASONIC_WAIT_MS   = 10;
 
 void update_ultrasonic_control(uint32_t now)
 {
 #ifdef PLUTO_ENABLE_ULTRASONIC
-  static bool ultrasonic_pending = false; 
+  static bool ultrasonic_pending      = false;
   static uint32_t ultrasonic_begin_ms = 0;
-  static uint32_t last_ultrasonic_ms = 0;
-  
+  static uint32_t last_ultrasonic_ms  = 0;
+
   if (!ultrasonic_pending && now - last_ultrasonic_ms >= ULTRASONIC_PERIOD_MS)
   {
     SENSOR_ULTRASONIC.read_begin();
-    ultrasonic_pending = true; 
-    ultrasonic_begin_ms = now; 
+    ultrasonic_pending  = true;
+    ultrasonic_begin_ms = now;
   }
 
   if (ultrasonic_pending && now - ultrasonic_begin_ms >= ULTRASONIC_WAIT_MS)
   {
-    ultrasonic_pending = false; 
-    last_ultrasonic_ms = now; 
+    ultrasonic_pending = false;
+    last_ultrasonic_ms = now;
 
-    float distance_cm = SENSOR_ULTRASONIC.read_end(); 
-  
+    float distance_cm = SENSOR_ULTRASONIC.read_end();
+
     if (distance_cm > 0.0F && distance_cm < WALL_STOP_DISTANCE_CM)
     {
-      stop_robot("wall too close"); 
+      stop_robot("wall too close");
     }
-  } 
+  }
 #endif
 }
 
-static constexpr int16_t WIFI_MOVE_DEADZONE = 100; 
+static constexpr int16_t WIFI_MOVE_DEADZONE = 100;
 
 void command_forward()
 {
@@ -298,7 +298,8 @@ void setup()
   GAIT.stand(LEGS);
   Serial.println("Pluto motion ready");
   Serial.println(
-      "Commands: f forward, b backward, q turn-left, e turn-right, o flip, h bow, i sit, s stop, 1 walk, 2 trot, 3 gallop"
+      "Commands: f forward, b backward, q turn-left, e turn-right, o flip, h bow, i "
+      "sit, s stop, 1 walk, 2 trot, 3 gallop"
       "selected joint");
 }
 
@@ -326,11 +327,11 @@ void loop()
     switch (cmd)
     {
     case 'f':
-      GAIT.forward_start(LEGS); 
+      GAIT.forward_start(LEGS);
       delay(1000);
 
       GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
-      robot_walking = true; 
+      robot_walking = true;
       Serial.println("Motion: forward");
       break;
     case 'b':
@@ -350,11 +351,11 @@ void loop()
       Serial.println("Motion: turn left");
       break;
     case 'e':
-      GAIT.turnright_start(LEGS); 
+      GAIT.turnright_start(LEGS);
       delay(1000);
 
       GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
-      robot_walking = true; 
+      robot_walking = true;
       Serial.println("Motion: turn right");
       break;
     case 'o':
@@ -479,7 +480,7 @@ void loop()
         int16_t fwd  = msg.payload.move_by.top_bottom_dir;
         int16_t side = msg.payload.move_by.left_right_dir;
 
-        apply_move_command(fwd, side); 
+        apply_move_command(fwd, side);
       }
       break;
 
@@ -500,12 +501,12 @@ void loop()
             == MessageSensorKind::SENSOR_DISTANCE)
         {
   #ifdef PLUTO_ENABLE_ULTRASONIC
-          float distance_cm = SENSOR_ULTRASONIC.read_end(); 
+          float distance_cm = SENSOR_ULTRASONIC.read_end();
 
           if (distance_cm > 0.0F)
           {
             uint32_t distance_mm = static_cast<uint32_t>(distance_cm * 10.0F);
-            Message reply = pluto::create_sensor_distance(distance_mm, millis()); 
+            Message reply = pluto::create_sensor_distance(distance_mm, millis());
             PLUTO_SERVER.sendMessage(reply);
           }
   #endif
@@ -526,7 +527,11 @@ void loop()
         Serial.println("Behavior: give paw");
         break;
 
-      case MessageBehaviorKind::BEHAVIOR_LIE_DOWN:
+      case MessageBehaviorKind::BEHAVIOR_FLIP:
+        Serial.println("Behavior: flip");
+        break;
+
+      case MessageBehaviorKind::BEHAVIOR_BOW:
         command_bow();
         Serial.println("Behavior: lie down requested");
         break;
