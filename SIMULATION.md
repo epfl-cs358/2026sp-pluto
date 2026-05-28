@@ -120,7 +120,11 @@ Mouse controls are handled through MuJoCo camera helpers:
 - Middle drag zooms.
 - Scroll zooms in and out.
 
-![MuJoCo simulation](images/simulation.mp4)
+<div align="center">
+<video width="320" height="240" controls>
+    <source src="images/simulation.mp4" type="video/mp4">
+</video>
+</div>
 
 ## 🎮 Known Simulation Limitations
 
