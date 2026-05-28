@@ -176,6 +176,7 @@ void command_forward()
   }
 
   GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_speed(0.65F);
   GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
   robot_walking = true;
 
@@ -238,37 +239,53 @@ void command_paw()
   Serial.println("Motion: paw");
 }
 
+pluto::motion::MotionCommand last_wifi_motion = pluto::motion::MotionCommand::IDLE;
+
 void apply_move_command(int16_t fwd, int16_t side)
 {
-  if (abs(fwd) < WIFI_MOVE_DEADZONE)
-  {
-    fwd = 0;
-  }
+  if (abs(fwd) < WIFI_MOVE_DEADZONE) fwd = 0;
+  if (abs(side) < WIFI_MOVE_DEADZONE) side = 0;
 
-  if (abs(side) < WIFI_MOVE_DEADZONE)
-  {
-    side = 0;
-  }
+  pluto::motion::MotionCommand new_motion = pluto::motion::MotionCommand::IDLE;
 
   if (fwd > 0)
-  {
-    command_forward();
-  }
+    new_motion = pluto::motion::MotionCommand::FORWARD;
   else if (fwd < 0)
-  {
-    command_backward();
-  }
+    new_motion = pluto::motion::MotionCommand::BACKWARD;
   else if (side < 0)
-  {
-    command_turn_left();
-  }
+    new_motion = pluto::motion::MotionCommand::LEFT;
   else if (side > 0)
+    new_motion = pluto::motion::MotionCommand::RIGHT;
+
+  if (new_motion == last_wifi_motion)
   {
-    command_turn_right();
+    return;
   }
-  else
+
+  last_wifi_motion = new_motion;
+
+  switch (new_motion)
   {
-    command_stop();
+    case pluto::motion::MotionCommand::FORWARD:
+      command_forward();
+      break;
+
+    case pluto::motion::MotionCommand::BACKWARD:
+      command_backward();
+      break;
+
+    case pluto::motion::MotionCommand::LEFT:
+      command_turn_left();
+      break;
+
+    case pluto::motion::MotionCommand::RIGHT:
+      command_turn_right();
+      break;
+
+    case pluto::motion::MotionCommand::IDLE:
+    default:
+      command_stop();
+      break;
   }
 }
 

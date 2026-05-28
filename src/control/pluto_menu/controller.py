@@ -18,7 +18,7 @@ def controller_page():
     pluto_controller: server.PlutoController = app.extra["PLUTO_CONTROLLER"]
 
     # track if the robot was moving in the previous tick to send STOP only once
-    was_moving = False
+    last_sent_command = {"direction": None}
 
     def handle_key(e: events.KeyEventArguments):
         key = e.key.name.lower()
@@ -149,25 +149,51 @@ def controller_page():
         )
 
         def update_robot_loop():
-            nonlocal was_moving
-
             vx, vy = input_manager.get_movement_vector()
             vector_label.set_text(f"Vector: ({vx:.2f}, {vy:.2f})")
 
-            is_moving = vx != 0.0 or vy != 0.0
+            DEADZONE = 0.25
+
+            if abs(vx) < DEADZONE:
+                vx = 0.0
+
+            if abs(vy) < DEADZONE:
+                vy = 0.0
+
+            forward_back = 0
+            left_right = 0
+
+            if vx == 0.0 and vy == 0.0:
+                direction = "stop"
+
+            elif abs(vy) >= abs(vx):
+                if vy < 0:
+                    direction = "forward"
+                    forward_back = MAX_SPEED
+                else:
+                    direction = "backward"
+                    forward_back = -MAX_SPEED
+
+            else:
+                if vx < 0:
+                    direction = "left"
+                    left_right = -MAX_SPEED
+                else:
+                    direction = "right"
+                    left_right = MAX_SPEED
 
             if pluto_controller.is_connected:
-                if is_moving:
-                    forward_back = int(vy * MAX_SPEED)
-                    left_right = int(vx * MAX_SPEED)
-                    msg = message.create_move_by(
-                        forward_back, left_right, duration_ms=100
-                    )
-                    pluto_controller.send_messages([msg])
-                    was_moving = True
-                elif was_moving:
-                    trigger_stop(False)
-                    was_moving = False
+                # Send only when the direction changes
+                if direction != last_sent_command["direction"]:
+                    last_sent_command["direction"] = direction
+
+                    if direction == "stop":
+                        trigger_stop(False)
+                    else:
+                        msg = message.create_move_by(
+                            forward_back, left_right, duration_ms=100
+                        )
+                        pluto_controller.send_messages([msg])
 
                 for msg in pluto_controller.get_latest_messages():
                     if msg.family == message.MessageFamilyKind.KIND_SENSOR:
