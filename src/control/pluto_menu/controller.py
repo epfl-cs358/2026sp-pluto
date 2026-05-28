@@ -55,6 +55,7 @@ def controller_page():
             return
 
         if pluto_controller.connect():
+            assert pluto_controller.target_addr is not None
             ui.notify(
                 f"Connected via {pluto_controller.target_addr[0]}!", type="positive"
             )
@@ -110,9 +111,15 @@ def controller_page():
                     ),
                 ).classes("bg-indigo-500")
                 ui.button(
-                    "Give Paw",
+                    "Flip",
                     on_click=lambda: trigger_behavior(
-                        message.MessageBehaviorKind.BEHAVIOR_GIVE_PAW
+                        message.MessageBehaviorKind.BEHAVIOR_FLIP
+                    ),
+                ).classes("bg-indigo-500")
+                ui.button(
+                    "Bow",
+                    on_click=lambda: trigger_behavior(
+                        message.MessageBehaviorKind.BEHAVIOR_BOW
                     ),
                 ).classes("bg-indigo-500")
                 ui.button("Stop All", on_click=trigger_stop).classes(
