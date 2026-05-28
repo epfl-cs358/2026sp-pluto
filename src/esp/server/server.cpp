@@ -10,11 +10,6 @@ namespace pluto
 
   void PlutoServer::begin()
   {
-    if (!MDNS.begin("PlutoController"))
-        Serial.println("Error setting up MDNS responder!");
-    else
-        MDNS.addService("pluto", "udp", _port);
-    
     _msgQueue = xQueueCreate(QUEUE_SIZE, sizeof(Message));
     _txQueue  = xQueueCreate(QUEUE_SIZE, sizeof(Message));
 
@@ -52,6 +47,15 @@ namespace pluto
         if (!is_listening)
         {
           server->_udp.begin(server->_port);
+          if (!MDNS.begin("PlutoController"))
+          {
+            Serial.println("Error setting up MDNS responder!");
+          }
+          else
+          {
+            MDNS.addService("pluto", "udp", server->_port);
+            Serial.println("mDNS responder started successfully.");
+          }
           is_listening = true;
         }
 
@@ -74,6 +78,7 @@ namespace pluto
       {
         if (is_listening)
         {
+          MDNS.end();
           server->_udp.stop();
           is_listening        = false;
           server->_hasSession = false;
