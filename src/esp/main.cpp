@@ -242,6 +242,14 @@ void command_paw()
   Serial.println("Motion: paw");
 }
 
+void command_flip()
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::FLIP);
+  robot_walking = false;
+
+  Serial.println("Motion: flip");
+}
+
 void apply_move_command(int16_t fwd, int16_t side)
 {
   if (abs(fwd) < WIFI_MOVE_DEADZONE) fwd = 0;
@@ -546,6 +554,7 @@ void loop()
         break;
 
       case MessageBehaviorKind::BEHAVIOR_FLIP:
+        command_flip();
         Serial.println("Behavior: flip");
         break;
 
