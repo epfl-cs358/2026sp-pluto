@@ -1,6 +1,6 @@
 #define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
-#define PLUTO_ENABLE_MICROPHONE
+// #define PLUTO_ENABLE_MICROPHONE
 
 #include <Arduino.h>
 #include <Wire.h>
