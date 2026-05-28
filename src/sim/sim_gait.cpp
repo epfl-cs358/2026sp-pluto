@@ -162,53 +162,6 @@ namespace pluto::sim
         return "??";
       }
     }
-
-    int32_t raw_to_angle_md(const JointConfig& config, uint16_t raw) noexcept
-    {
-      uint16_t normalized_raw = raw;
-      if (config.inverted)
-      {
-        normalized_raw = config.raw_max - (raw - config.raw_min);
-      }
-
-      return config.angle_min_md
-             + static_cast<int32_t>(
-                 static_cast<int64_t>(normalized_raw - config.raw_min)
-                 * static_cast<int64_t>(config.angle_max_md - config.angle_min_md)
-                 / static_cast<int64_t>(config.raw_max - config.raw_min));
-    }
-
-    pluto::motion::JointAnglesMd standing_servo_angles_md(LegSide side) noexcept
-    {
-      const auto& config = LEG_CONFIGS[static_cast<uint8_t>(side)];
-      return {
-          raw_to_angle_md(config.coxa, config.coxa.raw_stand),
-          raw_to_angle_md(config.femur, config.femur.raw_stand),
-          raw_to_angle_md(config.tibia, config.tibia.raw_stand)};
-    }
-
-    pluto::motion::JointAnglesMd standing_ik_angles_md(LegSide side) noexcept
-    {
-      return solve_leg({0.0F, side_stance_y(side), FOOT_Z_STAND}, side);
-    }
-
-    pluto::motion::JointAnglesMd standing_angle_offsets_md(LegSide side) noexcept
-    {
-      const auto servo = standing_servo_angles_md(side);
-      const auto ik    = standing_ik_angles_md(side);
-      return {
-          servo.coxa_md - ik.coxa_md, servo.femur_md - ik.femur_md,
-          servo.tibia_md - ik.tibia_md};
-    }
-
-    pluto::motion::JointAnglesMd apply_standing_offsets(pluto::motion::JointAnglesMd angles, LegSide side) noexcept
-    {
-      const auto offsets = standing_angle_offsets_md(side);
-      angles.coxa_md += offsets.coxa_md;
-      angles.femur_md += offsets.femur_md;
-      angles.tibia_md += offsets.tibia_md;
-      return angles;
-    }
   } // namespace
 
   void SimGaitController::set_gait(SimGaitKind gait) noexcept
@@ -500,7 +453,7 @@ namespace pluto::sim
             foot.z += BOW_REAR_RISE * pose;
         }
 
-        const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+        const auto servo_angles = solve_leg(foot, side);
         legs[i].write_angles(
             servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
 }
@@ -542,7 +495,7 @@ namespace pluto::sim
             foot.z = FOOT_Z_STAND - PAW_REAR_SUPPORT_DROP_Z;
         }
 
-        const auto servo_angles = apply_standing_offsets(solve_leg(foot, side), side);
+        const auto servo_angles = solve_leg(foot, side);
         legs[i].write_angles(
             servo_angles.coxa_md, servo_angles.femur_md, servo_angles.tibia_md);
     }

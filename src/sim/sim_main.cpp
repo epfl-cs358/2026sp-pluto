@@ -144,8 +144,8 @@ void handle_key(GLFWwindow* window, int key, int scancode, int action, int mods)
             std::cout << "Motion: paw" << std::endl;
             break;
         case GLFW_KEY_O:
-            gait.set_motion(pluto::sim::SimMotionCommand::BOW);
-            std::cout << "Motion: bow" << std::endl;
+            gait.set_motion(pluto::sim::SimMotionCommand::FLIP);
+            std::cout << "Motion: flip" << std::endl;
             break;
         case GLFW_KEY_1:
             gait.set_gait(pluto::sim::SimGaitKind::WALK);
