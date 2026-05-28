@@ -220,6 +220,7 @@ void command_stop()
   GAIT.stand(LEGS);
   robot_walking = false;
 
+  last_wifi_motion = pluto::motion::MotionCommand::IDLE;
   Serial.println("Motion: stop/stand");
 }
 
