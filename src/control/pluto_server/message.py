@@ -42,9 +42,9 @@ class SensorMicrophone(IntEnum):
 
 
 class MessageBehaviorKind(IntEnum):
-    BEHAVIOR_SIT = 0
-    BEHAVIOR_GIVE_PAW = 1
-    BEHAVIOR_LIE_DOWN = 2
+    BEHAVIOR_FLIP = 0
+    BEHAVIOR_BOW = 1
+    BEHAVIOR_SIT = 2
 
 
 class Message:

@@ -43,9 +43,9 @@ enum class MessageSensorKind : uint8_t
 
 enum class MessageBehaviorKind : uint8_t
 {
+  BEHAVIOR_FLIP,
+  BEHAVIOR_BOW,
   BEHAVIOR_SIT,
-  BEHAVIOR_GIVE_PAW,
-  BEHAVIOR_LIE_DOWN,
 };
 
 enum class SensorMicrophone : uint8_t
