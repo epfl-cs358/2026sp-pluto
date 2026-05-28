@@ -45,6 +45,7 @@ class MessageBehaviorKind(IntEnum):
     BEHAVIOR_FLIP = 0
     BEHAVIOR_BOW = 1
     BEHAVIOR_SIT = 2
+    BEHAVIOR_GIVE_PAW = 3
 
 
 class Message:

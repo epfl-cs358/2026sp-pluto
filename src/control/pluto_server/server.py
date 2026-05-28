@@ -125,6 +125,7 @@ class PlutoController:
                 messages=messages,
             )
             try:
+                assert self.target_addr is not None
                 self.sock.sendto(packet.pack(), self.target_addr)
             except Exception as e:
                 logging.error(f"Failed to send packet: {e}")

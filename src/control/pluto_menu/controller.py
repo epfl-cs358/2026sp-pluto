@@ -122,6 +122,12 @@ def controller_page():
                         message.MessageBehaviorKind.BEHAVIOR_BOW
                     ),
                 ).classes("bg-indigo-500")
+                ui.button(
+                    "Give Paw",
+                    on_click=lambda: trigger_behavior(
+                        message.MessageBehaviorKind.BEHAVIOR_GIVE_PAW
+                    ),
+                ).classes("bg-indigo-500")
                 ui.button("Stop All", on_click=trigger_stop).classes(
                     "bg-red-600 text-white font-bold"
                 )
