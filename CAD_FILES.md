@@ -3,7 +3,7 @@
 This page documents the CAD/STL files used to physically print Pluto. The printable robot parts are stored separately from the simplified simulation meshes.
 
 <p align="center">
-  <img src="images/full_body_CAD.png" alt="Full body CAD model of Pluto" width="720">
+  <img width="465" height="347" alt="image" src="https://github.com/user-attachments/assets/fdf5f99e-2535-477c-9629-58cd898e7ff2" />
 </p>
 
 ## 🖨️ Physical 3D-Printing Files
