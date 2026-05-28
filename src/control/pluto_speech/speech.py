@@ -12,7 +12,7 @@ def start_speech_engine(controller: PlutoController):
     Background worker for speech recognition.
     """
     model = Model(lang="en-us")
-    grammar = '["pluto sit", "pluto stop", "pluto give paw", "[unk]"]'
+    grammar = '["pluto sit", "pluto stop", "pluto give paw", "pluto flip", "pluto bow", "[unk]"]'
     rec = KaldiRecognizer(model, 16000, grammar)
 
     def audio_callback(indata, frames, time, status):
@@ -34,6 +34,14 @@ def start_speech_engine(controller: PlutoController):
                 msg = message.create_behavior(
                     message.MessageBehaviorKind.BEHAVIOR_GIVE_PAW
                 )
+                controller.send_messages([msg])
+            elif "bow" in text:
+                logging.info("Action Triggered: BOW")
+                msg = message.create_behavior(message.MessageBehaviorKind.BEHAVIOR_BOW)
+                controller.send_messages([msg])
+            elif "flip" in text:
+                logging.info("Action Triggered: FLIP")
+                msg = message.create_behavior(message.MessageBehaviorKind.BEHAVIOR_FLIP)
                 controller.send_messages([msg])
             elif "stop" in text:
                 logging.info("Action Triggered: STOP")
