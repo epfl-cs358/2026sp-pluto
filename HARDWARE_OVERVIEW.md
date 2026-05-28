@@ -9,13 +9,13 @@ Pluto is a compact 12-servo quadruped robot. The hardware is organized around a 
 | Mechanical structure | Holds electronics and supports four articulated legs | Current per-leg meshes are listed in [CAD Files](CAD_FILES.md) |
 | Leg actuation | Provides 3 degrees of freedom per leg | 12 DMS15-style 270-degree servos: coxa, femur, and tibia on each leg |
 | Servo control | Drives all servos with stable PWM | PCA9685 16-channel PWM driver over I2C |
-| Main controller | Runs firmware, sensors, gait logic, and optional WiFi | ESP32 development board |
+| Main controller | Runs firmware, sensors, gait logic, and WiFi/UDP | ESP32 development board |
 | Sensing | Provides basic environment and audio input | HC-SR04-style ultrasonic sensor and INMP441 I2S microphone |
 | Power | Supplies servo and logic power | 7.4V 2S LiPo, XT60 connectors, rocker switch, and LM2596 buck converter |
 
 ## 🔢 Build Order
 
-1. Print the body and leg parts from the current physical 3D-printing mesh set in `src/3D printing mesh`.
+1. Print the body, holder, leg, and TPU foot parts from the current physical 3D-printing mesh set in `src/3D printing mesh`.
 2. Assemble each coxa/femur/tibia leg chain with servos, horns, bearings, and linkage hardware.
 3. Mount the coxa servos, PCA9685, buck converter, ESP32, sensors, and battery in the body.
 4. Wire the power system first, then I2C, servo channels, and sensor connections.
@@ -34,7 +34,7 @@ Use these milestones to know when it is reasonable to move to the next stage:
 | Servo wiring | Each PCA9685 channel controls the expected joint |
 | Sensor wiring | Ultrasonic and microphone pins match `src/esp/main.cpp` |
 | Firmware bring-up | Serial monitor commands work before walking is attempted |
-| Calibration | Every joint has safe `raw_min`, `raw_max`, and `raw_start` values |
+| Calibration | Every joint has safe `raw_min`, `raw_max`, standing raw, and motion-specific start values |
 
 ## 🔩 Important Hardware Notes
 

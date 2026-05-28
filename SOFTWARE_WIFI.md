@@ -2,13 +2,13 @@
 
 Pluto's controller and ESP32 firmware can communicate over WiFi using UDP on port `4242`.
 
-WiFi support is implemented in the codebase, but it is currently disabled by default in [src/esp/main.cpp](src/esp/main.cpp):
+WiFi support is implemented in the codebase and is currently enabled in [src/esp/main.cpp](src/esp/main.cpp):
 
 ```cpp
-// #define PLUTO_ENABLE_WIFI
+#define PLUTO_ENABLE_WIFI
 ```
 
-Enable that flag before expecting the ESP32 to connect to WiFi or receive controller messages.
+Configure valid access points before expecting the ESP32 to join the network or receive controller messages.
 
 ## ⚙️ Configuration
 
@@ -22,33 +22,30 @@ PLUTO_SERVER.addAP("<WIFI_NAME>", "<WIFI_PASSWORD>");
 
 Multiple calls are allowed. The ESP32 uses `WiFiMulti` and tries available configured networks.
 
-### 📌 Python Target Address
+### 📌 Python Discovery
 
-The Python controller is constructed in [src/control/main.py](src/control/main.py):
+The Python controller is constructed without a hard-coded ESP32 address in [src/control/main.py](src/control/main.py):
 
 ```python
-IP_OF_ESP = ""
-CONTROLLER = PlutoController(IP_OF_ESP)
+CONTROLLER = PlutoController()
 ```
 
-Set `IP_OF_ESP` to the ESP32's network address before testing physical WiFi control.
+When the user presses `Connect & Take Control`, the controller scans for `_pluto._udp.local.` using zeroconf/mDNS. The ESP32 advertises that UDP service as `pluto` on port `4242`.
 
 ## 🧰 WiFi Bring-Up From Scratch
 
-Only enable WiFi after serial control and servo safety are working.
+Only test WiFi control after serial control and servo safety are working.
 
-1. Enable `PLUTO_ENABLE_WIFI` in `src/esp/main.cpp`.
+1. Confirm `PLUTO_ENABLE_WIFI` is defined in `src/esp/main.cpp`.
 2. Add at least one valid `PLUTO_SERVER.addAP(...)` call.
 3. Upload firmware and open the serial monitor.
 4. Confirm the ESP32 joins the expected network.
-5. Find the ESP32 IP address from router tools or serial logs.
-6. Set `IP_OF_ESP` in `src/control/main.py`.
-7. Run `bash run.sh` or `run.bat`.
-8. Open `/controller`.
-9. Press `Connect & Take Control`.
-10. Send `Stop All` first.
-11. Check for acknowledgement messages in the telemetry log.
-12. Send small movement inputs only after stop and behavior messages work.
+5. Run `bash run.sh` or `run.bat`.
+6. Open `/controller`.
+7. Press `Connect & Take Control`.
+8. Send `Stop All` first.
+9. Check for acknowledgement messages in the telemetry log.
+10. Send small movement inputs only after stop and behavior messages work. The ESP32 maps `MOVE_BY` vectors to forward, backward, left turn, right turn, or stop.
 
 If connection fails, debug network reachability before debugging gait code.
 
@@ -111,30 +108,30 @@ Message families:
 Implemented message examples:
 
 - `MOVE_CONTROL_BEGIN_FOR`: starts a control lease.
-- `MOVE_BY`: carries forward/back and left/right signed 16-bit directions.
+- `MOVE_BY`: carries forward/back and left/right signed 16-bit directions. Firmware applies a deadzone and maps the command to forward, backward, left turn, right turn, or stop.
 - `MOVE_STOP_FOR`: stop/stand command.
-- `BEHAVIOR_SIT`: high-level sit request.
-- `BEHAVIOR_GIVE_PAW`: high-level paw request.
-- `BEHAVIOR_LIE_DOWN`: high-level lie-down request.
+- `BEHAVIOR_SIT`: high-level sit request; current firmware maps this to stop/stand.
+- `BEHAVIOR_GIVE_PAW`: high-level paw request; current firmware maps this to paw motion.
+- `BEHAVIOR_LIE_DOWN`: high-level lie-down request; current firmware maps this to bow motion.
 - `INFO_ACKNOWLEDGE`: acknowledges a sequence number.
 - `SENSOR_DISTANCE`: carries ultrasonic distance in millimeters.
 
 ## ⚠️ Current Limitations
 
-- WiFi is disabled by default in firmware.
-- Some behavior handlers on the ESP32 still print placeholders instead of complete calibrated sequences.
-- `MOVE_BY` is received by firmware, but final mapping from vector values to all physical motion cases still needs validation.
-- The Python controller IP is currently a hard-coded placeholder rather than a UI setting.
+- WiFi credentials are still configured in firmware source.
+- Behavior messages are mapped to existing safe motions, but sit and lie-down still need dedicated calibrated sequences.
+- `MOVE_BY` is mapped to basic movement commands, but final live tuning on the physical robot still needs validation.
+- The Python controller relies on mDNS/zeroconf discovery rather than a manual IP setting.
 
 ## ✅ Debugging Checklist
 
 If WiFi does not work:
 
-- Confirm `PLUTO_ENABLE_WIFI` is not commented out.
+- Confirm `PLUTO_ENABLE_WIFI` is defined.
 - Confirm credentials are correct.
 - Confirm ESP32 and computer are on the same network.
+- Confirm mDNS/zeroconf traffic is allowed on the network.
 - Confirm UDP port `4242` is not blocked.
-- Confirm `IP_OF_ESP` is not empty.
 - Confirm Python can send packets without socket errors.
 - Confirm the ESP32 receives packets by adding temporary serial logs if needed.
 - Confirm `message.h` and `message.py` still agree.

@@ -26,10 +26,9 @@ Bring up sensors after the ESP32, PCA9685, and basic servo tests work.
 2. Confirm the ultrasonic ECHO voltage is safe for the ESP32. Use a level shifter or voltage divider if needed.
 3. Flash firmware with `PLUTO_ENABLE_ULTRASONIC` and `PLUTO_ENABLE_MICROPHONE` enabled.
 4. Open the serial monitor at `115200`.
-5. Confirm microphone energy values print periodically.
-6. Move an object in front of the ultrasonic sensor and confirm wall-stop behavior only during forward motion.
-7. Clap near the microphone and confirm walking toggles only once per cooldown period.
-8. If sensor behavior is unstable, test one sensor at a time by disabling the other feature flag.
+5. Move an object in front of the ultrasonic sensor and confirm wall-stop behavior.
+6. If microphone behavior is needed, re-enable `update_microphone_control(now)` in `main.cpp` and tune the clap threshold before using it near powered servos.
+7. If sensor behavior is unstable, test one sensor at a time by disabling the other feature flag.
 
 ## 📏 Ultrasonic Sensor
 
@@ -44,7 +43,7 @@ It is designed around a non-blocking read pattern:
 - `read_begin()` sends the trigger pulse.
 - `read_end()` collects the measured pulse duration and converts it to distance.
 
-The current firmware starts a read every 150 ms and checks the result roughly 10 ms later. If the robot is moving forward and the measured distance is positive and below 20 cm, `stop_robot("wall too close")` is called.
+The current firmware starts a read every 150 ms and checks the result roughly 10 ms later. If the measured distance is positive and below 35 cm, `stop_robot("wall too close")` is called.
 
 The sensor is intended for simple front obstacle detection.
 
@@ -53,8 +52,8 @@ The sensor is intended for simple front obstacle detection.
 - The firmware does not block while waiting for the ultrasonic echo.
 - `read_begin()` starts the measurement.
 - The main loop waits briefly before `read_end()`.
-- The stop condition only applies when the gait motion is `FORWARD`.
-- Current wall-stop threshold is 20 cm.
+- The current stop condition applies whenever the distance is below the threshold.
+- Current wall-stop threshold is 35 cm.
 
 This sensor is a safety and interaction feature, not a full mapping sensor.
 
@@ -72,11 +71,13 @@ It uses I2S and exposes:
 current_energy()
 ```
 
-This returns a dimensionless relative audio energy value. In the current firmware, that energy is printed periodically and used as a clap detector:
+This returns a dimensionless relative audio energy value. The clap-control block exists in `main.cpp`, but it is currently commented out and `update_microphone_control(now)` is not called from the loop.
 
-- Clap threshold: `2000000`
+Current commented clap-control settings:
+
+- Clap threshold: `30000000`
 - Clap cooldown: `800 ms`
-- Behavior: if the robot is walking, a clap stops it; otherwise a clap starts walking.
+- Behavior if re-enabled: if the robot is walking, a clap stops it; otherwise a clap starts walking.
 
 ### 📝 Microphone Integration Notes
 

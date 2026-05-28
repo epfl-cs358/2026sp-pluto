@@ -48,6 +48,11 @@ To update this path, replace the generic mesh references in `sim_motion.py` with
 
 ## 🎮 MuJoCo Path
 
+Why use MuJoCo in this project:
+
+- Better sim-to-real potential: MuJoCo gives stronger contact and dynamics behavior for legged motion tuning, so gait behavior in simulation is more likely to transfer to hardware than a purely UI-focused path.
+- C++ integration: the simulator bridge is already implemented in C++ and mirrors ESP-side concepts, which makes it easier to reuse control logic and keep firmware/simulation assumptions aligned.
+
 The MuJoCo model is stored in:
 
 ```text
@@ -101,10 +106,21 @@ The bridge currently supports keyboard commands:
 | `B` | Move backward |
 | `Q` | Turn left |
 | `E` | Turn right |
+| `P` | Give paw |
+| `O` | Bow |
 | `S` | Stop |
 | `1` | Walk gait |
 | `2` | Trot gait |
 | `3` | Gallop gait |
+
+Mouse controls are handled through MuJoCo camera helpers:
+
+- Left drag rotates the camera.
+- Right drag moves the camera vertically or horizontally with Shift.
+- Middle drag zooms.
+- Scroll zooms in and out.
+
+![MuJoCo simulation](images/simulation.mp4)
 
 ## 🎮 Known Simulation Limitations
 
@@ -121,7 +137,6 @@ For a future team, useful improvements would be:
 
 - Unify the Python and MuJoCo simulation assumptions.
 - Replace old PyBullet generic mesh references with current per-leg meshes.
-- Add documented build/run commands for the C++ MuJoCo bridge.
 - Tune mass, friction, joint limits, and servo response against physical measurements.
 - Add screenshots or videos showing expected simulation output.
 

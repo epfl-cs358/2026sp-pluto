@@ -165,6 +165,113 @@ void update_ultrasonic_control(uint32_t now)
 #endif
 }
 
+static constexpr int16_t WIFI_MOVE_DEADZONE = 100; 
+
+void command_forward()
+{
+  if (GAIT.motion() != pluto::motion::MotionCommand::FORWARD)
+  {
+    GAIT.forward_start(LEGS);
+    delay(300);
+  }
+
+  GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
+  robot_walking = true;
+
+  Serial.println("Motion: forward");
+}
+
+void command_backward()
+{
+  if (GAIT.motion() != pluto::motion::MotionCommand::BACKWARD)
+  {
+    GAIT.backward_start(LEGS);
+    delay(300);
+  }
+
+  GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
+  robot_walking = true;
+
+  Serial.println("Motion: backward");
+}
+
+void command_turn_left()
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::LEFT);
+  robot_walking = true;
+
+  Serial.println("Motion: turn left");
+}
+
+void command_turn_right()
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
+  robot_walking = true;
+
+  Serial.println("Motion: turn right");
+}
+
+void command_stop()
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
+  GAIT.stand(LEGS);
+  robot_walking = false;
+
+  Serial.println("Motion: stop/stand");
+}
+
+void command_bow()
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::BOW);
+  robot_walking = false;
+
+  Serial.println("Motion: bow");
+}
+
+void command_paw()
+{
+  GAIT.set_motion(pluto::motion::MotionCommand::PAW);
+  robot_walking = false;
+
+  Serial.println("Motion: paw");
+}
+
+void apply_move_command(int16_t fwd, int16_t side)
+{
+  if (abs(fwd) < WIFI_MOVE_DEADZONE)
+  {
+    fwd = 0;
+  }
+
+  if (abs(side) < WIFI_MOVE_DEADZONE)
+  {
+    side = 0;
+  }
+
+  if (fwd > 0)
+  {
+    command_forward();
+  }
+  else if (fwd < 0)
+  {
+    command_backward();
+  }
+  else if (side < 0)
+  {
+    command_turn_left();
+  }
+  else if (side > 0)
+  {
+    command_turn_right();
+  }
+  else
+  {
+    command_stop();
+  }
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -246,7 +353,7 @@ void loop()
       GAIT.turnright_start(LEGS); 
       delay(1000);
 
-      GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
+      GAIT.set_motion(pluto::motion::MotionCommand::RIGHT);
       robot_walking = true; 
       Serial.println("Motion: turn right");
       break;
@@ -371,14 +478,13 @@ void loop()
       {
         int16_t fwd  = msg.payload.move_by.top_bottom_dir;
         int16_t side = msg.payload.move_by.left_right_dir;
-        // Map to gait controller inputs
+
+        apply_move_command(fwd, side); 
       }
       break;
 
       case MessageMoveKind::MOVE_STOP_FOR:
-        GAIT.set_motion(pluto::motion::MotionCommand::IDLE);
-        GAIT.stand(LEGS);
-        robot_walking = false; 
+        command_stop();
         Serial.println("Command: Stop and Stand");
         break;
 
@@ -394,10 +500,14 @@ void loop()
             == MessageSensorKind::SENSOR_DISTANCE)
         {
   #ifdef PLUTO_ENABLE_ULTRASONIC
-          // Retrieve the latest sensor cache value and stream back to PC
-          uint32_t current_dist = SENSOR_ULTRASONIC.read_end();
-          Message reply = pluto::create_sensor_distance(current_dist, millis());
-          PLUTO_SERVER.sendMessage(reply);
+          float distance_cm = SENSOR_ULTRASONIC.read_end(); 
+
+          if (distance_cm > 0.0F)
+          {
+            uint32_t distance_mm = static_cast<uint32_t>(distance_cm * 10.0F);
+            Message reply = pluto::create_sensor_distance(distance_mm, millis()); 
+            PLUTO_SERVER.sendMessage(reply);
+          }
   #endif
         }
       }
@@ -407,18 +517,18 @@ void loop()
       switch (static_cast<MessageBehaviorKind>(msg.kind))
       {
       case MessageBehaviorKind::BEHAVIOR_SIT:
-        Serial.println("Behavior: Executing SIT sequence");
-        GAIT.sit_start(LEGS);
-        GAIT.set_motion(pluto::motion::MotionCommand::SIT);
-        robot_walking = false;
+        command_stop();
+        Serial.println("Behavior: sit requested");
         break;
 
-      case MessageBehaviorKind::BEHAVIOR_BOW:
-        Serial.println("Behavior: Executing BOW sequence");
+      case MessageBehaviorKind::BEHAVIOR_GIVE_PAW:
+        command_paw();
+        Serial.println("Behavior: give paw");
         break;
 
-      case MessageBehaviorKind::BEHAVIOR_FLIP:
-        Serial.println("Behavior: Executing FLIP sequence");
+      case MessageBehaviorKind::BEHAVIOR_LIE_DOWN:
+        command_bow();
+        Serial.println("Behavior: lie down requested");
         break;
 
       default:

@@ -14,7 +14,7 @@ For a new team, read the code in this order:
 | 4 | `src/esp/legs/leg_joint.h` | How raw PWM and logical angles are written |
 | 5 | `src/esp/motion/ik_solver.cpp` | How foot targets become joint angles |
 | 6 | `src/esp/motion/gait.cpp` | How stand, walk, trot, gallop, bow, and paw are generated |
-| 7 | `src/esp/main.cpp` | Firmware startup, feature flags, sensors, serial commands, and optional UDP dispatch |
+| 7 | `src/esp/main.cpp` | Firmware startup, feature flags, sensors, serial commands, and UDP dispatch |
 | 8 | `src/comm/message.h` | Shared C++ packet and message format |
 | 9 | `src/control/pluto_server/message.py` | Python mirror of the same packet and message format |
 | 10 | `src/control/pluto_server/server.py` | Python UDP client, connection handshake, heartbeat, and listener |
@@ -43,16 +43,16 @@ The ESP32 firmware handles time-sensitive robot behavior:
 - PCA9685 initialization and 12-servo PWM output.
 - Per-joint calibration through `LegJoint` and `leg_data.h`.
 - Inverse kinematics for coxa, femur, and tibia joints.
-- Gait generation for stand, walk, trot, gallop, bow, paw, and stop.
+- Gait generation for stand, walk, trot, gallop, turns, flip, bow, sit, paw, and stop.
 - Serial monitor command handling for testing and trimming.
 - Ultrasonic wall-stop behavior.
-- Microphone clap-toggle behavior.
-- Optional FreeRTOS-based UDP communication when `PLUTO_ENABLE_WIFI` is enabled.
+- Microphone driver initialization; clap-toggle logic exists but is currently commented out in `main.cpp`.
+- FreeRTOS-based UDP communication with mDNS service advertisement when `PLUTO_ENABLE_WIFI` is enabled.
 
 Current default feature flags in `src/esp/main.cpp`:
 
 ```cpp
-// #define PLUTO_ENABLE_WIFI
+#define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
 #define PLUTO_ENABLE_MICROPHONE
 ```
@@ -69,7 +69,7 @@ Use this sequence when setting up a new robot:
 4. Test `s`, `p`, `l`, `n`, `+`, `-`, and `r` before walking.
 5. Tune `src/esp/legs/leg_data.h`.
 6. Test `1`, `2`, `3` gait selection without aggressive speeds.
-7. Enable WiFi only after serial control is safe.
+7. Validate WiFi control only after serial control is safe.
 
 ## 🎛️ Control Layer
 
@@ -77,13 +77,13 @@ The Python control hub provides operator-facing tools:
 
 - NiceGUI home, simulation, and controller pages.
 - Keyboard and browser gamepad input normalization.
-- `MOVE_BY` command sending while movement input is non-zero.
+- `MOVE_BY` command sending while movement input is non-zero; firmware maps the vectors to forward, backward, left turn, right turn, or stop.
 - Quick behavior buttons for sit, give paw, and stop.
 - Telemetry display for acknowledgements and distance messages.
 - Vosk-based speech commands using the controller computer microphone.
 - UDP packet creation and session handling through `PlutoController`.
 
-The ESP32 IP address is currently a placeholder in `src/control/main.py` and must be set before physical WiFi control.
+The controller discovers the ESP32 with zeroconf/mDNS when `Connect & Take Control` is pressed.
 
 See [Python Controller](src/control/README.md).
 
@@ -94,12 +94,11 @@ Use this sequence when setting up the controller:
 1. Run `bash run.sh` or `run.bat`.
 2. Confirm the NiceGUI home page opens.
 3. Open `/controller` and check that keyboard vectors update.
-4. Set `IP_OF_ESP` in `src/control/main.py`.
-5. Enable `PLUTO_ENABLE_WIFI` in firmware.
-6. Connect from the controller page.
-7. Test `Stop All` before movement.
-8. Test a small movement vector.
-9. Check telemetry for acknowledgements.
+4. Confirm `PLUTO_ENABLE_WIFI` is enabled and WiFi credentials are configured in firmware.
+5. Connect from the controller page.
+6. Test `Stop All` before movement.
+7. Test a small movement vector.
+8. Check telemetry for acknowledgements.
 
 ## 🔁 Communication Layer
 
@@ -137,7 +136,7 @@ See [Simulation Notes](SIMULATION.md).
 ## 📌 Current Extension Points
 
 - Better gait stability and interpolation.
-- Live WiFi control validation on hardware.
+- Live WiFi control tuning on hardware.
 - More complete behavior sequences.
 - Higher-fidelity simulation.
 - Autonomous obstacle avoidance.

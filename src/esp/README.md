@@ -14,22 +14,22 @@ PlatformIO is configured with `src_dir = src/esp`, so this directory is the firm
 
 | Module | Purpose |
 | --- | --- |
-| `main.cpp` | Firmware setup, loop, feature flags, sensors, gait update, serial commands, and optional UDP dispatch |
+| `main.cpp` | Firmware setup, loop, feature flags, sensors, gait update, serial commands, and UDP dispatch |
 | `legs/leg_data.h` | Per-joint PWM and angle calibration |
 | `legs/leg_joint.h` | Calibrated servo output abstraction |
 | `legs/leg.h` | Three-joint leg abstraction |
 | `motion/ik_solver.cpp` | Embedded inverse kinematics |
-| `motion/gait.cpp` | Stand, walk, trot, gallop, bow, paw, and gait update logic |
+| `motion/gait.cpp` | Stand, walk, trot, gallop, turn, flip, bow, sit, paw, and gait update logic |
 | `sensors/ultrasonic.h` | Ultrasonic distance sensor abstraction |
 | `sensors/microphone.h` | INMP441 I2S microphone abstraction |
-| `server/server.cpp` | Optional UDP server, sessions, CRC validation, acknowledgements, and queues |
+| `server/server.cpp` | UDP server, mDNS advertisement, sessions, CRC validation, acknowledgements, and queues |
 
 ## 🧠 Firmware Execution Flow
 
 This is the order in which the firmware operates:
 
 1. `setup()` starts serial output at `115200`.
-2. If WiFi is enabled, `PLUTO_SERVER` is configured and started.
+2. If WiFi is enabled, `PLUTO_SERVER` is configured, advertises `_pluto._udp.local`, and starts.
 3. The PCA9685 is initialized and set to 50 Hz.
 4. Enabled sensors are initialized.
 5. `GAIT.stand(LEGS)` moves the robot into the starting stand pose.
@@ -65,7 +65,12 @@ Each joint has:
 
 - `raw_min`: lowest safe raw PWM value.
 - `raw_max`: highest safe raw PWM value.
-- `raw_start`: neutral or startup raw PWM value.
+- `raw_stand`: standing raw PWM value.
+- `raw_forward`: forward-start raw PWM value.
+- `raw_turnleft`: left-turn-start raw PWM value.
+- `raw_turnright`: right-turn/backward-start raw PWM value.
+- `raw_bow`: bow-start raw PWM value.
+- `raw_sit`: sit-start raw PWM value.
 - `angle_min_md`: minimum logical angle in millidegrees.
 - `angle_max_md`: maximum logical angle in millidegrees.
 - `inverted`: whether logical angle direction is reversed for that joint.
@@ -78,7 +83,7 @@ Recommended calibration sequence:
 4. Use `p` to print the current selected joint and pulse.
 5. Use `+` and `-` to move in small raw PWM increments.
 6. Record the safe lower and upper values before mechanical binding.
-7. Set `raw_start` to a physically neutral starting value.
+7. Set `raw_stand` to a physically neutral standing value, then tune the motion-specific raw start values.
 8. Confirm whether the logical direction needs `inverted = true`.
 9. Repeat for all 12 joints.
 10. Rebuild and upload firmware after changing calibration values.
@@ -90,20 +95,19 @@ Do not run full gait commands until all 12 joints have safe limits.
 Current defaults in `main.cpp`:
 
 ```cpp
-// #define PLUTO_ENABLE_WIFI
+#define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
 #define PLUTO_ENABLE_MICROPHONE
 ```
 
-That means ultrasonic and microphone support are enabled by default, while WiFi/UDP control must be explicitly enabled.
+That means WiFi/UDP, ultrasonic, and microphone support are enabled at compile time. WiFi still needs valid access point credentials in `setup()`.
 
 ## 📌 Timing
 
 - Gait update: every 20 ms.
 - Ultrasonic cycle: every 150 ms.
 - Ultrasonic wait after trigger: 10 ms.
-- Microphone energy print period: 150 ms.
-- Clap cooldown: 800 ms.
+- Microphone clap-control code is present but currently commented out in `main.cpp`.
 - Serial baud rate: 115200.
 
 ## 📡 Sensors
@@ -113,9 +117,9 @@ Current templates in `main.cpp`:
 - Ultrasonic: `SensorUltraSonic<5, 18>`
 - Microphone: `SensorMicrophone<26, 25, 33>`
 
-Forward motion stops if ultrasonic distance is between 0 and 20 cm.
+Motion stops if ultrasonic distance is between 0 and 35 cm.
 
-A microphone energy spike above the clap threshold toggles walking on/off.
+The microphone driver initializes, but the clap-toggle update call is currently commented out in `main.cpp`.
 
 ## ⌨️ Serial Commands
 
@@ -129,7 +133,9 @@ pio device monitor -b 115200
 | --- | --- |
 | `f` | Move forward |
 | `b` | Move backward |
-| `o` | Bow |
+| `o` | Flip |
+| `h` | Bow |
+| `i` | Sit |
 | `k` | Give paw |
 | `s` | Stop and stand |
 | `1` | Select walk gait |
@@ -162,6 +168,20 @@ Configure access points in `setup()` with:
 ```cpp
 PLUTO_SERVER.addAP("<WIFI_NAME>", "<WIFI_PASSWORD>");
 ```
+
+Queued UDP messages are processed in `loop()`. `MOVE_BY` commands apply a small deadzone and then map to one of the existing movement commands:
+
+- positive forward/back value: walk forward
+- negative forward/back value: walk backward
+- negative left/right value: turn left
+- positive left/right value: turn right
+- both axes inside the deadzone: stop and stand
+
+Behavior messages currently map as follows:
+
+- `BEHAVIOR_SIT`: stop/stand
+- `BEHAVIOR_GIVE_PAW`: paw motion
+- `BEHAVIOR_LIE_DOWN`: bow motion
 
 See [WiFi Protocol](../../SOFTWARE_WIFI.md) and [Shared Communication Protocol](../comm/README.md).
 

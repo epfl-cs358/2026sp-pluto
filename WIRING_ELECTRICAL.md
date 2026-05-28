@@ -50,7 +50,7 @@ If a later step fails, disconnect power and return to the last verified step.
 
 ## 📶 ESP32 Connections
 
-The ESP32 is the main controller. It handles firmware execution, sensor reads, serial debugging, optional WiFi, and communication with the PCA9685 servo driver.
+The ESP32 is the main controller. It handles firmware execution, sensor reads, serial debugging, WiFi/UDP, and communication with the PCA9685 servo driver.
 
 Check these before powering the full robot:
 
@@ -109,7 +109,7 @@ Before full robot testing:
 4. Connect one servo and test small raw changes from the serial monitor.
 5. Connect the remaining servos only after the first servo behaves correctly.
 6. Test the ultrasonic sensor separately before relying on wall-stop behavior.
-7. Test microphone energy prints before relying on clap-toggle behavior.
+7. If clap-toggle behavior is re-enabled in firmware, test microphone energy readings before relying on it.
 
 ## ✅ First Power-Up Checklist
 

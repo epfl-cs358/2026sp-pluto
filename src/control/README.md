@@ -35,7 +35,7 @@ The control application starts in `main.py`:
 
 1. Command-line arguments are parsed, including `--port`.
 2. NiceGUI route modules are imported, which registers their pages.
-3. `IP_OF_ESP` is used to construct `PlutoController`.
+3. `PlutoController` is created without a fixed robot address.
 4. The controller object is stored in `app.extra`.
 5. A speech-recognition worker starts in a background thread.
 6. The NiceGUI server starts.
@@ -69,16 +69,13 @@ By default the scripts launch the UI on port `8090`.
 
 ## 📶 Robot Connection
 
-The ESP32 IP address is currently set in `main.py`:
+The controller discovers Pluto at connect time. `main.py` creates the controller without a hard-coded ESP32 IP address:
 
 ```python
-IP_OF_ESP = ""
-CONTROLLER = PlutoController(IP_OF_ESP)
+CONTROLLER = PlutoController()
 ```
 
-Set this to the ESP32 address before using live WiFi control.
-
-WiFi must also be enabled in the ESP32 firmware with `PLUTO_ENABLE_WIFI`.
+When `Connect & Take Control` is pressed, `pluto_server/server.py` scans for `_pluto._udp.local.` using zeroconf/mDNS, stores the discovered IP and port, and then performs the UDP handshake. WiFi must also be enabled and configured in the ESP32 firmware with `PLUTO_ENABLE_WIFI` and valid `PLUTO_SERVER.addAP(...)` credentials.
 
 ## 👥 New-Team Setup Checklist
 
@@ -87,21 +84,20 @@ WiFi must also be enabled in the ESP32 firmware with `PLUTO_ENABLE_WIFI`.
 3. Open `/controller`.
 4. Press WASD and confirm the displayed vector changes.
 5. Connect a gamepad and confirm the vector changes.
-6. Set `IP_OF_ESP` in `main.py`.
-7. Enable WiFi in the ESP32 firmware.
-8. Flash firmware and confirm the ESP32 is on the same network.
-9. Press `Connect & Take Control`.
-10. Send `Stop All` before sending movement.
-11. Watch the telemetry log for `INFO_ACK` messages.
+6. Enable and configure WiFi in the ESP32 firmware.
+7. Flash firmware and confirm the ESP32 is on the same network.
+8. Press `Connect & Take Control`.
+9. Send `Stop All` before sending movement.
+10. Watch the telemetry log for `INFO_ACK` messages.
 
 ## 🎛️ Controller Page
 
 `pluto_menu/controller.py` supports:
 
-- Connect and take-control button.
+- Connect and take-control button with mDNS/zeroconf scanning.
 - WASD keyboard input.
 - First browser gamepad input.
-- Repeated `MOVE_BY` messages while the movement vector is non-zero.
+- Repeated `MOVE_BY` messages while the movement vector is non-zero. The ESP32 maps these vectors to forward, backward, left turn, right turn, or stop.
 - Quick action buttons for sit, give paw, and stop.
 - Telemetry log for acknowledgements and distance messages.
 
