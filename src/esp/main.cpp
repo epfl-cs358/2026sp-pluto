@@ -413,12 +413,12 @@ void loop()
         robot_walking = false;
         break;
 
-      case MessageBehaviorKind::BEHAVIOR_GIVE_PAW:
-        Serial.println("Behavior: Executing GIVE PAW sequence");
+      case MessageBehaviorKind::BEHAVIOR_BOW:
+        Serial.println("Behavior: Executing BOW sequence");
         break;
 
-      case MessageBehaviorKind::BEHAVIOR_LIE_DOWN:
-        Serial.println("Behavior: Executing LIE DOWN sequence");
+      case MessageBehaviorKind::BEHAVIOR_FLIP:
+        Serial.println("Behavior: Executing FLIP sequence");
         break;
 
       default:
