@@ -46,7 +46,7 @@ The ESP32 firmware handles time-sensitive robot behavior:
 - Gait generation for stand, walk, trot, gallop, turns, flip, bow, sit, paw, and stop.
 - Serial monitor command handling for testing and trimming.
 - Ultrasonic wall-stop behavior.
-- Microphone driver initialization; clap-toggle logic exists but is currently commented out in `main.cpp`.
+- Microphone driver and clap-toggle logic are present, but currently disabled in `main.cpp`.
 - FreeRTOS-based UDP communication with mDNS service advertisement when `PLUTO_ENABLE_WIFI` is enabled.
 
 Current default feature flags in `src/esp/main.cpp`:
@@ -54,7 +54,7 @@ Current default feature flags in `src/esp/main.cpp`:
 ```cpp
 #define PLUTO_ENABLE_WIFI
 #define PLUTO_ENABLE_ULTRASONIC
-#define PLUTO_ENABLE_MICROPHONE
+// #define PLUTO_ENABLE_MICROPHONE
 ```
 
 See [ESP32 Firmware](src/esp/README.md).

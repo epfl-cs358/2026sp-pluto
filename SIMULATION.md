@@ -107,7 +107,7 @@ The bridge currently supports keyboard commands:
 | `Q` | Turn left |
 | `E` | Turn right |
 | `P` | Give paw |
-| `O` | Bow |
+| `O` | Flip |
 | `S` | Stop |
 | `1` | Walk gait |
 | `2` | Trot gait |

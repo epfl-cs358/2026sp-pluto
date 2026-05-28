@@ -21,7 +21,7 @@ Current routes:
 | Module | Purpose |
 | --- | --- |
 | `main.py` | Starts the NiceGUI app, creates `PlutoController`, and starts the speech worker |
-| `pluto_menu/controller.py` | Controller UI, connect button, quick actions, movement input, and telemetry log |
+| `pluto_menu/controller.py` | Controller UI, connect button, behavior quick actions, movement input, and telemetry log |
 | `pluto_menu/simulation.py` | PyBullet simulation UI controls |
 | `pluto_input/input_manager.py` | Normalizes WASD and gamepad input into movement vectors |
 | `pluto_server/message.py` | Python mirror of the shared packet/message format |
@@ -48,7 +48,7 @@ The `/controller` page then:
 4. Combines keyboard and gamepad input into a normalized vector.
 5. Converts that vector into signed 16-bit movement values scaled by `MAX_SPEED = 255`.
 6. Sends `MOVE_BY` messages while the vector is non-zero.
-7. Sends behavior and stop messages from the quick-action buttons.
+7. Sends sit, flip, bow, give-paw, and stop messages from the quick-action buttons.
 8. Reads acknowledgement and sensor messages into the telemetry log.
 
 ## ▶️ Running
@@ -98,7 +98,7 @@ When `Connect & Take Control` is pressed, `pluto_server/server.py` scans for `_p
 - WASD keyboard input.
 - First browser gamepad input.
 - Repeated `MOVE_BY` messages while the movement vector is non-zero. The ESP32 maps these vectors to forward, backward, left turn, right turn, or stop.
-- Quick action buttons for sit, give paw, and stop.
+- Quick action buttons for sit, flip, bow, give paw, and stop.
 - Telemetry log for acknowledgements and distance messages.
 
 ## 🗣️ Speech Commands
@@ -110,6 +110,8 @@ Current grammar:
 - `pluto sit`
 - `pluto stop`
 - `pluto give paw`
+- `pluto flip`
+- `pluto bow`
 
 Recognized phrases are converted into shared protocol messages.
 
