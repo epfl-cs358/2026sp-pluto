@@ -29,6 +29,8 @@
 auto PLUTO_SERVER = pluto::PlutoServer{4242};
 #endif
 
+pluto::motion::MotionCommand last_wifi_motion = pluto::motion::MotionCommand::IDLE;
+
 /// @brief The PWM driver
 Adafruit_PWMServoDriver PWM = Adafruit_PWMServoDriver();
 /// @brief The legs
@@ -68,7 +70,7 @@ void start_robot()
   GAIT.forward_start(LEGS);
   delay(300);
 
-  GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_gait(pluto::motion::GaitKind::TROT);
   GAIT.set_speed(0.65F);
   GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
   robot_walking = true;
@@ -175,7 +177,7 @@ void command_forward()
     delay(300);
   }
 
-  GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_gait(pluto::motion::GaitKind::TROT);
   GAIT.set_speed(0.65F);
   GAIT.set_motion(pluto::motion::MotionCommand::FORWARD);
   robot_walking = true;
@@ -191,7 +193,7 @@ void command_backward()
     delay(300);
   }
 
-  GAIT.set_gait(pluto::motion::GaitKind::WALK);
+  GAIT.set_gait(pluto::motion::GaitKind::TROT);
   GAIT.set_motion(pluto::motion::MotionCommand::BACKWARD);
   robot_walking = true;
 
@@ -239,8 +241,6 @@ void command_paw()
 
   Serial.println("Motion: paw");
 }
-
-pluto::motion::MotionCommand last_wifi_motion = pluto::motion::MotionCommand::IDLE;
 
 void apply_move_command(int16_t fwd, int16_t side)
 {
