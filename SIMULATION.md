@@ -138,7 +138,6 @@ For a future team, useful improvements would be:
 - Unify the Python and MuJoCo simulation assumptions.
 - Replace old PyBullet generic mesh references with current per-leg meshes.
 - Tune mass, friction, joint limits, and servo response against physical measurements.
-- Add screenshots or videos showing expected simulation output.
 
 ## 📚 Related Documentation
 
