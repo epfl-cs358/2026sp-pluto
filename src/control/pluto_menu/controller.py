@@ -18,7 +18,7 @@ def controller_page():
     pluto_controller: server.PlutoController = app.extra["PLUTO_CONTROLLER"]
 
     # Track states for movement and buttons to prevent spamming
-    last_sent_command = {"values": (0, 0)}
+    last_sent_command = {"direction": None}
     previous_buttons = []
 
     def handle_key(e: events.KeyEventArguments):
@@ -34,27 +34,33 @@ def controller_page():
             (() => {
                 const gp = navigator.getGamepads()[0];
                 if (!gp) return null;
-                // Return axes and mapped boolean button states
-                return { 
-                    axes: gp.axes,
-                    buttons: gp.buttons.map(b => b.pressed)
-                };
+                return gp.buttons.map(b => b.pressed);
             })()
         """
         try:
             data = await ui.run_javascript(js_code, timeout=0.5)
             if data:
-                # Update movement axes
-                input_manager.update_from_gamepad(data["axes"][0], data["axes"][1])
-
-                # Process buttons
-                current_buttons = data["buttons"]
+                current_buttons = data
 
                 if not previous_buttons:
                     previous_buttons = current_buttons
                     return
 
-                # trigger only when transitioning from False to True
+                # D-pad (buttons 12-15) drives movement
+                input_manager.update_from_keyboard(
+                    w=current_buttons[15],
+                    s=current_buttons[13],
+                    a=current_buttons[14],
+                    d=current_buttons[12],
+                )
+
+                # Either trigger (buttons 6-7) sends stop on press
+                trigger_pressed = current_buttons[6] or current_buttons[7]
+                prev_trigger_pressed = previous_buttons[6] or previous_buttons[7]
+                if trigger_pressed and not prev_trigger_pressed:
+                    trigger_stop()
+
+                # Edge detection: trigger only when transitioning from False to True
                 if current_buttons[0] and not previous_buttons[0]:
                     trigger_behavior(message.MessageBehaviorKind.BEHAVIOR_SIT)
 
@@ -190,14 +196,33 @@ def controller_page():
             if abs(vy) < DEADZONE:
                 vy = 0.0
 
-            forward_back = int(-vy * MAX_SPEED) if abs(vy) > DEADZONE else 0
-            left_right = int(vx * MAX_SPEED) if abs(vx) > DEADZONE else 0
+            forward_back = 0
+            left_right = 0
+            direction = "stop"
+
+            if vx == 0.0 and vy == 0.0:
+                direction = "stop"
+            elif abs(vy) >= abs(vx):
+                if vy < 0:
+                    direction = "forward"
+                    forward_back = MAX_SPEED
+                else:
+                    direction = "backward"
+                    forward_back = -MAX_SPEED
+            else:
+                if vx < 0:
+                    direction = "left"
+                    left_right = -MAX_SPEED
+                else:
+                    direction = "right"
+                    left_right = MAX_SPEED
 
             if pluto_controller.is_connected:
-                new_command = (forward_back, left_right)
-                if new_command != last_sent_command["values"]:
-                    last_sent_command["values"] = new_command  # type: ignore
-                    if forward_back == 0 and left_right == 0:
+                direction_changed = direction != last_sent_command["direction"]
+                if direction_changed:
+                    last_sent_command["direction"] = direction  # type: ignore
+
+                    if direction == "stop":
                         trigger_stop(False)
                     else:
                         msg = message.create_move_by(
