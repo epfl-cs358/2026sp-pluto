@@ -18,7 +18,7 @@ def controller_page():
     pluto_controller: server.PlutoController = app.extra["PLUTO_CONTROLLER"]
 
     # Track states for movement and buttons to prevent spamming
-    last_sent_command = {"direction": None}
+    last_sent_command = {"values": (0, 0)}
     previous_buttons = []
 
     def handle_key(e: events.KeyEventArguments):
@@ -54,7 +54,7 @@ def controller_page():
                     previous_buttons = current_buttons
                     return
 
-                # Edge detection: trigger only when transitioning from False to True
+                # trigger only when transitioning from False to True
                 if current_buttons[0] and not previous_buttons[0]:
                     trigger_behavior(message.MessageBehaviorKind.BEHAVIOR_SIT)
 
@@ -190,33 +190,14 @@ def controller_page():
             if abs(vy) < DEADZONE:
                 vy = 0.0
 
-            forward_back = 0
-            left_right = 0
-            direction = "stop"
-
-            if vx == 0.0 and vy == 0.0:
-                direction = "stop"
-            elif abs(vy) >= abs(vx):
-                if vy < 0:
-                    direction = "forward"
-                    forward_back = MAX_SPEED
-                else:
-                    direction = "backward"
-                    forward_back = -MAX_SPEED
-            else:
-                if vx < 0:
-                    direction = "left"
-                    left_right = -MAX_SPEED
-                else:
-                    direction = "right"
-                    left_right = MAX_SPEED
+            forward_back = int(-vy * MAX_SPEED) if abs(vy) > DEADZONE else 0
+            left_right = int(vx * MAX_SPEED) if abs(vx) > DEADZONE else 0
 
             if pluto_controller.is_connected:
-                direction_changed = direction != last_sent_command["direction"]
-                if direction_changed:
-                    last_sent_command["direction"] = direction
-
-                    if direction == "stop":
+                new_command = (forward_back, left_right)
+                if new_command != last_sent_command["values"]:
+                    last_sent_command["values"] = new_command  # type: ignore
+                    if forward_back == 0 and left_right == 0:
                         trigger_stop(False)
                     else:
                         msg = message.create_move_by(
