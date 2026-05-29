@@ -244,6 +244,17 @@ void command_bow()
   Serial.println("Motion: bow");
 }
 
+void command_sit()
+{
+  GAIT.sit_start(LEGS);
+  delay(250);
+
+  GAIT.set_motion(pluto::motion::MotionCommand::SIT);
+  robot_walking = false;
+
+  Serial.println("Motion: sit");
+}
+
 void command_paw()
 {
   GAIT.set_motion(pluto::motion::MotionCommand::PAW);
@@ -267,14 +278,20 @@ void apply_move_command(int16_t fwd, int16_t side)
 
   pluto::motion::MotionCommand new_motion = pluto::motion::MotionCommand::IDLE;
 
-  if (fwd > 0)
-    new_motion = pluto::motion::MotionCommand::FORWARD;
-  else if (fwd < 0)
-    new_motion = pluto::motion::MotionCommand::BACKWARD;
-  else if (side < 0)
-    new_motion = pluto::motion::MotionCommand::LEFT;
-  else if (side > 0)
-    new_motion = pluto::motion::MotionCommand::RIGHT;
+  if (abs(fwd) >= abs(side))
+  {
+    if (fwd > 0)
+      new_motion = pluto::motion::MotionCommand::FORWARD;
+    else if (fwd < 0)
+      new_motion = pluto::motion::MotionCommand::BACKWARD;
+  }
+  else
+  {
+    if (side < 0)
+      new_motion = pluto::motion::MotionCommand::LEFT;
+    else if (side > 0)
+      new_motion = pluto::motion::MotionCommand::RIGHT;
+  }
 
   if (new_motion == last_wifi_motion)
   {
@@ -554,7 +571,7 @@ void loop()
       switch (static_cast<MessageBehaviorKind>(msg.kind))
       {
       case MessageBehaviorKind::BEHAVIOR_SIT:
-        command_stop();
+        command_sit();
         Serial.println("Behavior: sit requested");
         break;
 
