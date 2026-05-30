@@ -19,10 +19,6 @@
   <img src="images/pluto_body.png" alt="Pluto physical robot" width="720">
 </p>
 
-> **Current status:** Pluto has the main robot platform in place: ESP32 firmware, gait code, servo calibration hooks, ultrasonic wall-stopping, a Python controller with UI and speech behavior commands, shared UDP messages, updated per-leg meshes, and a MuJoCo model. Final physical gait tuning, microphone behavior re-enabling, and some behavior sequences still need validation on the real robot.
-
-> **Live demo:** Demo media can be added here once final robot videos are available.
-
 ---
 
 ## 🧭 Quick Navigation
